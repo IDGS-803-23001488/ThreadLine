@@ -1,0 +1,134 @@
+# routes/usuarios.py
+import datetime
+from flask import Blueprint, render_template, request, redirect, url_for, flash, g
+from models import db, Usuario
+from forms import UserForm
+from middlerware import login_requerido, permiso_requerido
+
+usuarios = Blueprint("usuarios", __name__, url_prefix="/usuarios")
+
+# ==============================
+# LISTA
+# ==============================
+@usuarios.route("/")
+@login_requerido
+@permiso_requerido("usuarios", "ver")
+def lista():
+    search = request.args.get("search", "", type=str)
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 5, type=int)
+
+    query = Usuario.query.filter_by(activo=True)
+    if search:
+        query = query.filter(
+            Usuario.usuario.ilike(f"%{search}%") |
+            Usuario.correo.ilike(f"%{search}%")
+        )
+
+    pagination = query.order_by(Usuario.id.asc()).paginate(
+        page=page,
+        per_page=per_page,
+        error_out=False
+    )
+
+    rows = [
+        [("ID", u.id), ("Usuario", u.usuario), ("Correo", u.correo)]
+        for u in pagination.items
+    ]
+
+    return render_template(
+        "usuarios/lista.html",
+        headers=["ID", "Usuario", "Correo"],
+        rows=rows,
+        pagination=pagination,
+        search=search,
+        per_page=per_page,
+        endpoint="usuarios",
+        titulo="Usuarios",
+        descripcion="Listado general de usuarios"
+    )
+
+
+# ==============================
+# CREAR
+# ==============================
+@usuarios.route("/crear", methods=["GET", "POST"])
+@login_requerido
+@permiso_requerido("usuarios", "crear")
+def crear():
+
+    form = UserForm(request.form)
+
+    if request.method == "POST" and form.validate():
+
+        nuevo = Usuario(
+            usuario=form.usuario.data,
+            correo=form.correo.data,
+            contrasenia=form.contrasenia.data,
+            creado_por=g.usuario_actual.id  # 🔥 Auditoría
+        )
+
+        db.session.add(nuevo)
+        db.session.commit()
+
+        flash("Usuario creado correctamente")
+        return redirect(url_for("usuarios.lista"))
+
+    return render_template(
+        "usuarios/crear.html",
+        form=form,
+        titulo="Crear Usuario",
+        descripcion="Registro de nuevo usuario"
+    )
+
+
+# ==============================
+# EDITAR
+# ==============================
+@usuarios.route("/editar/<int:id>", methods=["GET", "POST"])
+@login_requerido
+@permiso_requerido("usuarios", "editar")
+def editar(id):
+
+    usuario = Usuario.query.filter_by(id=id, activo=True).first_or_404()
+
+    form = UserForm(request.form, obj=usuario)
+
+    if request.method == "POST" and form.validate():
+
+        form.populate_obj(usuario)
+
+        usuario.editado_por = g.usuario_actual.id
+        usuario.fecha_edicion = datetime.datetime.utcnow()
+
+        db.session.commit()
+
+        flash("Usuario actualizado correctamente")
+        return redirect(url_for("usuarios.lista"))
+
+    return render_template(
+        "usuarios/editar.html",
+        form=form,
+        titulo="Editar Usuario",
+        descripcion="Modificar información del usuario"
+    )
+
+
+# ==============================
+# ELIMINAR (SOFT DELETE)
+# ==============================
+@usuarios.route("/eliminar/<int:id>")
+@login_requerido
+@permiso_requerido("usuarios", "eliminar")
+def eliminar(id):
+
+    usuario = Usuario.query.filter_by(id=id, activo=True).first_or_404()
+
+    usuario.activo = False
+    usuario.fecha_eliminacion = datetime.datetime.utcnow()
+    usuario.eliminado_por = g.usuario_actual.id
+
+    db.session.commit()
+
+    flash("Usuario eliminado correctamente")
+    return redirect(url_for("usuarios.lista"))

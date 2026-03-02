@@ -1,0 +1,71 @@
+<!-- templates/roles/editar.html -->
+{% extends "layout.html" %}
+{% from "macros/forms.html" import render_input, form_buttons %}
+
+{% block container %}
+
+<div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg max-w-2xl">
+
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {{ render_input(form.nombre) }}
+        {{ render_input(form.descripcion) }}
+
+        <div class="mt-4">
+            <label class="block mb-2 font-semibold text-gray-700 dark:text-gray-200">
+                Permisos
+            </label>
+
+            <div class="overflow-x-auto border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-200 dark:bg-gray-600">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Módulo</th>
+                            {% set todas_acciones = [] %}
+                            {% for acciones in permisos_por_modulo.values() %}
+                                {% for accion in acciones.keys() %}
+                                    {% if accion not in todas_acciones %}
+                                        {% set _ = todas_acciones.append(accion) %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                            {% for accion in todas_acciones %}
+                                <th class="px-4 py-2 text-center text-gray-700 dark:text-gray-200">{{ accion|capitalize }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for modulo, acciones in permisos_por_modulo.items() %}
+                        <tr class="border-t border-gray-300 dark:border-gray-600">
+                            <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-200">{{ modulo }}</td>
+                            {% for accion in todas_acciones %}
+                                <td class="px-4 py-2 text-center">
+                                    {% set permiso = acciones.get(accion) %}
+                                    {% if permiso %}
+                                        <input 
+                                            type="checkbox" 
+                                            name="permisos" 
+                                            value="{{ permiso.id }}"
+                                            {% if permiso in rol.permisos %} checked {% endif %}
+                                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded 
+                                                   focus:ring-blue-500 dark:focus:ring-blue-600 
+                                                   dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800
+                                                   dark:bg-gray-600 dark:border-gray-500"
+                                        >
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{ form_buttons(url_for('roles.lista')) }}
+    </form>
+
+</div>
+
+{% endblock %}

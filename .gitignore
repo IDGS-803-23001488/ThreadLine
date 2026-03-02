@@ -1,0 +1,16 @@
+# Entorno virtual
+.env
+
+static
+node_modules
+
+# Ignorar la carpeta de migraciones de Django
+migrations
+
+# Ignorar todas las carpetas __pycache__ en cualquier nivel
+__pycache__/
+
+# Ignorar archivos compilados de Python
+*.pyc
+*.pyo
+*.pyd

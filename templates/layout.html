@@ -1,0 +1,137 @@
+<!-- templates/layout.html -->
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo if titulo else "Panel de Administración" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
+</head>
+
+<body class="h-full bg-gray-100 dark:bg-gray-900 antialiased">
+
+<div class="flex h-full">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-gradient-to-b from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 text-gray-200 dark:text-gray-300 shadow-xl dark:shadow-gray-950/50">
+
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-700 dark:border-gray-700/50">
+            <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 text-white flex items-center justify-center rounded-xl font-semibold shadow-lg dark:shadow-red-900/30">
+                T
+            </div>
+            <span class="text-lg font-semibold tracking-wide text-white dark:text-gray-100">ThreadLine</span>
+        </div>
+
+        <nav class="mt-6 px-4 space-y-2">
+            <a href="{{ url_for('main.index') }}"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-200 dark:text-gray-300 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white dark:hover:text-white transition-all duration-200 group">
+                <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-blue-400 dark:group-hover:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
+                </svg>
+                <span class="font-medium">Inicio</span>
+            </a>
+
+            <a href="{{ url_for('usuarios.lista') }}"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-200 dark:text-gray-300 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white dark:hover:text-white transition-all duration-200 group">
+                <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-blue-400 dark:group-hover:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z"/>
+                </svg>
+                <span class="font-medium">Usuarios</span>
+            </a>
+
+            <div class="border-t border-gray-700 dark:border-gray-800 my-4"></div>
+
+            <a href="{{ url_for('roles.lista') }}"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-200 dark:text-gray-300 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white dark:hover:text-white transition-all duration-200 group">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                    <path d="M18.75 12.75h1.5a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5ZM12 6a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 6ZM12 18a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 12 18ZM3.75 6.75h1.5a.75.75 0 1 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5ZM5.25 18.75h-1.5a.75.75 0 0 1 0-1.5h1.5a.75.75 0 0 1 0 1.5ZM3 12a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 3 12ZM9 3.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5ZM12.75 12a2.25 2.25 0 1 1 4.5 0 2.25 2.25 0 0 1-4.5 0ZM9 15.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z" />
+                </svg>
+                <span class="font-medium">Roles</span>
+            </a>
+        </nav>
+
+        <!-- Footer del sidebar (opcional) -->
+        <div class="absolute bottom-0 w-64 p-4 border-t border-gray-700 dark:border-gray-800 space-y-3">
+            
+            <!-- Botón cerrar sesión -->
+            <a href="{{ url_for('auth.logout') }}"
+            class="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl 
+                    bg-red-600 hover:bg-red-700 
+                    text-white text-sm font-medium 
+                    transition-all duration-200 shadow-md hover:shadow-lg">
+
+                <svg xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 24 24" 
+                    fill="currentColor" 
+                    class="w-5 h-5">
+                    <path fill-rule="evenodd" 
+                        d="M7.5 3.75A2.25 2.25 0 0 0 5.25 6v12A2.25 2.25 0 0 0 7.5 20.25h4.5a.75.75 0 0 0 0-1.5H7.5A.75.75 0 0 1 6.75 18V6c0-.414.336-.75.75-.75h4.5a.75.75 0 0 0 0-1.5H7.5Zm9.53 4.72a.75.75 0 0 0-1.06 1.06L17.69 11.25H9.75a.75.75 0 0 0 0 1.5h7.94l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3a.75.75 0 0 0 0-1.06l-3-3Z" 
+                        clip-rule="evenodd" />
+                </svg>
+
+                Cerrar sesión
+            </a>
+
+            <!-- Versión -->
+            <div class="flex justify-center text-xs text-gray-400 dark:text-gray-500">
+                <span>Versión 1.0.0</span>
+            </div>
+
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col">
+        <header class="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/30 px-6 py-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <h1 class="text-xl font-semibold text-gray-800 dark:text-white">
+                    {{ titulo }}
+                </h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {% if descripcion %}
+                        {{ descripcion }}
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="relative group">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white flex items-center justify-center rounded-xl font-semibold cursor-pointer shadow-md dark:shadow-blue-900/30 ring-2 ring-transparent hover:ring-blue-200 dark:hover:ring-blue-800 transition-all">
+                        A
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 p-8 space-y-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flex items-center p-4 text-sm rounded-xl shadow-sm dark:shadow-gray-900/20 border-l-4 
+                            {% if category == 'error' %}
+                                bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-500 dark:border-red-600
+                            {% elif category == 'warning' %}
+                                bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 border-yellow-500 dark:border-yellow-600
+                            {% elif category == 'success' %}
+                                bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border-green-500 dark:border-green-600
+                            {% else %}
+                                bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border-blue-500 dark:border-blue-600
+                            {% endif %}">
+                            <span class="mr-2">{% if category == 'error' %}❌{% elif category == 'warning' %}⚠️{% elif category == 'success' %}✅{% else %}ℹ️{% endif %}</span>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block container %}
+            {% endblock %}
+
+        </main>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+
+</body>
+</html>

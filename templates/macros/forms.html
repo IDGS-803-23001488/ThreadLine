@@ -1,0 +1,45 @@
+<!-- templates/macros/forms.html -->
+{% macro render_input(field, type="text") %}
+<div class="mb-4">
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        {{ field.label.text }}
+    </label>
+
+    {{ field(
+        class="w-full px-4 py-2 rounded-xl border border-gray-300 
+               focus:ring-2 focus:ring-blue-500 focus:outline-none 
+               dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+    ) }}
+
+    {% if field.errors %}
+        <div class="mt-1 text-sm text-red-600">
+            {% for error in field.errors %}
+                <div>⚠ {{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro form_buttons(cancel_url, submit_text="Guardar") %}
+<div class="flex justify-end gap-3 mt-6">
+
+    <!-- Botón Cancelar -->
+    <a href="{{ cancel_url }}"
+       class="px-4 py-2 rounded-xl border border-gray-300 
+              text-gray-700 bg-white 
+              hover:bg-gray-100 
+              dark:bg-gray-700 dark:text-gray-200 
+              dark:border-gray-600 dark:hover:bg-gray-600">
+        Cancelar
+    </a>
+
+    <!-- Botón Guardar -->
+    <button type="submit"
+            class="bg-blue-600 text-white px-4 py-2 rounded-xl 
+                   hover:bg-blue-700 transition">
+        {{ submit_text }}
+    </button>
+
+</div>
+{% endmacro %}
