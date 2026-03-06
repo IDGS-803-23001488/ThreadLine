@@ -1,14 +1,27 @@
 <!-- templates/usuarios/lista.html -->
 {% extends "layout.html" %}
 {% from "macros/table.html" import render_table %}
+{% from "macros/utiles.html" import btn_enlace, confirm_action, svg_nuevo, svg_excel %}
 
 {% block container %}
 
 <div class="flex justify-between mb-4">
-    <a href="{{ url_for('usuarios.crear') }}"
-       class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">
-        + Nuevo
-    </a>
+    {{ btn_enlace(
+        url_for('usuarios.crear'),
+        svg_nuevo,
+        'Crear Usuario',
+        'blue'
+    ) }}
+
+    <div class="flex gap-2">
+        {{ btn_enlace(
+            url_for('usuarios.exportar', search=search),
+            svg_excel,
+            'Exportar',
+            'green'
+        ) }}
+    </div>
+
 </div>
 
 {{ render_table(
