@@ -1,4 +1,6 @@
 <!-- templates/macros/forms.html -->
+{% from "macros/utiles.html" import btn_enlace, svg_equis, svg_save  %}
+
 {% macro render_input(field, type="text") %}
 <div class="mb-4">
     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -54,20 +56,23 @@
 <div class="flex justify-end gap-3 mt-6">
 
     <!-- Botón Cancelar -->
-    <a href="{{ cancel_url }}"
-       class="px-4 py-2 rounded-xl border border-gray-300 
-              text-gray-700 bg-white 
-              hover:bg-gray-100 
-              dark:bg-gray-700 dark:text-gray-200 
-              dark:border-gray-600 dark:hover:bg-gray-600">
-        Cancelar
-    </a>
+    {{ btn_enlace(
+        cancel_url,
+        svg_equis,
+        "Cancelar",
+        "gray"
+    ) }}
 
     <!-- Botón Guardar -->
     <button type="submit"
-            class="bg-blue-600 text-white px-4 py-2 rounded-xl 
-                   hover:bg-blue-700 transition">
-        {{ submit_text }}
+        class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700
+               focus:ring-4 focus:ring-blue-300 border border-transparent shadow-sm
+               font-medium rounded-xl text-sm px-4 py-2 transition
+               dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-800">
+
+        {{ svg_save() }}
+        <span>{{ submit_text }}</span>
+
     </button>
 
 </div>

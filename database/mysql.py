@@ -110,6 +110,8 @@ class Usuario(db.Model):
     # ==========================
     def tiene_permiso(self, modulo, accion):
         for rol in self.roles:
+            if not rol.activo:
+                continue
             for permiso in rol.permisos:
                 if permiso.modulo == modulo and permiso.accion == accion:
                     return True
@@ -135,9 +137,38 @@ class Rol(db.Model):
         backref="roles"
     )
 
+    # ==========================
+    # CONTROL DE AUDITORÍA
+    # ==========================
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+
+    creador = db.relationship(
+        "Usuario",
+        foreign_keys=[creado_por],
+        post_update=True
+    )
+    editor = db.relationship(
+        "Usuario",
+        foreign_keys=[editado_por],
+        post_update=True
+    )
+    eliminador = db.relationship(
+        "Usuario",
+        foreign_keys=[eliminado_por],
+        post_update=True
+    )
+
+    # Soft delete
+    activo = db.Column(db.Boolean, default=True)
+
     def __repr__(self):
         return f"<Rol {self.nombre}>"
-
 # =====================================================
 # MODELO PERMISO
 # =====================================================
