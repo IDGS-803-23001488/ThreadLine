@@ -3,7 +3,7 @@ from pymongo import MongoClient
 
 class ConexionMongo:
 
-    cliente = MongoClient("mongodb://localhost:27017")
+    cliente = MongoClient("mongodb://localhost:2700000017")
     db = cliente["threadline_logs"]
     coleccion_logs = db["bitacora_autenticacion"]
 

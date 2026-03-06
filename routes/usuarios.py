@@ -1,7 +1,7 @@
 # routes/usuarios.py
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from database.mysql import db, Usuario
+from database.mysql import db, Usuario, Rol
 from forms import UserForm
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.excel_export import exportar_excel
@@ -58,7 +58,8 @@ def lista():
 @permiso_requerido("usuarios", "crear")
 def crear():
 
-    form = UserForm(request.form)
+    form = UserForm(request.form)    
+    form.rol.choices = [(r.id, r.nombre) for r in Rol.query.order_by(Rol.nombre).all()]
 
     if request.method == "POST" and form.validate():
 
@@ -68,7 +69,9 @@ def crear():
             contrasenia=form.contrasenia.data,
             creado_por=g.usuario_actual.id  # 🔥 Auditoría
         )
-
+        rol = Rol.query.get(form.rol.data)
+        nuevo.roles = [rol]
+        
         db.session.add(nuevo)
         db.session.commit()
 
@@ -95,13 +98,20 @@ def editar(id):
     usuario = Usuario.query.filter_by(id=id, activo=True).first_or_404()
 
     form = UserForm(request.form, obj=usuario)
+    form.rol.choices = [(r.id, r.nombre) for r in Rol.query.order_by(Rol.nombre).all()]
 
     if request.method == "POST" and form.validate():
 
-        form.populate_obj(usuario)
+        usuario.usuario = form.usuario.data
+        usuario.correo = form.correo.data
+
+        if form.cambiar_contrasenia.data and form.contrasenia.data:
+            usuario.contrasenia = hash_password(form.contrasenia.data)
 
         usuario.editado_por = g.usuario_actual.id
         usuario.fecha_edicion = datetime.datetime.utcnow()
+        rol = Rol.query.get(form.rol.data)
+        usuario.roles = [rol]
 
         db.session.commit()
 

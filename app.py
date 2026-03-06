@@ -4,7 +4,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
 from database.mysql import db, Token
 from config import DevelopmentConfig
-from database.mongo import ConexionMongo
+#from database.mongo import ConexionMongo
 from utils.crypto_url import encrypt_id
 
 # Blueprints
@@ -53,7 +53,7 @@ def verificar_token():
 
     g.usuario_actual = token_db.usuario
 
-@app.after_request
+#@app.after_request
 def registrar_log(response):
 
     rutas_libres = ["auth.login", "static"]
