@@ -1,8 +1,11 @@
+# app.py
 from flask import Flask, render_template, g, session, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
-from models import db, Token
+from database.mysql import db, Token
 from config import DevelopmentConfig
+from database.mongo import ConexionMongo
+from utils.crypto_url import encrypt_id
 
 # Blueprints
 from routes.main import main
@@ -49,6 +52,45 @@ def verificar_token():
         return redirect(url_for("auth.login"))
 
     g.usuario_actual = token_db.usuario
+
+@app.after_request
+def registrar_log(response):
+
+    rutas_libres = ["auth.login", "static"]
+
+    if request.endpoint not in rutas_libres: # Temporal
+
+        try:
+            usuario = None
+            datos_enviados = None
+
+            if hasattr(g, "usuario_actual"):
+                usuario = g.usuario_actual.usuario
+
+            if request.method == "POST":
+                if request.is_json:
+                    datos_enviados = request.get_json()
+                else:
+                    datos_enviados = request.form.to_dict()
+
+            ConexionMongo.guardar_log(
+                usuario=usuario,
+                endpoint=request.endpoint,
+                ip=request.remote_addr,
+                estado=response.status_code,
+                metodo=request.method,
+                url=request.url,
+                datos=datos_enviados
+            )
+
+        except Exception as e:
+            print("Error guardando log:", e)
+
+    return response
+
+@app.template_filter('encrypt')
+def encrypt_filter(value):
+    return encrypt_id(value)
 
 if __name__ == "__main__":
     with app.app_context():

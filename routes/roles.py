@@ -1,9 +1,9 @@
 # routes/roles.py
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from models import db, Rol, Permiso
+from database.mysql import db, Rol, Permiso
 from forms import RolForm
-from middlerware import login_requerido, permiso_requerido
+from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 
 roles = Blueprint("roles", __name__, url_prefix="/roles")
 
@@ -91,7 +91,8 @@ def crear():
 # ==============================
 # EDITAR
 # ==============================
-@roles.route("/editar/<int:id>", methods=["GET", "POST"])
+@roles.route("/editar/<id>", methods=["GET", "POST"])
+@decrypt_url_id()
 @login_requerido
 @permiso_requerido("roles", "editar")
 def editar(id):
@@ -128,7 +129,8 @@ def editar(id):
 # ==============================
 # ELIMINAR (SOFT DELETE)
 # ==============================
-@roles.route("/eliminar/<int:id>")
+@roles.route("/eliminar/<id>")
+@decrypt_url_id()
 @login_requerido
 @permiso_requerido("roles", "eliminar")
 def eliminar(id):

@@ -1,5 +1,9 @@
+# middlerware.py
 from flask import g, redirect, abort, url_for
 from functools import wraps
+from functools import wraps
+from flask import abort
+from utils.crypto_url import decrypt_id
 
 # ==============================
 # DECORADOR LOGIN REQUERIDO
@@ -25,6 +29,18 @@ def permiso_requerido(modulo, accion):
             if not g.usuario_actual.tiene_permiso(modulo, accion):
                 abort(403, description=f"{modulo}/{accion}")
 
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def decrypt_url_id(param="id"):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                kwargs[param] = decrypt_id(kwargs[param])
+            except:
+                abort(404)
             return f(*args, **kwargs)
         return wrapper
     return decorator

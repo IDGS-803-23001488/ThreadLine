@@ -1,9 +1,10 @@
 # routes/usuarios.py
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from models import db, Usuario
+from database.mysql import db, Usuario
 from forms import UserForm
-from middlerware import login_requerido, permiso_requerido
+from middlerware import login_requerido, permiso_requerido, decrypt_url_id
+from utils.excel_export import exportar_excel
 
 usuarios = Blueprint("usuarios", __name__, url_prefix="/usuarios")
 
@@ -85,7 +86,8 @@ def crear():
 # ==============================
 # EDITAR
 # ==============================
-@usuarios.route("/editar/<int:id>", methods=["GET", "POST"])
+@usuarios.route("/editar/<id>", methods=["GET", "POST"])
+@decrypt_url_id()
 @login_requerido
 @permiso_requerido("usuarios", "editar")
 def editar(id):
@@ -117,7 +119,8 @@ def editar(id):
 # ==============================
 # ELIMINAR (SOFT DELETE)
 # ==============================
-@usuarios.route("/eliminar/<int:id>")
+@usuarios.route("/eliminar/<id>")
+@decrypt_url_id()
 @login_requerido
 @permiso_requerido("usuarios", "eliminar")
 def eliminar(id):
@@ -132,3 +135,38 @@ def eliminar(id):
 
     flash("Usuario eliminado correctamente")
     return redirect(url_for("usuarios.lista"))
+
+
+# ==============================
+# EXPORTAR EXCEL
+# ==============================
+@usuarios.route("/exportar")
+@login_requerido
+@permiso_requerido("usuarios", "ver")
+def exportar():
+
+    search = request.args.get("search", "", type=str)
+
+    query = Usuario.query.filter_by(activo=True)
+
+    if search:
+        query = query.filter(
+            Usuario.usuario.ilike(f"%{search}%") |
+            Usuario.correo.ilike(f"%{search}%")
+        )
+
+    usuarios_list = query.order_by(Usuario.id.asc()).all()
+
+    headers = ["ID", "Usuario", "Correo"]
+
+    data = [
+        [u.id, u.usuario, u.correo]
+        for u in usuarios_list
+    ]
+
+    return exportar_excel(
+        "usuarios",
+        "Usuarios",
+        headers,
+        data
+    )
