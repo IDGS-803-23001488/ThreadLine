@@ -18,8 +18,8 @@ def lista():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 5, type=int)
 
-    query = Rol.query
-
+    query = Rol.query.filter_by(activo=True)
+    
     if search:
         query = query.filter(Rol.nombre.ilike(f"%{search}%"))
 
@@ -66,7 +66,8 @@ def crear():
     if request.method == "POST" and form.validate():
         nuevo = Rol(
             nombre=form.nombre.data,
-            descripcion=form.descripcion.data
+            descripcion=form.descripcion.data,
+            creado_por=g.usuario_actual.id  # 🔥 Auditoría
         )
 
         permisos_seleccionados = request.form.getlist("permisos")
@@ -134,10 +135,12 @@ def editar(id):
 @login_requerido
 @permiso_requerido("roles", "eliminar")
 def eliminar(id):
-    rol = Rol.query.get_or_404(id)
+    rol = Rol.query.filter_by(id=id, activo=True).first_or_404()
 
-    db.session.delete(rol)
+    rol.activo = False
+    rol.fecha_eliminacion = datetime.datetime.utcnow()
+    rol.eliminado_por = g.usuario_actual.id
+
     db.session.commit()
-
     flash("Rol eliminado correctamente")
     return redirect(url_for("roles.lista"))

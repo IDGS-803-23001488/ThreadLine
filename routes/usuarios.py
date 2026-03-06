@@ -152,7 +152,7 @@ def eliminar(id):
 # ==============================
 @usuarios.route("/exportar")
 @login_requerido
-@permiso_requerido("usuarios", "ver")
+@permiso_requerido("usuarios", "exportar")
 def exportar():
 
     search = request.args.get("search", "", type=str)

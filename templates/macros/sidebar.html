@@ -1,0 +1,21 @@
+<!-- templates/macros/sidebar.html -->
+{% macro sidebar_section(title) %}
+<p class="px-4 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+    {{ title }}
+</p>
+{% endmacro %}
+
+
+{% macro sidebar_item(enlace, icono, texto) %}
+<a href="{{ enlace }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl
+   text-gray-200 dark:text-gray-300
+   hover:bg-gray-700 dark:hover:bg-gray-800
+   hover:text-white dark:hover:text-white
+   transition-all duration-200 group">
+
+    {{ icono | safe }}
+
+    <span class="font-medium">{{ texto }}</span>
+</a>
+{% endmacro %}
