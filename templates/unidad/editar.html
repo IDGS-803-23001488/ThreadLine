@@ -1,0 +1,22 @@
+<!-- templates/unidad/editar.html -->
+{% extends "layout.html" %}
+{% from "macros/forms.html" import render_input, form_buttons %}
+{% block container %}
+
+<div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg max-w-lg">
+
+<form method="POST">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    {{ render_input(form.unidad) }}
+    {{ render_input(form.sigla) }}
+    {{ render_input(form.cantidad) }}
+
+    {{ form_buttons(url_for('unidad.lista')) }}
+
+</form>
+
+</div>
+
+{% endblock %}

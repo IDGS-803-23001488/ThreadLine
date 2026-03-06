@@ -4,7 +4,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
 from database.mysql import db, Token
 from config import DevelopmentConfig
-from database.mongo import ConexionMongo
+# from database.mongo import ConexionMongo
 from utils.crypto_url import encrypt_id
 
 # Blueprints
@@ -12,6 +12,8 @@ from routes.main import main
 from routes.usuarios import usuarios
 from routes.auth import auth
 from routes.roles import roles
+from routes.unidad import unidad
+from routes.empaque import empaque
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -24,6 +26,8 @@ app.register_blueprint(main)
 app.register_blueprint(usuarios)
 app.register_blueprint(auth)
 app.register_blueprint(roles)
+app.register_blueprint(unidad)
+app.register_blueprint(empaque)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -53,7 +57,7 @@ def verificar_token():
 
     g.usuario_actual = token_db.usuario
 
-@app.after_request
+# @app.after_request
 def registrar_log(response):
 
     rutas_libres = ["auth.login", "static"]
