@@ -12,9 +12,9 @@ auth = Blueprint("auth", __name__)
 def login():
     if request.method == "POST":
 
-        usuario = request.form.get("usuario")
+        correo = request.form.get("correo")
         contrasenia = request.form.get("contrasenia")
-        user = Usuario.query.filter_by(usuario=usuario, activo=True).first()
+        user = Usuario.query.filter_by(correo=correo, activo=True).first()
 
         if user and user.contrasenia == contrasenia:
 
