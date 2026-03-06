@@ -1,9 +1,9 @@
 # routes/empaque.py
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from models import db, Empaque, Unidad
+from database.mysql import db, Empaque, Unidad
 from forms import EmpaqueForm
-from middlerware import login_requerido, permiso_requerido
+from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 
 empaque = Blueprint("empaque", __name__, url_prefix="/empaque")
 
@@ -87,7 +87,8 @@ def crear():
 # ==============================
 # EDITAR
 # ==============================
-@empaque.route("/editar/<int:id>", methods=["GET", "POST"])
+@empaque.route("/editar/<id>", methods=["GET", "POST"])
+@decrypt_url_id()
 @login_requerido
 @permiso_requerido("empaque", "editar")
 def editar(id):
@@ -121,7 +122,8 @@ def editar(id):
 # ==============================
 # ELIMINAR (SOFT DELETE)
 # ==============================
-@empaque.route("/eliminar/<int:id>")
+@empaque.route("/eliminar/<id>")
+@decrypt_url_id()
 @login_requerido
 @permiso_requerido("empaque", "eliminar")
 def eliminar(id):

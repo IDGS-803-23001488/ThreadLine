@@ -1,9 +1,9 @@
 # routes/unidad.py
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from models import db, Unidad
+from database.mysql import db, Unidad
 from forms import UnidadForm
-from middlerware import login_requerido, permiso_requerido
+from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 
 unidad = Blueprint("unidad", __name__, url_prefix="/unidad")
 
@@ -85,7 +85,8 @@ def crear():
 # ==============================
 # EDITAR
 # ==============================
-@unidad.route("/editar/<int:id>", methods=["GET", "POST"])
+@unidad.route("/editar/<id>", methods=["GET", "POST"])
+@decrypt_url_id()
 @login_requerido
 @permiso_requerido("unidad", "editar")
 def editar(id):
@@ -117,7 +118,8 @@ def editar(id):
 # ==============================
 # ELIMINAR (SOFT DELETE)
 # ==============================
-@unidad.route("/eliminar/<int:id>")
+@unidad.route("/eliminar/<id>")
+@decrypt_url_id()
 @login_requerido
 @permiso_requerido("unidad", "eliminar")
 def eliminar(id):
