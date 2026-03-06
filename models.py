@@ -207,3 +207,145 @@ class Token(db.Model):
 
     def __repr__(self):
         return f"<Token {self.tipo} - {self.usuario_id}>"
+
+# =====================================================
+# MODELO EMPAQUE
+# =====================================================
+
+class Empaque(db.Model):
+    __tablename__ = "empaque"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    paquete = db.Column(db.String(50), nullable=False)
+
+    unidad_id = db.Column(
+        db.Integer,
+        db.ForeignKey("unidad.id"),
+        nullable=False
+    )
+
+    unidad = db.relationship("Unidad", backref="empaques")
+    cantidad = db.Column(db.Integer, nullable=False)
+    fecha_creacion = db.Column(
+        db.DateTime,
+        default=datetime.datetime.utcnow
+    )
+
+    fecha_edicion = db.Column(
+        db.DateTime,
+        onupdate=datetime.datetime.utcnow
+    )
+
+    fecha_eliminacion = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    creado_por = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.id"),
+        nullable=True
+    )
+
+    editado_por = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.id"),
+        nullable=True
+    )
+
+    eliminado_por = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.id"),
+        nullable=True
+    )
+
+    # Relaciones autorreferenciadas
+    creador = db.relationship(
+        "Usuario",
+        foreign_keys=[creado_por],
+        post_update=True
+    )
+
+    editor = db.relationship(
+        "Usuario",
+        foreign_keys=[editado_por],
+        post_update=True
+    )
+
+    eliminador = db.relationship(
+        "Usuario",
+        foreign_keys=[eliminado_por],
+        post_update=True
+    )
+
+    # Soft delete
+    activo = db.Column(db.Boolean, default=True)
+
+# =====================================================
+# MODELO UNIDAD
+# =====================================================
+
+class Unidad(db.Model):
+    __tablename__ = "unidad"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    unidad = db.Column(db.String(50), nullable=False)
+    sigla = db.Column(db.String(10), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+
+    fecha_creacion = db.Column(
+        db.DateTime,
+        default=datetime.datetime.utcnow
+    )
+
+    fecha_edicion = db.Column(
+        db.DateTime,
+        onupdate=datetime.datetime.utcnow
+    )
+
+    fecha_eliminacion = db.Column(
+        db.DateTime,
+        nullable=True
+    )
+
+    creado_por = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.id"),
+        nullable=True
+    )
+
+    editado_por = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.id"),
+        nullable=True
+    )
+
+    eliminado_por = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.id"),
+        nullable=True
+    )
+
+    # Relaciones autorreferenciadas
+    creador = db.relationship(
+        "Usuario",
+        foreign_keys=[creado_por],
+        post_update=True
+    )
+
+    editor = db.relationship(
+        "Usuario",
+        foreign_keys=[editado_por],
+        post_update=True
+    )
+
+    eliminador = db.relationship(
+        "Usuario",
+        foreign_keys=[eliminado_por],
+        post_update=True
+    )
+
+    # Soft delete
+    activo = db.Column(db.Boolean, default=True)

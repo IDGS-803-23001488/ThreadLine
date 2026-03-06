@@ -19,3 +19,15 @@ class RolForm(Form):
         "Descripción",
         [validators.Optional(), validators.Length(max=255)]
     )
+
+class UnidadForm(Form):
+    id = IntegerField('id')
+    unidad = StringField('Unidad', [validators.DataRequired()])
+    sigla = StringField('Sigla', [validators.DataRequired()])
+    cantidad = IntegerField('Cantidad', [validators.DataRequired()])
+
+class EmpaqueForm(Form):
+    id = IntegerField('id')
+    paquete = StringField('Paquete', [validators.DataRequired()])
+    unidad_id = StringField('Unidad', [validators.DataRequired()])
+    cantidad = IntegerField('Cantidad', [validators.DataRequired()])
