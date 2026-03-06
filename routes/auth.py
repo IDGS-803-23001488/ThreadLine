@@ -2,7 +2,7 @@
 import uuid
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
-from models import Usuario, Token, db
+from database.mysql import Usuario, Token, db
 import sys
 from pprint import pprint
 

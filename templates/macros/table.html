@@ -1,19 +1,19 @@
 <!-- template/macros/table.html -->
-{% from "macros/dialogs.html" import confirm_delete,svg_modificar %}
+{% from "macros/utiles.html" import confirm_delete,svg_modificar,btn_enlace %}
 
 {% macro render_actions(endpoint, id) %}
     <div class="flex gap-2">
         
-        <a 
-            href="{{ url_for(endpoint ~ '.editar', id=id) }}"
-            class="inline-flex items-center gap-2 text-white bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-500 dark:hover:bg-yellow-600 focus:ring-4 focus:ring-yellow-300 dark:focus:ring-yellow-800 border border-transparent shadow-sm font-medium leading-5 rounded-lg text-sm px-4 py-2.5 focus:outline-none transition-colors"
-        >
-            {{ svg_modificar() }}
-        </a>
+        {{ btn_enlace(
+            url_for(endpoint ~ '.editar', id=id|encrypt),
+            svg_modificar,
+            "Editar",
+            "yellow"
+        ) }}
         
         {{ confirm_delete(
             id,
-            url_for(endpoint ~ '.eliminar', id=id)
+            url_for(endpoint ~ '.eliminar', id=id|encrypt)
         ) }}
 
     </div>
