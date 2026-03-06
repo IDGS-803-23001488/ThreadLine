@@ -11,34 +11,6 @@
     </a>    
 </div>
 
-<button 
-  onclick="document.getElementById('modal').showModal()"
-  class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors">
-  Abrir ventana modal
-</button>
-
-<dialog 
-  id="modal" 
-  closedby="any" 
-  class="rounded-2xl p-0 shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm open:animate-in open:fade-in open:zoom-in duration-300">
-  
-  <div class="p-8 max-w-sm">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">
-      Este es el título de mi ventana modal
-    </h2>
-    <p class="text-gray-600 mb-6 leading-relaxed">
-      Este es un texto de ejemplo dentro de una ventana modal. Gracias a HTML, puedes cerrarla haciendo clic fuera o en el botón.
-    </p>
-
-    <form method="dialog" class="flex justify-end">
-      <button 
-        class="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300">
-        Cerrar
-      </button>
-    </form>
-  </div>
-</dialog>
-
 {{ render_table(
     headers=headers,
     rows=rows,
