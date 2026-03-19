@@ -1,6 +1,6 @@
 <!-- templates/layout.html -->
 {% from "macros/sidebar.html" import sidebar_section, sidebar_item %}
-{% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque %}
+{% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque, svg_proveedor %}
 
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -56,6 +56,7 @@
                 {{ sidebar_item(url_for('unidad.lista'), svg_unidad(), "Unidad", request.endpoint and request.endpoint.startswith('unidad.')) }}
                 {{ sidebar_item(url_for('empaque.lista'), svg_empaque(), "Empaques", request.endpoint and request.endpoint.startswith('empaque.')) }}
                 {{ sidebar_item(url_for('color.lista'), svg_empaque(), "Colores", request.endpoint and request.endpoint.startswith('color.')) }}
+                {{ sidebar_item(url_for('proveedor.lista'), svg_proveedor(), "Proveedores", request.endpoint and request.endpoint.startswith('proveedor.')) }}
 
             </nav>
 

@@ -70,6 +70,15 @@ class Rol(BaseModel):
     permisos = db.relationship("Permiso", secondary=rol_permiso, backref="roles")
     activo = db.Column(db.Boolean, default=True)
 
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
+
 class Permiso(BaseModel):
     __tablename__ = "permiso"
     id = db.Column(db.Integer, primary_key=True)
@@ -156,11 +165,29 @@ class Talla(BaseModel):
     orden = db.Column(db.Integer, default=0)
     activo = db.Column(db.Boolean, default=True)
 
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
+
 class Categoria(BaseModel):
     __tablename__ = "categoria"
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.String(255))
+    activo = db.Column(db.Boolean, default=True)
+
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     activo = db.Column(db.Boolean, default=True)
 
 # =====================================================
@@ -174,12 +201,30 @@ class Articulo(BaseModel):
     activo = db.Column(db.Boolean, default=True)
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
+
 class Proveedor(BaseModel):
     __tablename__ = "proveedor"
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     rfc = db.Column(db.String(20))
     correo = db.Column(db.String(100))
+    activo = db.Column(db.Boolean, default=True)
+
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     activo = db.Column(db.Boolean, default=True)
 
 class MateriaPrima(BaseModel):
@@ -194,6 +239,15 @@ class MateriaPrima(BaseModel):
     stock_minimo = db.Column(db.Numeric(10, 4), default=0.0000)
     activo = db.Column(db.Boolean, default=True)
 
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
+
 class Producto(BaseModel):
     __tablename__ = "producto"
     id = db.Column(db.Integer, primary_key=True)
@@ -201,6 +255,15 @@ class Producto(BaseModel):
     categoria_id = db.Column(db.Integer, db.ForeignKey("categoria.id"))
     descripcion = db.Column(db.Text)
     imagen = db.Column(db.String(255))
+    activo = db.Column(db.Boolean, default=True)
+
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     activo = db.Column(db.Boolean, default=True)
 
 class ProductoVariante(BaseModel):
@@ -212,6 +275,16 @@ class ProductoVariante(BaseModel):
     color_id = db.Column(db.Integer, db.ForeignKey("color.id"), nullable=False)
     precio_venta = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
     activo = db.Column(db.Boolean, default=True)
+
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
+
     __table_args__ = (db.UniqueConstraint('producto_id', 'talla_id', 'color_id', name='uq_variante'),BASE_ARGS)
 
 # =====================================================
@@ -223,6 +296,15 @@ class Receta(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     producto_variante_id = db.Column(db.Integer, db.ForeignKey("producto_variante.id"), nullable=False)
     cantidad_base = db.Column(db.Integer, default=1)
+    activo = db.Column(db.Boolean, default=True)
+
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     activo = db.Column(db.Boolean, default=True)
 
 class RecetaDetalle(BaseModel):
@@ -257,6 +339,15 @@ class Cliente(BaseModel):
     direccion = db.Column(db.String(255))
     activo = db.Column(db.Boolean, default=True)
     fecha_registro = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
 
 class Carrito(BaseModel):
     __tablename__ = "carrito"
@@ -301,11 +392,29 @@ class Inventario(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(255), nullable=False)
 
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
+
 class TipoMovimiento(BaseModel):
     __tablename__ = "tipo_movimientos"
     id = db.Column(db.Integer, primary_key=True)
     tipo = db.Column(db.String(100), nullable=False)
     signo = db.Column(db.Integer, nullable=False) # 1 o -1
+
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
 
 class MovimientoInventario(BaseModel):
     __tablename__ = "movimientos_inventario"
