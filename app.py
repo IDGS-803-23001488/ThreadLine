@@ -16,6 +16,7 @@ from routes.unidad import unidad
 from routes.empaque import empaque
 from routes.color import color
 from routes.proveedores import proveedor
+from utils.security import hash_password
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -166,7 +167,7 @@ def seed_data():
             admin_user = Usuario(
                 usuario="admin",
                 correo="admin@example.com",
-                contrasenia="admin123",  # ⚠️ luego usa hash
+                contrasenia=hash_password("admin123"),  # ⚠️ luego usa hash
                 activo=True
             )
             db.session.add(admin_user)
