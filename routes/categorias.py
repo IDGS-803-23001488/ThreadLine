@@ -1,36 +1,36 @@
 
 # import datetime 
 # from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-# from database.mysql import db, Color 
+# from database.mysql import db, Categoria 
 # from forms import ColorForm
 # from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 
-# color = Blueprint("color", __name__, url_prefix = "/color")
+# categoria = Blueprint("categoria", __name__, url_prefix = "/categoria")
 
 # #===========================================
 # #Lista 
 # #===========================================
 
-# @color.route("/")
+# @categoria.route("/")
 # @login_requerido
-# @permiso_requerido("color","ver")
+# @permiso_requerido("categoria","ver")
 # def lista ():
 #     search = request.args.get("search", "", type=str)
 #     page = request.args.get("page",1, type=int)
 #     per_page = request.args.get("per_page",5,type=int)
     
-#     query = Color.query.filter_by(activo=True)
+#     query = Categoria.query.filter_by(activo=True)
     
 #     if search:
 #         query = query.filter_by(activo=True)
         
 #         if search :
 #             query = query.filtrer(
-#                 Color.nombre.ilike(f"%{search}%") |
-#                 Color.hex.ilike(f"%{search}%")
+#                 Categoria.nombre.ilike(f"%{search}%") |
+#                 Categoria.hex.ilike(f"%{search}%")
 #             )
         
-#     pagination = query.order_by(Color.id.asc()).paginate(
+#     pagination = query.order_by(Categoria.id.asc()).paginate(
 #         page = page,
 #         per_page= per_page,
 #         error_out = False
@@ -42,13 +42,13 @@
 #     ]
     
 #     return render_template(
-#         "color/lista.html",
+#         "categoria/lista.html",
 #         headers=["ID","Nombre","Codigo Hex"],
 #         rows = rows,
 #         pagination = pagination,
 #         search = search,
 #         per_page = per_page,
-#         endpoint = "color",
+#         endpoint = "categoria",
 #         titulo = "Colores",
 #         descripcion = "Listado general de colores"
 #     )
@@ -56,15 +56,15 @@
 # # ==============================
 # # CREAR
 # # ==============================
-# @color.route("/crear", methods=["GET", "POST"])
+# @categoria.route("/crear", methods=["GET", "POST"])
 # @login_requerido
-# @permiso_requerido("color", "crear")
+# @permiso_requerido("categoria", "crear")
 # def crear():
 #     form = ColorForm(request.form)
     
 #     if request.method == "POST" and form.validate():
         
-#         nuevo = Color(
+#         nuevo = Categoria(
 #             nombre=form.nombre.data,
 #             hex=form.hex.data,
 #             creado_por=g.usuario_actual.id
@@ -73,25 +73,25 @@
 #         db.session.add(nuevo)
 #         db.session.commit()
         
-#         flash("Color creado correctamente")
-#         return redirect(url_for("color.lista"))
+#         flash("Categoria creado correctamente")
+#         return redirect(url_for("categoria.lista"))
     
 #     return render_template(
-#         "color/crear.html",
+#         "categoria/crear.html",
 #         form=form,
-#         titulo="Crear Color",
-#         descripcion="Registro de nuevo color"
+#         titulo="Crear Categoria",
+#         descripcion="Registro de nuevo categoria"
 #     )
 
 # # ==============================
 # # EDITAR
 # # ==============================
-# @color.route("/editar/<id>", methods=["GET", "POST"])
+# @categoria.route("/editar/<id>", methods=["GET", "POST"])
 # @decrypt_url_id()
 # @login_requerido
-# @permiso_requerido("color", "editar")
+# @permiso_requerido("categoria", "editar")
 # def editar(id):
-#     color_obj = Color.query.filter_by(id=id, activo=True).first_or_404()
+#     color_obj = Categoria.query.filter_by(id=id, activo=True).first_or_404()
     
 #     form = ColorForm(request.form, obj=color_obj)
     
@@ -104,25 +104,25 @@
         
 #         db.session.commit()
         
-#         flash("Color actualizado correctamente")
-#         return redirect(url_for("color.lista"))
+#         flash("Categoria actualizado correctamente")
+#         return redirect(url_for("categoria.lista"))
     
 #     return render_template(
-#         "color/editar.html",
+#         "categoria/editar.html",
 #         form=form,
-#         titulo="Editar Color",
-#         descripcion="Modificar información del color"
+#         titulo="Editar Categoria",
+#         descripcion="Modificar información del categoria"
 #     )
 
 # # ==============================
 # # ELIMINAR (SOFT DELETE)
 # # ==============================
-# @color.route("/eliminar/<id>")
+# @categoria.route("/eliminar/<id>")
 # @decrypt_url_id()
 # @login_requerido
-# @permiso_requerido("color", "eliminar")
+# @permiso_requerido("categoria", "eliminar")
 # def eliminar(id):
-#     color_obj = Color.query.filter_by(id=id, activo=True).first_or_404()
+#     color_obj = Categoria.query.filter_by(id=id, activo=True).first_or_404()
     
 #     color_obj.activo = False
 #     color_obj.fecha_eliminacion = datetime.datetime.utcnow()
@@ -130,5 +130,5 @@
     
 #     db.session.commit()
     
-#     flash("Color eliminado correctamente")
-#     return redirect(url_for("color.lista"))
+#     flash("Categoria eliminado correctamente")
+#     return redirect(url_for("categoria.lista"))

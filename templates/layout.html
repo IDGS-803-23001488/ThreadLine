@@ -1,22 +1,29 @@
 <!-- templates/layout.html -->
 {% from "macros/sidebar.html" import sidebar_section, sidebar_item %}
 {% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque %}
+
 <!DOCTYPE html>
 <html lang="es" class="h-full">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ titulo if titulo else "Panel de Administración" }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='imagenes/logo.png') }}" type="image/x-icon">
 </head>
 
 <body class="h-full bg-gray-100 dark:bg-gray-900 antialiased">
 
-<div class="flex h-full">
+    <div class="flex h-screen overflow-hidden">
 
-    <!-- SIDEBAR -->
-    <aside class="w-64 bg-gradient-to-b from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 text-gray-200 dark:text-gray-300 shadow-xl dark:shadow-gray-950/50">
+        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen 
+            transition-transform -translate-x-full 
+            bg-gradient-to-b from-gray-900 to-gray-800 
+            dark:from-gray-950 dark:to-gray-900 
+            text-gray-200 dark:text-gray-300 shadow-xl">
 
+<<<<<<< HEAD
         <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-700 dark:border-gray-700/50">
             <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 text-white flex items-center justify-center rounded-xl font-semibold shadow-lg dark:shadow-red-900/30">
                 T
@@ -89,63 +96,111 @@
             <!-- Versión -->
             <div class="flex justify-center text-xs text-gray-400 dark:text-gray-500">
                 <span>Versión 1.0.0</span>
+=======
+            <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-700">
+                <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-red-600 text-white flex items-center justify-center rounded-xl font-semibold">
+                    T
+                </div>
+                <span class="text-lg font-semibold text-white">
+                    ThreadLine
+                </span>
+                <button type="button" data-drawer-hide="sidebar" aria-controls="sidebar" class="ml-auto text-gray-400 hover:text-white">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+>>>>>>> 07e23949fe6f2477ddc3c62c05103dbb751c7539
             </div>
 
-        </div>
-    </aside>
+            <nav class="mt-6 px-4 space-y-2">
+                {{ sidebar_section("General") }}
+                {{ sidebar_item(url_for('main.index'), svg_home(), "Inicio") }}
 
-    <div class="flex-1 flex flex-col">
-        <header class="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/30 px-6 py-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
-            <div>
-                <h1 class="text-xl font-semibold text-gray-800 dark:text-white">
-                    {{ titulo }}
-                </h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {% if descripcion %}
-                        {{ descripcion }}
-                    {% endif %}
-                </p>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="relative group">
-                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white flex items-center justify-center rounded-xl font-semibold cursor-pointer shadow-md dark:shadow-blue-900/30 ring-2 ring-transparent hover:ring-blue-200 dark:hover:ring-blue-800 transition-all">
-                        A
-                    </div>
+                {{ sidebar_section("Administración") }}
+                {{ sidebar_item(url_for('usuarios.lista'), svg_user(), "Usuarios") }}
+                {{ sidebar_item(url_for('roles.lista'), svg_roles(), "Roles") }}
+
+                {{ sidebar_section("Catálogos") }}
+                {{ sidebar_item(url_for('unidad.lista'), svg_unidad(), "Unidad") }}
+                {{ sidebar_item(url_for('empaque.lista'), svg_empaque(), "Empaques") }}
+            </nav>
+
+            <div class="absolute bottom-0 w-64 p-4 border-t border-gray-700 space-y-3">
+                <a href="{{ url_for('auth.logout') }}" class="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path fill-rule="evenodd" d="M7.5 3.75A2.25 2.25 0 0 0 5.25 6v12A2.25 2.25 0 0 0 7.5 20.25h4.5a.75.75 0 0 0 0-1.5H7.5A.75.75 0 0 1 6.75 18V6c0-.414.336-.75.75-.75h4.5a.75.75 0 0 0 0-1.5H7.5Zm9.53 4.72a.75.75 0 0 0-1.06 1.06L17.69 11.25H9.75a.75.75 0 0 0 0 1.5h7.94l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3a.75.75 0 0 0 0-1.06l-3-3Z" clip-rule="evenodd" />
+                    </svg>
+                    Cerrar sesión
+                </a>
+                <div class="flex justify-center text-xs text-gray-400">
+                    <span>Versión 1.0.0</span>
                 </div>
             </div>
-        </header>
+        </aside>
 
-        <main class="flex-1 p-8 space-y-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="flex items-center p-4 text-sm rounded-xl shadow-sm dark:shadow-gray-900/20 border-l-4 
-                            {% if category == 'error' %}
-                                bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-500 dark:border-red-600
-                            {% elif category == 'warning' %}
-                                bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 border-yellow-500 dark:border-yellow-600
-                            {% elif category == 'success' %}
-                                bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border-green-500 dark:border-green-600
-                            {% else %}
-                                bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border-blue-500 dark:border-blue-600
-                            {% endif %}">
-                            <span class="mr-2">{% if category == 'error' %}❌{% elif category == 'warning' %}⚠️{% elif category == 'success' %}✅{% else %}ℹ️{% endif %}</span>
-                            {{ message }}
+        <div class="flex-1 flex flex-col">
+
+            <header class="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/30 px-6 py-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center gap-3">
+                    <button class="text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg" type="button" data-drawer-target="sidebar" data-drawer-show="sidebar" aria-controls="sidebar">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-800 dark:text-white">
+                            {{ titulo }}
+                        </h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {% if descripcion %}
+                                {{ descripcion }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="relative group">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center rounded-xl font-semibold cursor-pointer shadow-md">
+                            A
                         </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+                    </div>
+                </div>
+            </header>
 
-            {% block container %}
-            {% endblock %}
+            <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900
+                        bg-no-repeat bg-center"
+                style="background-image: url('{{ url_for('static', filename='imagenes/logo_gray.png') }}');
+                    background-size: 350px;">
+                
+                <div class="max-w-6xl mx-auto p-8 space-y-6">
 
-        </main>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="p-4 rounded-xl border-l-4 text-sm 
+                                    {% if category == 'error' %} bg-red-50 text-red-800 border-red-500 
+                                    {% elif category == 'warning' %} bg-yellow-50 text-yellow-800 border-yellow-500 
+                                    {% elif category == 'success' %} bg-green-50 text-green-800 border-green-500 
+                                    {% else %} bg-blue-50 text-blue-800 border-blue-500 {% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    {% block container %}
+                    {% endblock %}
+
+                </div>
+
+            </main>
+
+        </div>
     </div>
 
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 </body>
+
 </html>
