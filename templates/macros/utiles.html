@@ -309,6 +309,34 @@
     </svg>
 {% endmacro %}
 
+{% macro svg_clientes() %}
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"> <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0-6 0M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 8a8 8 0 1 0-16 0"/></svg>
+{% endmacro %}
+
+{% macro svg_categorias() %}
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/></svg>
+{% endmacro %}
+
+{% macro svg_color() %}
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c4.97 0 9 3.582 9 8 0 2.485-2.015 4.5-4.5 4.5H15a2.25 2.25 0 0 0-2.25 2.25V19.5A2.25 2.25 0 0 1 10.5 21C6.358 21 3 17.642 3 13.5 3 7.701 7.701 3 12 3Z"/></svg>
+{% endmacro %}
+
+{% macro svg_inventario() %}
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25v7.5a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15.75v-7.5m18 0-9-4.5-9 4.5m18 0-9 4.5m9-4.5v7.5m-18-7.5 9 4.5m-9-4.5v7.5"/></svg>
+{% endmacro %}
+
+{% macro svg_talla() %}
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21l18-18M7.5 16.5l1.5-1.5M10.5 13.5l1.5-1.5M13.5 10.5l1.5-1.5M16.5 7.5l1.5-1.5"/></svg>
+{% endmacro %}
+
+{% macro svg_color() %}
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" 
+  d="M12 3c4.97 0 9 3.582 9 8 0 2.485-2.015 4.5-4.5 4.5H15a2.25 2.25 0 0 0-2.25 2.25V19.5A2.25 2.25 0 0 1 10.5 21C6.358 21 3 17.642 3 13.5 3 7.701 7.701 3 12 3Z"/>
+</svg>
+{% endmacro %}
+
 
 <!-- Botónes -->
 {% macro btn_enlace(enlace, icono, texto="Editar", color="orange") %}
@@ -334,4 +362,29 @@
 
     </a>
 
+{% endmacro %}
+
+{% macro breadcrumbs(items) %}
+<nav class="flex mb-4 text-sm" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-2">
+        <li>
+            <a href="{{ url_for('main.index') }}" >
+               {{ svg_home() }}
+            </a>
+        </li>
+        {% for item in items %}
+            <li>
+                <span class="dark:text-white "> > </span>
+                {% if item.url and not loop.last %}
+                    <a href="{{ item.url }}" 
+                       class="text-gray-600 dark:text-gray-400 ">
+                        {{ item.label }}
+                    </a>
+                {% else %}
+                    <span class="dark:text-white">{{ item.label }}</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+</nav>
 {% endmacro %}

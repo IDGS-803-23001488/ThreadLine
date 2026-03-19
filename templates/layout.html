@@ -1,6 +1,6 @@
 <!-- templates/layout.html -->
 {% from "macros/sidebar.html" import sidebar_section, sidebar_item %}
-{% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque, svg_proveedor %}
+{% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque, svg_proveedor, svg_unidad, svg_empaque, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color %}
 
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -55,8 +55,12 @@
                 {{ sidebar_section("Catálogos") }}
                 {{ sidebar_item(url_for('unidad.lista'), svg_unidad(), "Unidad", request.endpoint and request.endpoint.startswith('unidad.')) }}
                 {{ sidebar_item(url_for('empaque.lista'), svg_empaque(), "Empaques", request.endpoint and request.endpoint.startswith('empaque.')) }}
-                {{ sidebar_item(url_for('color.lista'), svg_empaque(), "Colores", request.endpoint and request.endpoint.startswith('color.')) }}
                 {{ sidebar_item(url_for('proveedor.lista'), svg_proveedor(), "Proveedores", request.endpoint and request.endpoint.startswith('proveedor.')) }}
+                {{ sidebar_item(url_for('color.lista'), svg_color(), "Colores", request.endpoint and request.endpoint.startswith('color.')) }}
+                {{ sidebar_item(url_for('categoria.lista'), svg_categorias(), "Categoras") }}
+                {{ sidebar_item(url_for('inventario.lista'), svg_inventario(), "Inventario") }}
+                {{ sidebar_item(url_for('talla.lista'), svg_talla(), "Tallas") }}
+                {{ sidebar_item(url_for('cliente.lista'), svg_clientes(), "Cliente") }}
 
             </nav>
 
