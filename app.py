@@ -17,6 +17,10 @@ from routes.empaque import empaque
 from routes.color import color
 from routes.proveedores import proveedor
 from utils.security import hash_password
+from routes.categoria import categoria
+from routes.inventario import inventario
+from routes.talla import talla
+from routes.cliente import cliente
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -33,6 +37,10 @@ app.register_blueprint(unidad)
 app.register_blueprint(empaque)
 app.register_blueprint(color)
 app.register_blueprint(proveedor)
+app.register_blueprint(categoria)
+app.register_blueprint(inventario)
+app.register_blueprint(talla)
+app.register_blueprint(cliente) 
 
 @app.errorhandler(404)
 def page_not_found(e):

@@ -1,0 +1,23 @@
+<!-- templates/talla/lista.html -->
+{% extends "layout.html" %}
+{% from "macros/table.html" import render_table %}
+
+{% block container %}
+
+<div class="flex justify-between mb-4">
+    <a href="{{ url_for('talla.crear') }}"
+       class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">
+        + Nuevo
+    </a>
+</div>
+
+{{ render_table(
+    headers=headers,
+    rows=rows,
+    pagination=pagination,
+    endpoint=endpoint,
+    search=search,
+    per_page=per_page
+) }}
+
+{% endblock %}
