@@ -280,6 +280,9 @@
 .border-blue-500 {
   border-color: var(--color-blue-500);
 }
+.border-gray-100 {
+  border-color: var(--color-gray-100);
+}
 .border-gray-200 {
   border-color: var(--color-gray-200);
 }
@@ -377,6 +380,12 @@
 .to-red-600 {
   --tw-gradient-to: var(--color-red-600);
   --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+}
+.bg-center {
+  background-position: center;
+}
+.bg-no-repeat {
+  background-repeat: no-repeat;
 }
 .p-0 {
   padding: calc(var(--spacing) * 0);

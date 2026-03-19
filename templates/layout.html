@@ -15,7 +15,7 @@
 
 <body class="h-full bg-gray-100 dark:bg-gray-900 antialiased">
 
-    <div class="flex h-full">
+    <div class="flex h-screen overflow-hidden">
 
         <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen 
             transition-transform -translate-x-full 
@@ -94,30 +94,33 @@
                 </div>
             </header>
 
-            <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-    
-            <div class="max-w-6xl mx-auto p-8 space-y-6">
+            <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900
+                        bg-no-repeat bg-center"
+                style="background-image: url('{{ url_for('static', filename='imagenes/logo_gray.png') }}');
+                    background-size: 350px;">
+                
+                <div class="max-w-6xl mx-auto p-8 space-y-6">
 
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="p-4 rounded-xl border-l-4 text-sm 
-                                {% if category == 'error' %} bg-red-50 text-red-800 border-red-500 
-                                {% elif category == 'warning' %} bg-yellow-50 text-yellow-800 border-yellow-500 
-                                {% elif category == 'success' %} bg-green-50 text-green-800 border-green-500 
-                                {% else %} bg-blue-50 text-blue-800 border-blue-500 {% endif %}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="p-4 rounded-xl border-l-4 text-sm 
+                                    {% if category == 'error' %} bg-red-50 text-red-800 border-red-500 
+                                    {% elif category == 'warning' %} bg-yellow-50 text-yellow-800 border-yellow-500 
+                                    {% elif category == 'success' %} bg-green-50 text-green-800 border-green-500 
+                                    {% else %} bg-blue-50 text-blue-800 border-blue-500 {% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
 
-                {% block container %}
-                {% endblock %}
+                    {% block container %}
+                    {% endblock %}
 
-            </div>
+                </div>
 
-        </main>
+            </main>
 
         </div>
     </div>
