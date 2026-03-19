@@ -63,6 +63,12 @@ def crear():
     
     if request.method == "POST" and form.validate():
         
+        existente = Cliente.query.filter_by(correo = form.correo.data).first()
+        
+        if existente :
+            flash("El correo ya existe","correo")
+            return render_template("cliente/crear.html",form=form)
+        
         nuevo = Cliente(
             nombre=form.nombre.data,
             correo = form.correo.data,
