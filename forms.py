@@ -43,6 +43,6 @@ class EmpaqueForm(Form):
 class ColorForm(Form):
     id = IntegerField('id')
     nombre = StringField('Nombre',[validators.DataRequired("Coloca el nombre del color"), validators.length(min=3 , max=50)])
-    hex = StringField('Codigo Hexadecimal'), [validators.optional(),validators.length(min=7, max=7)]
+    hex = StringField('Codigo Hexadecimal', [validators.optional(),validators.length(min=7, max=7)])
     
     
