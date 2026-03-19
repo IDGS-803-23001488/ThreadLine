@@ -59,6 +59,11 @@ def verificar_token():
 
     g.usuario_actual = token_db.usuario
 
+@app.context_processor
+def inject_request():
+    from flask import request
+    return dict(request=request)
+
 # @app.after_request
 def registrar_log(response):
 

@@ -122,6 +122,8 @@ class Empaque(BaseModel):
     cantidad = db.Column(db.Integer, nullable=False)
     activo = db.Column(db.Boolean, default=True)
     
+    unidad = db.relationship("Unidad", backref="empaques")
+    
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
