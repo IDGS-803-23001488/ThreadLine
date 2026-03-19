@@ -1,0 +1,102 @@
+<header class="bg-gray-dark sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center py-4">
+
+        <!-- Logo -->
+        <a href="{{ url_for('ecomerce.lista') }}" class="flex items-center">
+            <img src="{{ url_for('static', filename='images/template-white-logo.png') }}" 
+                 alt="Logo" class="h-14 w-auto mr-4">
+        </a>
+
+        <!-- Hamburger -->
+        <div class="flex lg:hidden">
+            <button id="hamburger" class="text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Menu -->
+        <nav class="hidden lg:flex md:flex-grow justify-center">
+            <ul class="flex justify-center space-x-4 text-white">
+
+                <li>
+                    <a href="{{ url_for('ecomerce.lista') }}" 
+                       class="hover:text-secondary font-semibold">Home</a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('ecomerce.shop') }}" 
+                       class="hover:text-secondary font-semibold">Shop</a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('ecomerce.checkout') }}" 
+                       class="hover:text-secondary font-semibold">Checkout</a>
+                </li>
+
+                <li>
+                    <a href="{{ url_for('ecomerce.error_404') }}" 
+                       class="hover:text-secondary font-semibold">404</a>
+                </li>
+
+            </ul>
+        </nav>
+
+        <!-- Right section -->
+        <div class="hidden lg:flex items-center space-x-4 relative">
+
+            <a href="{{ url_for('ecomerce.register') }}"
+               class="bg-primary border border-primary hover:bg-transparent text-white hover:text-primary font-semibold px-4 py-2 rounded-full">
+               Register
+            </a>
+
+            <a href="{{ url_for('ecomerce.register') }}"
+               class="bg-primary border border-primary hover:bg-transparent text-white hover:text-primary font-semibold px-4 py-2 rounded-full">
+               Login
+            </a>
+
+            <!-- Cart -->
+            <div class="relative group cart-wrapper">
+                <a href="{{ url_for('ecomerce.cart') }}">
+                    <img src="{{ url_for('static', filename='images/cart-shopping.svg') }}"
+                         alt="Cart"
+                         class="h-6 w-6 group-hover:scale-120">
+                </a>
+
+                <!-- Dropdown -->
+                <div class="absolute right-0 mt-1 w-80 bg-white text-black shadow-lg p-4 rounded hidden group-hover:block">
+
+                    <div class="space-y-4">
+
+                        <div class="flex items-center justify-between pb-4 border-b">
+                            <div class="flex items-center">
+                                <img src="{{ url_for('static', filename='images/single-product/1.jpg') }}"
+                                     class="h-12 w-12 object-cover rounded mr-2">
+                                <div>
+                                    <p class="font-semibold">Producto 1</p>
+                                    <p class="text-sm">Cantidad: 1</p>
+                                </div>
+                            </div>
+                            <p class="font-semibold">$25.00</p>
+                        </div>
+
+                    </div>
+
+                    <a href="{{ url_for('ecomerce.cart') }}"
+                       class="block text-center mt-4 border border-primary bg-primary hover:bg-transparent text-white hover:text-primary py-2 rounded-full font-semibold">
+                        Go to Cart
+                    </a>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <a id="search-icon" href="javascript:void(0);" class="text-white">
+                <img src="{{ url_for('static', filename='images/search-icon.svg') }}"
+                     class="h-6 w-6">
+            </a>
+
+        </div>
+    </div>
+</header>
