@@ -58,7 +58,7 @@ def lista():
 def crear():
 
     form = EmpaqueForm(request.form)
-    unidades = Unidad.query.filter_by(activo=True)
+    form.unidad_id.choices = [(0,"Seleccione")]+[(u.id, u.unidad) for u in Unidad.query.filter_by(activo=True)]
 
     if request.method == "POST" and form.validate():
 
@@ -78,7 +78,6 @@ def crear():
     return render_template(
         "empaque/crear.html",
         form=form,
-        unidades=unidades,
         titulo="Crear Empaque",
         descripcion="Registro de nuevo empaque"
     )
@@ -94,9 +93,8 @@ def crear():
 def editar(id):
 
     empaque = Empaque.query.filter_by(id=id, activo=True).first_or_404()
-    unidades = Unidad.query.filter_by(activo=True)
-
     form = EmpaqueForm(request.form, obj=empaque)
+    form.unidad_id.choices = [(0,"Seleccione")]+[(u.id, u.unidad) for u in Unidad.query.filter_by(activo=True)]
 
     if request.method == "POST" and form.validate():
 
@@ -113,7 +111,6 @@ def editar(id):
     return render_template(
         "empaque/editar.html",
         form=form,
-        unidades=unidades,
         titulo="Editar Empaque",
         descripcion="Modificar información del empaque"
     )

@@ -1,6 +1,6 @@
 <!-- templates/empaque/crear.html -->
 {% extends "layout.html" %}
-{% from "macros/forms.html" import render_input, form_buttons, render_select %}
+{% from "macros/forms.html" import render_input, form_buttons %}
 
 {% block container %}
 
@@ -11,7 +11,7 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     {{ render_input(form.paquete) }}
-    {{ render_select(form.unidad_id,unidades) }}
+    {{ render_input(form.unidad_id) }}
     {{ render_input(form.cantidad) }}
 
     {{ form_buttons(url_for('empaque.lista')) }}
