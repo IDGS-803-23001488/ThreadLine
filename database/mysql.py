@@ -380,3 +380,159 @@ class Unidad(db.Model):
 
     # Soft delete
     activo = db.Column(db.Boolean, default=True)
+    
+    
+    #===============================================
+    #Modelo Color
+    #===============================================
+class Color(db.Model):
+    __tablename__= "color"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    
+    nombre= db.Column(db.String(50),nullable=True)
+    
+    hex = db.Column(db.String(7),nullable=True)
+    #=======================
+    #Control Auditoria 
+    #=======================
+    
+    fecha_creacion = db.Column(
+        db.DateTime,
+        default= datetime.datetime.utcnow
+    )
+    
+    fecha_edicion = db.Column(
+        db.DateTime,
+        default = datetime.datetime.utcnow
+    )
+    
+    fecha_eliminacion = db.Column(
+        db.DateTime, 
+        default = datetime.datetime.utcnow
+    )
+    
+    creado_por = db.Column(
+        db.Integer,
+        db.ForeignKey("usuario.id"),
+        nullable = True
+    )
+    
+    editado_por = db.Column(
+        db.Integer, 
+        db.ForeignKey("usuario.id"),
+        nullable = True
+    )
+        
+    eliminado_por = db.Column(
+        db.Integer, 
+        db.ForeignKey("usuario.id"),
+        nullable = True
+    )
+        
+        
+    # Relaciones autorreferenciadas
+    
+    creador = db.relationship(
+        "Usuario",
+        foreign_keys =[creado_por],
+        post_update = True
+    )
+    
+    editor = db.relationship(
+        "Usuario",
+        foreign_keys=[editado_por],
+        post_update = True
+    )
+    
+    eliminador = db.relationship(
+        "Usuario",
+        foreign_keys = [eliminado_por],
+        post_update = True
+    )
+    
+    # Soft delete
+    
+    activo = db.Column(db.Boolean, default = True)
+    
+    def __repr__(self):
+        return f"<Color{self.nombre}>"
+    
+#     #===============================================
+#     #Modelo Categorias
+#     #===============================================
+# class Categorias(db.Model):
+#     __tablename__= "categorias"
+    
+#     id = db.Column(db.Integer, primary_key=True)
+    
+#     nombre= db.Column(db.String(7),nullable=True)
+    
+#     descripcion = db.Column(db.String(7),nullable=True)
+    
+#     #=======================
+#     #Control Auditoria 
+#     #=======================
+    
+#     fecha_creacion = db.Column(
+#         db.DateTime,
+#         default= datetime.datetime.utcnow
+#     )
+    
+#     fecha_edicion = db.Column(
+#         db.DateTime,
+#         default = datetime.datetime.utcnow
+#     )
+    
+#     fecha_eliminacion = db.Column(
+#         db.DateTime, 
+#         default = datetime.datetime.utcnow
+#     )
+    
+#     creado_por = db.Column(
+#         db.Integer,
+#         db.ForeignKey("usuario.id"),
+#         nullable = True
+#     )
+    
+#     editado_por = db.Column(
+#         db.Integer, 
+#         db.ForeignKey("usuario.id"),
+#         nullable = True
+#     )
+        
+#     eliminado_por = db.Column(
+#         db.Integer, 
+#         db.ForeignKey("usuario.id"),
+#         nullable = True
+#     )
+        
+        
+#     # Relaciones autorreferenciadas
+    
+#     creador = db.relationship(
+#         "Usuario",
+#         foreign_keys =[creado_por],
+#         post_update = True
+#     )
+    
+#     editor = db.relationship(
+#         "Usuario",
+#         foreign_keys=[editado_por],
+#         post_update = True
+#     )
+    
+#     eliminador = db.relationship(
+#         "Usuario",
+#         foreign_keys = [eliminado_por],
+#         post_update = True
+#     )
+    
+#     # Soft delete
+    
+#     activo = db.Column(db.Boolean, default = True)
+    
+#     def __repr__(self):
+#         return f"<Color{self.nombre}>"
+    
+    

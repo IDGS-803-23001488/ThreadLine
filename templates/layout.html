@@ -23,6 +23,80 @@
             dark:from-gray-950 dark:to-gray-900 
             text-gray-200 dark:text-gray-300 shadow-xl">
 
+<<<<<<< HEAD
+        <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-700 dark:border-gray-700/50">
+            <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 text-white flex items-center justify-center rounded-xl font-semibold shadow-lg dark:shadow-red-900/30">
+                T
+            </div>
+            <span class="text-lg font-semibold tracking-wide text-white dark:text-gray-100">ThreadLine</span>
+        </div>
+
+        <nav class="mt-6 px-4 space-y-2">
+
+            {{ sidebar_section("General") }}
+            {{ sidebar_item(
+                url_for('main.index'),
+                svg_home(),
+                "Inicio"
+            ) }}
+
+            {{ sidebar_section("Administración") }}
+            {{ sidebar_item(
+                url_for('usuarios.lista'),
+                svg_user(),
+                "Usuarios"
+            ) }}
+            {{ sidebar_item(
+                url_for('roles.lista'),
+                svg_roles(),
+                "Roles"
+            ) }}
+
+            {{ sidebar_section("Catálogos") }}
+            {{ sidebar_item(
+                url_for('unidad.lista'),
+                svg_unidad(),
+                "Unidad"
+            ) }}
+            {{ sidebar_item(
+                url_for('empaque.lista'),
+                svg_empaque(),
+                "Empaques"
+            ) }}
+            {{ sidebar_item(
+                url_for('color.lista'),
+                svg_empaque(),
+                "Colores"
+            ) }}
+
+        </nav>
+
+        <!-- Footer del sidebar (opcional) -->
+        <div class="absolute bottom-0 w-64 p-4 border-t border-gray-700 dark:border-gray-800 space-y-3">
+            
+            <!-- Botón cerrar sesión -->
+            <a href="{{ url_for('auth.logout') }}"
+            class="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl 
+                    bg-red-600 hover:bg-red-700 
+                    text-white text-sm font-medium 
+                    transition-all duration-200 shadow-md hover:shadow-lg">
+
+                <svg xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 24 24" 
+                    fill="currentColor" 
+                    class="w-5 h-5">
+                    <path fill-rule="evenodd" 
+                        d="M7.5 3.75A2.25 2.25 0 0 0 5.25 6v12A2.25 2.25 0 0 0 7.5 20.25h4.5a.75.75 0 0 0 0-1.5H7.5A.75.75 0 0 1 6.75 18V6c0-.414.336-.75.75-.75h4.5a.75.75 0 0 0 0-1.5H7.5Zm9.53 4.72a.75.75 0 0 0-1.06 1.06L17.69 11.25H9.75a.75.75 0 0 0 0 1.5h7.94l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3a.75.75 0 0 0 0-1.06l-3-3Z" 
+                        clip-rule="evenodd" />
+                </svg>
+
+                Cerrar sesión
+            </a>
+
+            <!-- Versión -->
+            <div class="flex justify-center text-xs text-gray-400 dark:text-gray-500">
+                <span>Versión 1.0.0</span>
+=======
             <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-700">
                 <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-red-600 text-white flex items-center justify-center rounded-xl font-semibold">
                     T
@@ -35,6 +109,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
+>>>>>>> 07e23949fe6f2477ddc3c62c05103dbb751c7539
             </div>
 
             <nav class="mt-6 px-4 space-y-2">

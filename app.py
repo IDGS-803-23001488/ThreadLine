@@ -14,6 +14,7 @@ from routes.auth import auth
 from routes.roles import roles
 from routes.unidad import unidad
 from routes.empaque import empaque
+from routes.color import color
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -28,6 +29,7 @@ app.register_blueprint(auth)
 app.register_blueprint(roles)
 app.register_blueprint(unidad)
 app.register_blueprint(empaque)
+app.register_blueprint(color)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -76,7 +78,7 @@ def registrar_log(response):
                     datos_enviados = request.get_json()
                 else:
                     datos_enviados = request.form.to_dict()
-
+            
             ConexionMongo.guardar_log(
                 usuario=usuario,
                 endpoint=request.endpoint,
