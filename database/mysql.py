@@ -104,6 +104,15 @@ class Unidad(BaseModel):
     sigla = db.Column(db.String(10), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     activo = db.Column(db.Boolean, default=True)
+    
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
 
 class Empaque(BaseModel):
     __tablename__ = "empaque"
@@ -112,12 +121,30 @@ class Empaque(BaseModel):
     unidad_id = db.Column(db.Integer, db.ForeignKey("unidad.id"), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     activo = db.Column(db.Boolean, default=True)
+    
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
 
 class Color(BaseModel):
     __tablename__ = "color"
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(50))
     hex = db.Column(db.String(7))
+    activo = db.Column(db.Boolean, default=True)
+    
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     activo = db.Column(db.Boolean, default=True)
 
 class Talla(BaseModel):
