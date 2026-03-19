@@ -182,6 +182,15 @@ class Proveedor(BaseModel):
     correo = db.Column(db.String(100))
     activo = db.Column(db.Boolean, default=True)
 
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
+
 class MateriaPrima(BaseModel):
     __tablename__ = "materia_prima"
     id = db.Column(db.Integer, primary_key=True)

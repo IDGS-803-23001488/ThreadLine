@@ -15,6 +15,7 @@ from routes.roles import roles
 from routes.unidad import unidad
 from routes.empaque import empaque
 from routes.color import color
+from routes.proveedores import proveedor
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -30,6 +31,7 @@ app.register_blueprint(roles)
 app.register_blueprint(unidad)
 app.register_blueprint(empaque)
 app.register_blueprint(color)
+app.register_blueprint(proveedor)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -116,6 +118,7 @@ def seed_data():
             "unidad": ["ver", "crear", "editar", "eliminar", "exportar"],
             "empaque": ["ver", "crear", "editar", "eliminar", "exportar"],
             "color": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "proveedor": ["ver", "crear", "editar", "eliminar", "exportar"],
         }
 
         permisos_db = []
