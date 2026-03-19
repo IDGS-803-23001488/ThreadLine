@@ -32,5 +32,9 @@ class UnidadForm(Form):
 class EmpaqueForm(Form):
     id = IntegerField('id')
     paquete = StringField('Paquete', [validators.DataRequired()])
-    unidad_id = StringField('Unidad', [validators.DataRequired()])
+    unidad_id = SelectField(
+        "Unidad",
+        coerce=int,
+        validators=[validators.DataRequired()]
+    )
     cantidad = IntegerField('Cantidad', [validators.DataRequired()])
