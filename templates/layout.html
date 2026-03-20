@@ -64,6 +64,8 @@
 
                 {{ sidebar_section("Produccion") }}
                 {{ sidebar_item(url_for('recetas.lista'), svg_unidad(), "Recetas", request.endpoint and request.endpoint.startswith('recetas.')) }}
+                {{ sidebar_item(url_for('materia_prima.lista'), svg_clientes(), "Materia Prima", request.endpoint and request.endpoint.startswith('materia_prima.')) }}
+
                 
             </nav>
 

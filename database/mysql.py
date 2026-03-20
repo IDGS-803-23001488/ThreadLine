@@ -230,13 +230,14 @@ class Proveedor(BaseModel):
 class MateriaPrima(BaseModel):
     __tablename__ = "materia_prima"
     id = db.Column(db.Integer, primary_key=True)
-    articulo_id = db.Column(db.Integer, db.ForeignKey("articulo.id"), unique=True)
+    articulo_id = db.Column(db.Integer, db.ForeignKey("articulo.id"))
     nombre = db.Column(db.String(100), nullable=False)
     unidad_id = db.Column(db.Integer, db.ForeignKey("unidad.id"), nullable=False)
     empaque_id = db.Column(db.Integer, db.ForeignKey("empaque.id"))
     proveedor_id = db.Column(db.Integer, db.ForeignKey("proveedor.id"))
     porcentaje_merma = db.Column(db.Numeric(5, 2), default=0.00)
     stock_minimo = db.Column(db.Numeric(10, 4), default=0.0000)
+    stock_maximo = db.Column(db.Numeric(10, 4), default=0.0000)
     activo = db.Column(db.Boolean, default=True)
 
     # Auditoría
