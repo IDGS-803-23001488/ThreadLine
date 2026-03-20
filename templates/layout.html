@@ -65,7 +65,6 @@
                 {{ sidebar_section("Produccion") }}
                 {{ sidebar_item(url_for('recetas.lista'), svg_unidad(), "Recetas", request.endpoint and request.endpoint.startswith('recetas.')) }}
                 
-
             </nav>
 
             <div class="p-4 border-t border-gray-700 space-y-3">
@@ -118,9 +117,13 @@
                     bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 
                     dark:from-gray-950 dark:via-gray-900 dark:to-gray-900
                     bg-no-repeat bg-center"
-            style="background-image: url('{{ url_for('static', filename='imagenes/logo_gray.png') }}');
+
+                {% if show_bg_image %}
+                style="background-image: url('{{ url_for('static', filename='imagenes/logo_gray.png') }}');
                     background-size: 350px;
-                    background-blend-mode: overlay;">
+                    background-blend-mode: overlay;"
+                {% endif %}
+            >
                 
                 <div class="max-w-6xl mx-auto p-8 space-y-6">
 
