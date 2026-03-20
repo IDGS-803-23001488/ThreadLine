@@ -316,7 +316,7 @@ class Receta(BaseModel):
 class RecetaDetalle(BaseModel):
     __tablename__ = "receta_detalle"
     id = db.Column(db.Integer, primary_key=True)
-    receta_id = db.Column(db.Integer, db.ForeignKey("receta.id"), nullable=False)
+    articulo_id = db.Column(db.Integer, db.ForeignKey("articulo.id"), nullable=False)
     materia_prima_id = db.Column(db.Integer, db.ForeignKey("materia_prima.id"), nullable=False)
     cantidad_neta = db.Column(db.Numeric(10, 4), nullable=False)
     cantidad_con_merma = db.Column(db.Numeric(10, 4), nullable=False)
