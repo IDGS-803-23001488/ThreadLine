@@ -1,14 +1,10 @@
 <!-- templates/cliente/lista.html -->
 {% extends "layout.html" %}
 {% from "macros/table.html" import render_table %}
-{% from "macros/utiles.html" import breadcrumbs %}
 
 
 {% block container %}
 
-{{ breadcrumbs([
-    {'label': 'Clientes', 'url': None}
-]) }}
 
 <div class="flex justify-between mb-4">
     <a href="{{ url_for('cliente.crear') }}"
