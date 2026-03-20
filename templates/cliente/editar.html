@@ -1,14 +1,10 @@
 <!-- templates/cliente/crear.html -->
 {% extends "layout.html" %}
 {% from "macros/forms.html" import render_input, form_buttons %}
-{% from "macros/utiles.html" import breadcrumbs %}
+
 
 {% block container %}
 
-{{ breadcrumbs([
-    {'label': 'Clientes', 'url': url_for('cliente.lista')},
-    {'label': 'Editar Cliente', 'url': None}
-]) }}
 
 <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg max-w-lg mx-auto">
 

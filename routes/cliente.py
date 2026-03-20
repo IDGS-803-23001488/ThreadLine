@@ -72,7 +72,7 @@ def crear():
         nuevo = Cliente(
             nombre=form.nombre.data,
             correo = form.correo.data,
-            contrasenia = form.contrasenia,
+            contrasenia = form.contrasenia.data,
             telefono=form.telefono.data,
             direccion= form.direccion.data,
             creado_por=g.usuario_actual.id

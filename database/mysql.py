@@ -397,7 +397,7 @@ class Inventario(BaseModel):
     __tablename__ = "inventarios"
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(255), nullable=False)
-
+    tipo = db.Column(db.Boolean, default=False)
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)

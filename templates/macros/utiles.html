@@ -364,27 +364,3 @@ stroke-width="1.5" stroke="currentColor" class="size-6">
 
 {% endmacro %}
 
-{% macro breadcrumbs(items) %}
-<nav class="flex mb-4 text-sm" aria-label="Breadcrumb">
-    <ol class="inline-flex items-center space-x-2">
-        <li>
-            <a href="{{ url_for('main.index') }}" >
-               {{ svg_home() }}
-            </a>
-        </li>
-        {% for item in items %}
-            <li>
-                <span class="dark:text-white "> > </span>
-                {% if item.url and not loop.last %}
-                    <a href="{{ item.url }}" 
-                       class="text-gray-600 dark:text-gray-400 ">
-                        {{ item.label }}
-                    </a>
-                {% else %}
-                    <span class="dark:text-white">{{ item.label }}</span>
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ol>
-</nav>
-{% endmacro %}
