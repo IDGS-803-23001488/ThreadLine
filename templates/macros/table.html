@@ -2,7 +2,8 @@
 {% from "macros/utiles.html" import confirm_delete, svg_modificar, btn_enlace, svg_siguiente, svg_anterior, svg_search %}
 
 {% macro render_actions(endpoint, id) %}
-    <div class="flex gap-2">
+    <!-- Se añadió 'justify-end' y 'w-full' para forzar la alineación a la derecha -->
+    <div class="flex gap-2 justify-end w-full">
         
         {{ btn_enlace(
             url_for(endpoint ~ '.editar', id=id|encrypt),
@@ -73,7 +74,7 @@
                     {% for header in headers %}
                         <th class="px-6 py-3 font-semibold">{{ header }}</th>
                     {% endfor %}
-                    <th class="px-6 py-3 font-semibold">Acciones</th>
+                    <th class="px-6 py-3 font-semibold text-right">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -82,7 +83,8 @@
                     {% for col_name, col_value in row %}
                         <td class="px-6 py-4">{{ col_value }}</td>
                     {% endfor %}
-                    <td class="px-6 py-4">
+                    <!-- Se añadió 'text-right' aquí -->
+                    <td class="px-6 py-4 text-right">
                         {{ render_actions(endpoint, row[0][1]) }}
                     </td>
                 </tr>

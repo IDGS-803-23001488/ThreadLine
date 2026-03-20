@@ -2,7 +2,7 @@
 from flask import Flask, render_template, g, session, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
-from database.mysql import db, Token
+from database.mysql import db, Usuario, Rol, Permiso, Token
 from config import DevelopmentConfig
 # from database.mongo import ConexionMongo
 from utils.crypto_url import encrypt_id
@@ -15,6 +15,9 @@ from routes.roles import roles
 from routes.unidad import unidad
 from routes.empaque import empaque
 from routes.eccomerce.ecomerce import ecomerce
+from routes.color import color
+from routes.proveedores import proveedor
+from utils.security import hash_password
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -30,6 +33,8 @@ app.register_blueprint(roles)
 app.register_blueprint(unidad)
 app.register_blueprint(empaque)
 app.register_blueprint(ecomerce)
+app.register_blueprint(color)
+app.register_blueprint(proveedor)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -59,6 +64,11 @@ def verificar_token():
 
     g.usuario_actual = token_db.usuario
 
+@app.context_processor
+def inject_request():
+    from flask import request
+    return dict(request=request)
+
 # @app.after_request
 def registrar_log(response):
 
@@ -78,7 +88,7 @@ def registrar_log(response):
                     datos_enviados = request.get_json()
                 else:
                     datos_enviados = request.form.to_dict()
-
+            
             ConexionMongo.guardar_log(
                 usuario=usuario,
                 endpoint=request.endpoint,
@@ -98,7 +108,89 @@ def registrar_log(response):
 def encrypt_filter(value):
     return encrypt_id(value)
 
+def seed_data():
+    from sqlalchemy.exc import IntegrityError
+
+    try:
+        # =========================================
+        # PERMISOS (DINÁMICO)
+        # =========================================
+        PERMISOS = {
+            "usuarios": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "roles": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "unidad": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "empaque": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "color": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "proveedor": ["ver", "crear", "editar", "eliminar", "exportar"],
+        }
+
+        permisos_db = []
+
+        for modulo, acciones in PERMISOS.items():
+            for accion in acciones:
+                permiso = Permiso.query.filter_by(
+                    modulo=modulo, accion=accion
+                ).first()
+
+                if not permiso:
+                    permiso = Permiso(modulo=modulo, accion=accion)
+                    db.session.add(permiso)
+
+                permisos_db.append(permiso)
+
+        db.session.flush()
+
+        # =========================================
+        # ROL ADMIN
+        # =========================================
+        admin_role = Rol.query.filter_by(nombre="Administrador").first()
+
+        if not admin_role:
+            admin_role = Rol(
+                nombre="Administrador",
+                descripcion="Rol con todos los permisos del sistema"
+            )
+            db.session.add(admin_role)
+            db.session.flush()
+
+        # =========================================
+        # ASIGNAR PERMISOS AL ADMIN
+        # =========================================
+        for permiso in permisos_db:
+            if permiso not in admin_role.permisos:
+                admin_role.permisos.append(permiso)
+
+        # =========================================
+        # USUARIO ADMIN
+        # =========================================
+        admin_user = Usuario.query.filter_by(usuario="admin").first()
+
+        if not admin_user:
+            admin_user = Usuario(
+                usuario="admin",
+                correo="admin@example.com",
+                contrasenia=hash_password("admin123"),  # ⚠️ luego usa hash
+                activo=True
+            )
+            db.session.add(admin_user)
+            db.session.flush()
+
+        # =========================================
+        # ASIGNAR ROL AL USUARIO
+        # =========================================
+        if admin_role not in admin_user.roles:
+            admin_user.roles.append(admin_role)
+
+        # =========================================
+        # COMMIT
+        # =========================================
+        db.session.commit()
+
+    except IntegrityError:
+        db.session.rollback()
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        seed_data()
     app.run(debug=True)

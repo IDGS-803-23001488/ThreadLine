@@ -32,5 +32,21 @@ class UnidadForm(Form):
 class EmpaqueForm(Form):
     id = IntegerField('id')
     paquete = StringField('Paquete', [validators.DataRequired()])
-    unidad_id = StringField('Unidad', [validators.DataRequired()])
+    unidad_id = SelectField(
+        "Unidad",
+        coerce=int,
+        validators=[validators.DataRequired()]
+    )
     cantidad = IntegerField('Cantidad', [validators.DataRequired()])
+
+#Formulario de Color 
+class ColorForm(Form):
+    id = IntegerField('id')
+    nombre = StringField('Nombre',[validators.DataRequired("Coloca el nombre del color"), validators.length(min=3 , max=50)])
+    hex = StringField('Codigo Hexadecimal', [validators.optional(),validators.length(min=7, max=7)])
+    
+class ProveedorForm(Form):
+    id = IntegerField('id')
+    nombre = StringField('Nombre', [validators.DataRequired()])
+    rfc = StringField('RFC', [validators.DataRequired(),validators.length(min=12, max=13)])
+    correo = EmailField('Correo', [validators.DataRequired()])

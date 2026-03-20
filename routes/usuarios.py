@@ -5,6 +5,7 @@ from database.mysql import db, Usuario, Rol
 from forms import UserForm
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.excel_export import exportar_excel
+from utils.security import hash_password
 
 usuarios = Blueprint("usuarios", __name__, url_prefix="/usuarios")
 
@@ -57,26 +58,29 @@ def lista():
 @login_requerido
 @permiso_requerido("usuarios", "crear")
 def crear():
-
     form = UserForm(request.form)    
     form.rol.choices = [(r.id, r.nombre) for r in Rol.query.order_by(Rol.nombre).all()]
 
     if request.method == "POST" and form.validate():
-
         nuevo = Usuario(
             usuario=form.usuario.data,
             correo=form.correo.data,
-            contrasenia=form.contrasenia.data,
-            creado_por=g.usuario_actual.id  # 🔥 Auditoría
+            contrasenia=hash_password(form.contrasenia.data), 
+            creado_por=g.usuario_actual.id,
+            activo=True
         )
         rol = Rol.query.get(form.rol.data)
-        nuevo.roles = [rol]
+        if rol:
+            nuevo.roles = [rol]
         
-        db.session.add(nuevo)
-        db.session.commit()
-
-        flash("Usuario creado correctamente")
-        return redirect(url_for("usuarios.lista"))
+        try:
+            db.session.add(nuevo)
+            db.session.commit()
+            flash("Usuario creado correctamente", "success")
+            return redirect(url_for("usuarios.lista"))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error al crear usuario: {str(e)}", "error")
 
     return render_template(
         "usuarios/crear.html",

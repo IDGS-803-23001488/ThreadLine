@@ -2,7 +2,7 @@
 .env
 venv/
 
-static
+# static
 node_modules
 
 # Ignorar la carpeta de migraciones de Django

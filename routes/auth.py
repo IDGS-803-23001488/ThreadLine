@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from database.mysql import Usuario, Token, db
 import sys
 from pprint import pprint
+from utils.security import verify_password
 
 auth = Blueprint("auth", __name__)
 
@@ -14,9 +15,10 @@ def login():
 
         correo = request.form.get("correo")
         contrasenia = request.form.get("contrasenia")
+
         user = Usuario.query.filter_by(correo=correo, activo=True).first()
 
-        if user and user.contrasenia == contrasenia:
+        if user and verify_password(user.contrasenia, contrasenia):
 
             nuevo_token = str(uuid.uuid4())
 
@@ -41,7 +43,7 @@ def login():
 
             return response
 
-        flash("Credenciales incorrectas")
+        flash("Credenciales incorrectas", "error")
 
     return render_template("auth/login.html")
 
