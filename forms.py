@@ -1,6 +1,6 @@
 # forms.py
 from wtforms import Form
-from wtforms import StringField,TextAreaField, IntegerField, PasswordField, EmailField, BooleanField, SelectField
+from wtforms import StringField,TextAreaField, IntegerField, PasswordField, EmailField, BooleanField, SelectField, HiddenField
 from wtforms import validators
 
 class UserForm(Form):
@@ -72,3 +72,17 @@ class ProveedorForm(Form):
     nombre = StringField('Nombre', [validators.DataRequired()])
     rfc = StringField('RFC', [validators.DataRequired(),validators.length(min=12, max=13)])
     correo = EmailField('Correo', [validators.DataRequired()])
+
+
+class RecetaForm(Form):
+    id = IntegerField('id')
+    producto_variante_id = HiddenField(
+        validators=[validators.DataRequired()]
+    )
+    cantidad_base = IntegerField(
+        'Cantidad', 
+        [
+            validators.DataRequired("Coloca la cantidad del producto"),
+            validators.number_range(min = 1)
+        ]
+    )

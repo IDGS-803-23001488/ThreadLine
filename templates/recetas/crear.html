@@ -1,0 +1,91 @@
+<!-- templates/recetas/lista.html -->
+{% extends "layout.html" %}
+{% from "macros/forms.html" import render_input, form_buttons %}
+
+{% block container %}
+
+
+<form method="POST">
+    
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="bg-white dark:bg-gray-800">
+        <section class="text-gray-600 dark:text-gray-300 body-font overflow-hidden">
+            <div class="container px-5 py-24 mx-auto">
+                <div class="lg:w-4/5 mx-auto flex flex-wrap">
+
+                    <img alt="ecommerce"
+                        class="lg:w-1/4 w-full lg:h-auto h-64 object-cover object-center rounded"
+                        src="https://dummyimage.com/200x200">
+
+                    <div class="lg:w-1/2 w-full lg:pl-10 lg:py-6 mt-6 lg:mt-0">
+
+                        <!-- Marca -->
+                        <h2 class="text-sm title-font text-gray-500 dark:text-gray-400 tracking-widest">
+                            The Catcher in the Rye
+                        </h2>
+
+                        <!-- Descripción -->
+                        <p class="leading-relaxed text-gray-600 dark:text-gray-300">
+                            EJEMPLO DE TEXTO QUE LUEGO QUITO
+                        </p>
+
+                        <!-- Opciones -->
+                        <div class="flex mt-6 items-center pb-5 border-b-2 border-gray-200 dark:border-gray-700 mb-5">
+
+                            <div class="flex items-center">
+                                <span class="mr-3 text-gray-700 dark:text-gray-300">Color</span>
+                                <button class="border-2 border-gray-300 dark:border-gray-600 rounded-full w-6 h-6 focus:outline-none"></button>
+                            </div>
+
+                            <div class="flex ml-6 items-center">
+                                <span class="mr-3 text-gray-700 dark:text-gray-300">Size</span>
+
+                                <div class="relative">
+                                    <select
+                                        class="rounded border appearance-none border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-600 focus:border-indigo-500 text-base pl-3 pr-10"
+                                        disabled>
+                                        <option selected>SM</option>
+                                        <option>M</option>
+                                        <option>L</option>
+                                        <option>XL</option>
+                                    </select>
+
+                                    <span
+                                        class="absolute right-0 top-0 h-full w-10 text-center text-gray-600 dark:text-gray-300 pointer-events-none flex items-center justify-center">
+                                        <svg fill="none" stroke="currentColor" stroke-linecap="round"
+                                            stroke-linejoin="round" stroke-width="2" class="w-4 h-4"
+                                            viewBox="0 0 24 24">
+                                            <path d="M6 9l6 6 6-6"></path>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Precio + botones -->
+                        <div class="flex items-center">
+                            <span class="title-font font-medium text-2xl text-gray-900 dark:text-white">
+                                $58.00
+                            </span>
+
+                            <button
+                                class="flex ml-auto text-white bg-indigo-500 border-0 py-2 px-6 focus:outline-none hover:bg-indigo-600 rounded">
+                                Button
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    {{ render_input(form.producto_variante_id) }}
+    
+    <div class="p-6 rounded-2xl max-w-lg mx-auto">
+        {{ form_buttons(url_for('proveedor.lista')) }}
+    </div>
+
+</form>
+
+
+{% endblock %}
