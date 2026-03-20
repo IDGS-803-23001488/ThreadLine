@@ -269,12 +269,16 @@ class Producto(BaseModel):
 class ProductoVariante(BaseModel):
     __tablename__ = "producto_variante"
     id = db.Column(db.Integer, primary_key=True)
-    articulo_id = db.Column(db.Integer, db.ForeignKey("articulo.id"), unique=True)
+    articulo_id = db.Column(db.Integer, db.ForeignKey("articulo.id"))
     producto_id = db.Column(db.Integer, db.ForeignKey("producto.id"), nullable=False)
     talla_id = db.Column(db.Integer, db.ForeignKey("talla.id"), nullable=False)
     color_id = db.Column(db.Integer, db.ForeignKey("color.id"), nullable=False)
     precio_venta = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
-    activo = db.Column(db.Boolean, default=True)
+
+    producto = db.relationship("Producto", backref="variantes")
+    talla = db.relationship("Talla")
+    color = db.relationship("Color")
+    articulo = db.relationship("Articulo")
 
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -283,7 +287,7 @@ class ProductoVariante(BaseModel):
     creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
-    activo = db.Column(db.Boolean, default=True)
+    activo = db.Column(db.Boolean, default=True)    
 
     __table_args__ = (db.UniqueConstraint('producto_id', 'talla_id', 'color_id', name='uq_variante'),BASE_ARGS)
 
@@ -298,6 +302,8 @@ class Receta(BaseModel):
     cantidad_base = db.Column(db.Integer, default=1)
     activo = db.Column(db.Boolean, default=True)
 
+    producto_variante = db.relationship("ProductoVariante", backref="recetas")
+    
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)

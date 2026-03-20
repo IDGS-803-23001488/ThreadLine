@@ -57,10 +57,14 @@
                 {{ sidebar_item(url_for('empaque.lista'), svg_empaque(), "Empaques", request.endpoint and request.endpoint.startswith('empaque.')) }}
                 {{ sidebar_item(url_for('proveedor.lista'), svg_proveedor(), "Proveedores", request.endpoint and request.endpoint.startswith('proveedor.')) }}
                 {{ sidebar_item(url_for('color.lista'), svg_color(), "Colores", request.endpoint and request.endpoint.startswith('color.')) }}
-                {{ sidebar_item(url_for('categoria.lista'), svg_categorias(), "Categoras") }}
-                {{ sidebar_item(url_for('inventario.lista'), svg_inventario(), "Inventario") }}
-                {{ sidebar_item(url_for('talla.lista'), svg_talla(), "Tallas") }}
-                {{ sidebar_item(url_for('cliente.lista'), svg_clientes(), "Cliente") }}
+                {{ sidebar_item(url_for('categoria.lista'), svg_categorias(), "Categoras", request.endpoint and request.endpoint.startswith('categoria.')) }}
+                {{ sidebar_item(url_for('inventario.lista'), svg_inventario(), "Inventario", request.endpoint and request.endpoint.startswith('inventario.')) }}
+                {{ sidebar_item(url_for('talla.lista'), svg_talla(), "Tallas", request.endpoint and request.endpoint.startswith('talla.')) }}
+                {{ sidebar_item(url_for('cliente.lista'), svg_clientes(), "Cliente", request.endpoint and request.endpoint.startswith('cliente.')) }}
+
+                {{ sidebar_section("Produccion") }}
+                {{ sidebar_item(url_for('recetas.lista'), svg_unidad(), "Recetas", request.endpoint and request.endpoint.startswith('recetas.')) }}
+                
 
             </nav>
 
@@ -71,9 +75,6 @@
                     </svg>
                     Cerrar sesión
                 </a>
-                <div class="flex justify-center text-xs text-gray-400">
-                    <span>Versión 1.0.0</span>
-                </div>
             </div>
         </aside>
 
