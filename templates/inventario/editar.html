@@ -11,6 +11,7 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     {{ render_input(form.nombre) }}
+    {{ render_input(form.tipo) }}
 
     {{ form_buttons(url_for('inventario.lista')) }}
 

@@ -26,7 +26,8 @@ def lista ():
         
         if search :
             query = query.filtrer(
-                Inventario.nombre.ilike(f"%{search}%") 
+                Inventario.nombre.ilike(f"%{search}%") |
+                Inventario.tipo.ilike(f"%{search}%")
             )
         
     pagination = query.order_by(Inventario.id.asc()).paginate(
@@ -36,13 +37,13 @@ def lista ():
     )
     
     rows = [
-        [("ID", c.id),("Nombre", c.nombre)]
+        [("ID", c.id),("Nombre", c.nombre),("Tipo","Producto Terminado" if c.tipo else  'Materia Prima' )]
         for c in pagination.items
     ]
-    
-    return render_template(
+
+    return render_template(    
         "inventario/lista.html",
-        headers=["ID","Nombre"],
+        headers=["ID","Nombre","Tipo"],
         rows = rows,
         pagination = pagination,
         search = search,
@@ -65,6 +66,7 @@ def crear():
         
         nuevo = Inventario(
             nombre=form.nombre.data,
+            tipo=bool(form.tipo.data),
             creado_por=g.usuario_actual.id
         )
         

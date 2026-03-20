@@ -53,6 +53,7 @@ class CategoriaForm(Form):
 class InventarioForm(Form):
     id = IntegerField('id')
     nombre = StringField('Nombre',[validators.DataRequired("Coloca el nombre del inventario"), validators.length(min=3 , max=50)])
+    tipo = SelectField ("Tipo", choices=[(0 ,'Materia Prima'),(1,'Producto Terminado')], coerce=int)
 
 class TallaForm(Form):
     id = IntegerField('id')
@@ -60,7 +61,6 @@ class TallaForm(Form):
     orden = IntegerField('Orden', [validators.DataRequired("Coloca la orden de la Talla"),validators.number_range(min = 1)])
     
 class ClienteForm(Form):
-
     nombre = StringField('Nombre', [validators.DataRequired(message="El nombre es obligatorio"),validators.Length(min=3, max=100)])
     correo = StringField('Correo electrónico', [validators.DataRequired(message="El correo es obligatorio"),validators.Email(message="Ingresa un correo válido"),validators.Length(max=100)])
     contrasenia = PasswordField('Contraseña', [validators.DataRequired(message="La contraseña es obligatoria"),validators.Length(min=6, max=255)])
