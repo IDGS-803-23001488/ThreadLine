@@ -23,6 +23,7 @@ from routes.talla import talla
 from routes.cliente import cliente
 from routes.recetas import recetas
 from routes.productosVariantes import productosVariantes , apiProductosVariantes
+from routes.materiaPrima import materia_prima
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -45,6 +46,7 @@ app.register_blueprint(talla)
 app.register_blueprint(cliente)
 app.register_blueprint(recetas)
 app.register_blueprint(productosVariantes)
+app.register_blueprint(materia_prima)
 app.register_blueprint(apiProductosVariantes)
 
 @app.errorhandler(404)

@@ -1,6 +1,6 @@
 # forms.py
 from wtforms import Form
-from wtforms import StringField,TextAreaField, IntegerField, PasswordField, EmailField, BooleanField, SelectField, HiddenField
+from wtforms import StringField,TextAreaField, IntegerField, PasswordField, EmailField, BooleanField, SelectField, HiddenField, DecimalField
 from wtforms import validators
 
 class UserForm(Form):
@@ -86,3 +86,13 @@ class RecetaForm(Form):
             validators.number_range(min = 1)
         ]
     )
+    
+class MateriaPrimaForm(Form):
+    id = IntegerField('id')
+    nombre = StringField('Nombre',[validators.DataRequired()])
+    unidad_id = SelectField('Unidad',[validators.DataRequired()])
+    empaque_id = SelectField('Empaque')
+    proveedor_id = SelectField('Proveedor')
+    porcentaje_merma = DecimalField('Porcentaje de merma',[validators.Optional()])
+    stock_minimo = DecimalField('Stock mínimo',[validators.Optional(),validators.DataRequired("Coloca el maximo de stock"),validators.number_range(min=0,max=200)])
+    stock_maximo = DecimalField('Stock máximo',[validators.Optional(), validators.DataRequired("Coloca el maximo de stock"), validators.number_range(min=0, max=200)])
