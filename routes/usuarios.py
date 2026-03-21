@@ -109,13 +109,13 @@ def editar(id):
         usuario.usuario = form.usuario.data
         usuario.correo = form.correo.data
 
-        if form.cambiar_contrasenia.data and form.contrasenia.data:
-            usuario.contrasenia = hash_password(form.contrasenia.data)
-
         usuario.editado_por = g.usuario_actual.id
         usuario.fecha_edicion = datetime.datetime.utcnow()
         rol = Rol.query.get(form.rol.data)
         usuario.roles = [rol]
+
+        if form.cambiar_contrasenia.data and form.contrasenia.data:
+            usuario.contrasenia = hash_password(form.contrasenia.data)
 
         db.session.commit()
 

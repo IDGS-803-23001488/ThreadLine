@@ -63,8 +63,9 @@ class TallaForm(Form):
 class ClienteForm(Form):
     nombre = StringField('Nombre', [validators.DataRequired(message="El nombre es obligatorio"),validators.Length(min=3, max=100)])
     correo = StringField('Correo electrónico', [validators.DataRequired(message="El correo es obligatorio"),validators.Email(message="Ingresa un correo válido"),validators.Length(max=100)])
-    contrasenia = PasswordField('Contraseña', [validators.DataRequired(message="La contraseña es obligatoria"),validators.Length(min=6, max=255)])
+    contrasenia = PasswordField('Contraseña', [validators.Optional(),validators.DataRequired(message="La contraseña es obligatoria"),validators.Length(min=6, max=255)])
     telefono = StringField('Teléfono', [validators.Optional(),validators.Length(max=20)])
+    cambiar_contrasenia = BooleanField("Cambiar contraseña")
     direccion = StringField('Dirección', [validators.Optional(), validators.Length(max=255)])
 
 class ProveedorForm(Form):
