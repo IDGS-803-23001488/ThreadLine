@@ -1,11 +1,21 @@
 # routes/productosVariantes.py
 import datetime 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, g
+from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
 from database.mysql import db, Producto, ProductoVariante
 from middlerware import login_requerido, permiso_requerido
 from sqlalchemy import or_
 
-productosVariantes = Blueprint("productosVariantes", __name__, url_prefix="/productosVariantes")
+productosVariantes = Blueprint(
+    "productosVariantes",
+    __name__,
+    url_prefix="/productosVariantes"
+)
+
+apiProductosVariantes = Blueprint(
+    "api_productosVariantes",
+    __name__,
+    url_prefix="/api/productosVariantes"
+)
 
 #===========================================
 # Buscador
@@ -68,3 +78,9 @@ def seleccionar(id):
     return_url = request.args.get("return_url")
 
     return redirect(f"{return_url}?producto_variante_id={id}")
+
+@apiProductosVariantes.route("/productos", methods=["GET"])
+@login_requerido
+@permiso_requerido("productosVariantes", "buscador")
+def obtener_productos():
+    return jsonify({"data": []})

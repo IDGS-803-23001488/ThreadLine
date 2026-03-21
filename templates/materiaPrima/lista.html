@@ -1,15 +1,15 @@
-<!-- templates/proveedores/lista.html -->
+<!-- templates/materia_prima/lista.html -->
 {% extends "layout.html" %}
 {% from "macros/table.html" import render_table %}
-{% from "macros/utiles.html" import btn_primary, svg_nuevo %}
 
 {% block container %}
 
-{{ btn_primary(
-    url_for('proveedor.crear'),
-    svg_nuevo,
-    '',
-) }}
+<div class="flex justify-between mb-4">
+    <a href="{{ url_for('materia_prima.crear') }}"
+       class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">
+        + Nuevo
+    </a>
+</div>
 
 {{ render_table(
     headers=headers,

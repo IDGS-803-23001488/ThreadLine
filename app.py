@@ -22,7 +22,8 @@ from routes.inventario import inventario
 from routes.talla import talla
 from routes.cliente import cliente
 from routes.recetas import recetas
-from routes.productosVariantes import productosVariantes
+from routes.productosVariantes import productosVariantes , apiProductosVariantes
+from routes.materiaPrima import materia_prima
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -45,6 +46,8 @@ app.register_blueprint(talla)
 app.register_blueprint(cliente)
 app.register_blueprint(recetas)
 app.register_blueprint(productosVariantes)
+app.register_blueprint(materia_prima)
+app.register_blueprint(apiProductosVariantes)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -52,6 +55,8 @@ def page_not_found(e):
 
 @app.errorhandler(403)
 def forbidden(e):
+    if request.path.startswith("/api"):
+        return {"error": "Forbidden", "detalle": e.description}, 403
     return render_template("403.html", error=e.description), 403
 
 @app.before_request
@@ -65,11 +70,15 @@ def verificar_token():
     token_cookie = request.cookies.get("auth_token")
 
     if not token_cookie:
+        if request.path.startswith("/api"):
+            return {"error": "No autenticado"}, 401
         return redirect(url_for("auth.login"))
 
     token_db = Token.query.filter_by(token=token_cookie, usado=False).first()
 
     if not token_db or token_db.esta_expirado():
+        if request.path.startswith("/api"):
+            return {"error": "Token inválido"}, 401
         return redirect(url_for("auth.login"))
 
     g.usuario_actual = token_db.usuario
@@ -137,7 +146,7 @@ def seed_data():
             "talla": ["ver", "crear", "editar", "eliminar", "exportar"],
             "cliente": ["ver", "crear", "editar", "eliminar", "exportar"],
             "recetas": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "productosVariantes": ["buscador"],
+            "productosVariantes": ["buscador","productosVariantes"],
         }
 
         permisos_db = []

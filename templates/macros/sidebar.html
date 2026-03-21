@@ -1,34 +1,33 @@
 <!-- templates/macros/sidebar.html -->
-{% macro sidebar_section(title) %}
-<p class="px-4 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-    {{ title }}
+
+{# ─────────────────────────────────────────────
+   panel_section: separador de grupo en el panel
+─────────────────────────────────────────────── #}
+{% macro panel_section(titulo) %}
+<p class="px-3 pt-5 pb-1 text-[10px] font-semibold tracking-widest uppercase"
+   style="color: var(--color-text-muted)">
+    {{ titulo }}
 </p>
 {% endmacro %}
 
-{% macro sidebar_section(title) %}
-<p class="px-4 mt-6 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-    {{ title }}
-</p>
-{% endmacro %}
 
-{% macro sidebar_item(enlace, icono, texto, activo=False) %}
+{# ─────────────────────────────────────────────
+   panel_item: enlace dentro del panel expandible
+─────────────────────────────────────────────── #}
+{% macro panel_item(enlace, icono, texto, activo=False) %}
 <a href="{{ enlace }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
-          {% if activo %}
-              bg-blue-600 text-white shadow-lg shadow-blue-900/30
-          {% else %}
-              text-gray-200 dark:text-gray-300 hover:bg-gray-700 dark:hover:bg-gray-800 hover:text-white
-          {% endif %}">
-
-    <span class="{% if activo %}text-white{% else %}text-gray-400 group-hover:text-white{% endif %}">
+   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
+   {% if activo %}
+       style="background: var(--color-primary); color: #fff;"
+   {% else %}
+       style="color: var(--color-text-label);"
+       onmouseover="this.style.background='var(--color-primary-light)'; this.style.color='var(--color-primary)';"
+       onmouseout="this.style.background=''; this.style.color='var(--color-text-label)';"
+   {% endif %}>
+    <span class="w-4 h-4 flex-shrink-0"
+          style="color: {% if activo %}#fff{% else %}var(--color-text-muted){% endif %}">
         {{ icono | safe }}
     </span>
-
-    <span class="font-medium">{{ texto }}</span>
-    
-    {# Indicador visual opcional para el activo #}
-    {% if activo %}
-    <span class="ml-auto w-2 h-2 bg-white rounded-full"></span>
-    {% endif %}
+    <span class="whitespace-nowrap">{{ texto }}</span>
 </a>
 {% endmacro %}
