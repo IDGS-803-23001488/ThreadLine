@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MatDash Sidebar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    .panel {
+      width: 0;
+      overflow: hidden;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+    .panel.open {
+      width: 18vw;
+    }
+
+    .nav-item {
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item.active {
+      background: #6366f1;
+      color: white;
+      border-radius: 10px;
+    }
+    .nav-item:not(.active):hover {
+      background: #f1f1f8;
+      border-radius: 10px;
+    }
+
+    .icon-btn {
+      transition: background 0.15s;
+    }
+    .icon-btn:hover:not(.active-icon) {
+      background: #f1f1f8;
+    }
+    .icon-btn.active-icon {
+      background: #6366f1;
+    }
+    .icon-btn.active-icon svg {
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 flex h-screen w-screen overflow-hidden">
+
+  <div class="flex h-full w-full overflow-hidden">
+
+    <!-- Icon Rail -->
+    <nav class="flex flex-col items-center justify-between w-[4.5vw] min-w-[56px] bg-white py-[2vh] px-[0.4vw] z-10 shadow-sm">
+
+      <!-- Top: hamburger -->
+      <div>
+        <button id="hamburgerBtn" onclick="toggleHamburger()" class="w-10 h-10 flex flex-col justify-center items-center gap-1.5 rounded-xl hover:bg-gray-100 transition-colors mb-2">
+          <span class="w-5 h-0.5 bg-gray-500 rounded"></span>
+          <span class="w-5 h-0.5 bg-gray-500 rounded"></span>
+          <span class="w-5 h-0.5 bg-gray-500 rounded"></span>
+        </button>
+      </div>
+
+      <!-- Main icons -->
+      <div class="flex flex-col items-center gap-1">
+
+        <!-- Layers (active by default) -->
+        <button onclick="togglePanel(this, 'dashboards')" data-panel="dashboards"
+          class="icon-btn active-icon w-11 h-11 flex items-center justify-center rounded-2xl">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+        </button>
+
+        <div class="w-8 h-px bg-gray-100 my-2"></div>
+
+        <button onclick="togglePanel(this, 'pages')" data-panel="pages"
+          class="icon-btn w-11 h-11 flex items-center justify-center rounded-xl">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 8h18"/><path d="M8 3v18"/>
+          </svg>
+        </button>
+
+        <button onclick="togglePanel(this, 'docs')" data-panel="docs"
+          class="icon-btn w-11 h-11 flex items-center justify-center rounded-xl">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/>
+          </svg>
+        </button>
+
+        <div class="w-8 h-px bg-gray-100 my-2"></div>
+
+        <button onclick="togglePanel(this, 'analytics')" data-panel="analytics"
+          class="icon-btn w-11 h-11 flex items-center justify-center rounded-xl">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+            <circle cx="9" cy="6" r="2" fill="white" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="15" cy="12" r="2" fill="white" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="10" cy="18" r="2" fill="white" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+        </button>
+
+        <button onclick="togglePanel(this, 'charts')" data-panel="charts"
+          class="icon-btn w-11 h-11 flex items-center justify-center rounded-xl">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <rect x="4" y="10" width="4" height="10" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="16" y="13" width="4" height="7" rx="1"/>
+          </svg>
+        </button>
+
+        <button onclick="togglePanel(this, 'apps')" data-panel="apps"
+          class="icon-btn w-11 h-11 flex items-center justify-center rounded-xl">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <circle cx="8" cy="8" r="2.5"/><circle cx="16" cy="8" r="2.5"/>
+            <circle cx="8" cy="16" r="2.5"/><circle cx="16" cy="16" r="2.5"/>
+          </svg>
+        </button>
+
+        <div class="w-8 h-px bg-gray-100 my-2"></div>
+
+        <button onclick="togglePanel(this, 'settings')" data-panel="settings"
+          class="icon-btn w-11 h-11 flex items-center justify-center rounded-xl">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+            <path d="M14.83 9.17a4 4 0 00-5.66 5.66"/><path d="M9.17 14.83a4 4 0 005.66-5.66"/>
+          </svg>
+        </button>
+
+        <button onclick="togglePanel(this, 'store')" data-panel="store"
+          class="icon-btn w-11 h-11 flex items-center justify-center rounded-xl">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Bottom -->
+      <div>
+        <button class="icon-btn w-11 h-11 flex items-center justify-center rounded-xl">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <rect x="5" y="11" width="14" height="11" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Expandable Panel -->
+    <div id="sidePanel" class="panel bg-white border-l border-gray-100 flex flex-col" style="min-width:0">
+      <div class="px-5 pt-5 pb-4 flex-shrink-0">
+        <!-- Logo -->
+        <div class="flex items-center gap-2 mb-6">
+          <svg class="w-6 h-6 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          <span class="text-lg font-bold text-gray-800 tracking-tight">MatDash</span>
+        </div>
+
+        <!-- Section label -->
+        <p id="sectionLabel" class="text-[10px] font-700 tracking-widest text-gray-400 uppercase mb-2">DASHBOARDS</p>
+      </div>
+
+      <!-- Nav items -->
+      <div id="navItems" class="flex-1 overflow-y-auto px-3 pb-4 flex flex-col gap-1">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- Main content area -->
+    <main class="flex-1 bg-gray-100 p-8 overflow-auto">
+      <div class="h-full rounded-2xl bg-white shadow-sm flex items-center justify-center">
+        
+      {% block container %}
+                    {% endblock %}
+      </div>
+    </main>
+
+  </div>
+
+  <script>
+    const menus = {
+      dashboards: {
+        label: 'DASHBOARDS',
+        items: [
+          { icon: 'grid', label: 'Dashboard1', active: true },
+          { icon: 'bar', label: 'Dashboard2' },
+          { icon: 'monitor', label: 'Dashboard3' },
+        ]
+      },
+      pages: {
+        label: 'FRONT PAGES',
+        items: [
+          { icon: 'home', label: 'Homepage' },
+          { icon: 'info', label: 'About Us' },
+          { icon: 'file', label: 'Blog' },
+          { icon: 'file', label: 'Blog Details' },
+          { icon: 'phone', label: 'Contact Us' },
+          { icon: 'briefcase', label: 'Portfolio' },
+        ]
+      },
+      docs: {
+        label: 'DOCUMENTATION',
+        items: [
+          { icon: 'file', label: 'Getting Started' },
+          { icon: 'file', label: 'Components' },
+          { icon: 'file', label: 'API Reference' },
+        ]
+      },
+      analytics: {
+        label: 'ANALYTICS',
+        items: [
+          { icon: 'bar', label: 'Overview' },
+          { icon: 'bar', label: 'Reports' },
+          { icon: 'bar', label: 'Funnels' },
+        ]
+      },
+      charts: {
+        label: 'CHARTS',
+        items: [
+          { icon: 'bar', label: 'Line Charts' },
+          { icon: 'bar', label: 'Bar Charts' },
+          { icon: 'bar', label: 'Pie Charts' },
+        ]
+      },
+      apps: {
+        label: 'APPLICATIONS',
+        items: [
+          { icon: 'grid', label: 'Calendar' },
+          { icon: 'grid', label: 'Chat' },
+          { icon: 'grid', label: 'Email' },
+          { icon: 'grid', label: 'Kanban' },
+        ]
+      },
+      settings: {
+        label: 'SETTINGS',
+        items: [
+          { icon: 'info', label: 'Profile' },
+          { icon: 'info', label: 'Account' },
+          { icon: 'info', label: 'Security' },
+        ]
+      },
+      store: {
+        label: 'STORE',
+        items: [
+          { icon: 'briefcase', label: 'Products' },
+          { icon: 'briefcase', label: 'Orders' },
+          { icon: 'briefcase', label: 'Customers' },
+        ]
+      },
+    };
+
+    const icons = {
+      grid: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`,
+      bar: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="4" y="10" width="4" height="10" rx="1"/><rect x="10" y="6" width="4" height="14" rx="1"/><rect x="16" y="13" width="4" height="7" rx="1"/></svg>`,
+      monitor: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`,
+      home: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/><path d="M3 12v9h18v-9"/></svg>`,
+      info: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>`,
+      file: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+      phone: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81a19.79 19.79 0 01-3.07-8.7A2 2 0 012.18 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 9.91a16 16 0 006.29 6.29l1.27-.54a2 2 0 012.11.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>`,
+      briefcase: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="12"/></svg>`,
+    };
+
+    let currentPanel = 'dashboards';
+    let panelOpen = true;
+
+    function renderItems(key) {
+      const menu = menus[key];
+      document.getElementById('sectionLabel').textContent = menu.label;
+      const container = document.getElementById('navItems');
+      container.innerHTML = menu.items.map((item, i) =>
+        `<button onclick="setActive(this)" class="nav-item ${item.active ? 'active' : ''} flex items-center gap-3 w-full px-3 py-2.5 text-sm font-500 ${item.active ? 'text-white' : 'text-gray-500'}">
+          <span class="${item.active ? 'text-white' : 'text-gray-400'}">${icons[item.icon] || icons.file}</span>
+          <span>${item.label}</span>
+        </button>`
+      ).join('');
+    }
+
+    function setActive(el) {
+      document.querySelectorAll('.nav-item').forEach(b => {
+        b.classList.remove('active');
+        b.classList.add('text-gray-500');
+        b.classList.remove('text-white');
+        b.querySelector('span:first-child')?.classList.replace('text-white', 'text-gray-400');
+      });
+      el.classList.add('active');
+      el.classList.remove('text-gray-500');
+    }
+
+    function setActiveIcon(key) {
+      document.querySelectorAll('.icon-btn[data-panel]').forEach(b => {
+        const isActive = b.dataset.panel === key;
+        b.classList.toggle('active-icon', isActive);
+        b.querySelectorAll('svg').forEach(s => {
+          if (isActive) { s.classList.replace('text-gray-400', 'text-white'); }
+          else { s.classList.replace('text-white', 'text-gray-400'); }
+        });
+      });
+    }
+
+    function togglePanel(btn, key) {
+      const panel = document.getElementById('sidePanel');
+
+      if (currentPanel === key && panelOpen) {
+        // Close but keep icon highlighted
+        panel.classList.remove('open');
+        panelOpen = false;
+      } else {
+        // Switch section or reopen
+        currentPanel = key;
+        setActiveIcon(key);
+        renderItems(key);
+        panel.classList.add('open');
+        panelOpen = true;
+      }
+    }
+
+    function toggleHamburger() {
+      const panel = document.getElementById('sidePanel');
+      if (panelOpen) {
+        panel.classList.remove('open');
+        panelOpen = false;
+      } else {
+        const key = currentPanel || 'dashboards';
+        renderItems(key);
+        panel.classList.add('open');
+        panelOpen = true;
+        document.querySelectorAll('.icon-btn[data-panel]').forEach(b => {
+          if (b.dataset.panel === key) {
+            b.classList.add('active-icon');
+            b.querySelectorAll('svg').forEach(s => s.classList.replace('text-gray-400', 'text-white'));
+          }
+        });
+        currentPanel = key;
+      }
+    }
+
+    // Init: open dashboards
+    document.addEventListener('DOMContentLoaded', () => {
+      const firstBtn = document.querySelector('[data-panel="dashboards"]');
+      document.getElementById('sidePanel').classList.add('open');
+      renderItems('dashboards');
+    });
+  </script>
+</body>
+</html>
