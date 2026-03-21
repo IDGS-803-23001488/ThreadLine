@@ -39,41 +39,13 @@
                 </button>
             </div>
 
-            <nav class="flex-1 overflow-y-auto mt-6 px-4 space-y-2 pr-2
-                        scrollbar-thin
-                        scrollbar-thumb-gray-700
-                        scrollbar-track-transparent
-                        scrollbar-thumb-rounded-full
-                        hover:scrollbar-thumb-gray-600">
-                {{ sidebar_section("General") }}
-                {{ sidebar_item(url_for('main.index'), svg_home(), "Inicio", request.endpoint == 'main.index') }}
+        {# Secciones — Jinja las renderiza, JS las muestra/oculta #}
+        <div class="flex-1 overflow-y-auto px-3 pb-4
+                    scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
 
-                {{ sidebar_section("Administración") }}
-                {{ sidebar_item(url_for('usuarios.lista'), svg_user(), "Usuarios", request.endpoint and request.endpoint.startswith('usuarios.')) }}
-                {{ sidebar_item(url_for('roles.lista'), svg_roles(), "Roles", request.endpoint and request.endpoint.startswith('roles.')) }}
-
-                {{ sidebar_section("Catálogos") }}
-                {{ sidebar_item(url_for('unidad.lista'), svg_unidad(), "Unidad", request.endpoint and request.endpoint.startswith('unidad.')) }}
-                {{ sidebar_item(url_for('empaque.lista'), svg_empaque(), "Empaques", request.endpoint and request.endpoint.startswith('empaque.')) }}
-                {{ sidebar_item(url_for('proveedor.lista'), svg_proveedor(), "Proveedores", request.endpoint and request.endpoint.startswith('proveedor.')) }}
-                {{ sidebar_item(url_for('color.lista'), svg_color(), "Colores", request.endpoint and request.endpoint.startswith('color.')) }}
-                {{ sidebar_item(url_for('categoria.lista'), svg_categorias(), "Categoras", request.endpoint and request.endpoint.startswith('categoria.')) }}
-                {{ sidebar_item(url_for('inventario.lista'), svg_inventario(), "Inventario", request.endpoint and request.endpoint.startswith('inventario.')) }}
-                {{ sidebar_item(url_for('talla.lista'), svg_talla(), "Tallas", request.endpoint and request.endpoint.startswith('talla.')) }}
-                {{ sidebar_item(url_for('cliente.lista'), svg_clientes(), "Cliente", request.endpoint and request.endpoint.startswith('cliente.')) }}
-
-                {{ sidebar_section("Produccion") }}
-                {{ sidebar_item(url_for('recetas.lista'), svg_unidad(), "Recetas", request.endpoint and request.endpoint.startswith('recetas.')) }}
-                
-            </nav>
-
-            <div class="p-4 border-t border-gray-700 space-y-3">
-                <a href="{{ url_for('auth.logout') }}" class="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                        <path fill-rule="evenodd" d="M7.5 3.75A2.25 2.25 0 0 0 5.25 6v12A2.25 2.25 0 0 0 7.5 20.25h4.5a.75.75 0 0 0 0-1.5H7.5A.75.75 0 0 1 6.75 18V6c0-.414.336-.75.75-.75h4.5a.75.75 0 0 0 0-1.5H7.5Zm9.53 4.72a.75.75 0 0 0-1.06 1.06L17.69 11.25H9.75a.75.75 0 0 0 0 1.5h7.94l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3a.75.75 0 0 0 0-1.06l-3-3Z" clip-rule="evenodd" />
-                    </svg>
-                    Cerrar sesión
-                </a>
+            <div id="sec-general" class="seccion">
+                {{ panel_item(url_for('main.index'), svg_home(), "Inicio",
+                    request.endpoint == 'main.index') }}
             </div>
         </aside>
 
