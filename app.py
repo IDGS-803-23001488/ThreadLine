@@ -18,6 +18,12 @@ from routes.eccomerce.ecomerce import ecomerce
 from routes.color import color
 from routes.proveedores import proveedor
 from utils.security import hash_password
+from routes.categoria import categoria
+from routes.inventario import inventario
+from routes.talla import talla
+from routes.cliente import cliente
+from routes.recetas import recetas
+from routes.productosVariantes import productosVariantes
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -35,6 +41,12 @@ app.register_blueprint(empaque)
 app.register_blueprint(ecomerce)
 app.register_blueprint(color)
 app.register_blueprint(proveedor)
+app.register_blueprint(categoria)
+app.register_blueprint(inventario)
+app.register_blueprint(talla)
+app.register_blueprint(cliente)
+app.register_blueprint(recetas)
+app.register_blueprint(productosVariantes)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -122,6 +134,12 @@ def seed_data():
             "empaque": ["ver", "crear", "editar", "eliminar", "exportar"],
             "color": ["ver", "crear", "editar", "eliminar", "exportar"],
             "proveedor": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "categoria": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "inventario": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "talla": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "cliente": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "recetas": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "productosVariantes": ["buscador"],
         }
 
         permisos_db = []

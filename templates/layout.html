@@ -1,6 +1,6 @@
 <!-- templates/layout.html -->
 {% from "macros/sidebar.html" import sidebar_section, sidebar_item %}
-{% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque, svg_proveedor %}
+{% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque, svg_proveedor, svg_unidad, svg_empaque, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color %}
 
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -55,9 +55,16 @@
                 {{ sidebar_section("Catálogos") }}
                 {{ sidebar_item(url_for('unidad.lista'), svg_unidad(), "Unidad", request.endpoint and request.endpoint.startswith('unidad.')) }}
                 {{ sidebar_item(url_for('empaque.lista'), svg_empaque(), "Empaques", request.endpoint and request.endpoint.startswith('empaque.')) }}
-                {{ sidebar_item(url_for('color.lista'), svg_empaque(), "Colores", request.endpoint and request.endpoint.startswith('color.')) }}
                 {{ sidebar_item(url_for('proveedor.lista'), svg_proveedor(), "Proveedores", request.endpoint and request.endpoint.startswith('proveedor.')) }}
+                {{ sidebar_item(url_for('color.lista'), svg_color(), "Colores", request.endpoint and request.endpoint.startswith('color.')) }}
+                {{ sidebar_item(url_for('categoria.lista'), svg_categorias(), "Categoras", request.endpoint and request.endpoint.startswith('categoria.')) }}
+                {{ sidebar_item(url_for('inventario.lista'), svg_inventario(), "Inventario", request.endpoint and request.endpoint.startswith('inventario.')) }}
+                {{ sidebar_item(url_for('talla.lista'), svg_talla(), "Tallas", request.endpoint and request.endpoint.startswith('talla.')) }}
+                {{ sidebar_item(url_for('cliente.lista'), svg_clientes(), "Cliente", request.endpoint and request.endpoint.startswith('cliente.')) }}
 
+                {{ sidebar_section("Produccion") }}
+                {{ sidebar_item(url_for('recetas.lista'), svg_unidad(), "Recetas", request.endpoint and request.endpoint.startswith('recetas.')) }}
+                
             </nav>
 
             <div class="p-4 border-t border-gray-700 space-y-3">
@@ -67,9 +74,6 @@
                     </svg>
                     Cerrar sesión
                 </a>
-                <div class="flex justify-center text-xs text-gray-400">
-                    <span>Versión 1.0.0</span>
-                </div>
             </div>
         </aside>
 
@@ -113,9 +117,13 @@
                     bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 
                     dark:from-gray-950 dark:via-gray-900 dark:to-gray-900
                     bg-no-repeat bg-center"
-            style="background-image: url('{{ url_for('static', filename='imagenes/logo_gray.png') }}');
+
+                {% if show_bg_image %}
+                style="background-image: url('{{ url_for('static', filename='imagenes/logo_gray.png') }}');
                     background-size: 350px;
-                    background-blend-mode: overlay;">
+                    background-blend-mode: overlay;"
+                {% endif %}
+            >
                 
                 <div class="max-w-6xl mx-auto p-8 space-y-6">
 
