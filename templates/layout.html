@@ -210,6 +210,8 @@
                     request.endpoint and request.endpoint.startswith('talla.')) }}
                 {{ panel_item(url_for('cliente.lista'),    svg_clientes(),   "Clientes",
                     request.endpoint and request.endpoint.startswith('cliente.')) }}
+                {{ panel_item(url_for('materia_prima.lista'),    svg_clientes(),   "Materia Prima",
+                    request.endpoint and request.endpoint.startswith('materia_prima.')) }}
             </div>
 
             <div id="sec-produccion" class="seccion">

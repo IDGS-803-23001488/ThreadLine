@@ -146,6 +146,7 @@ def seed_data():
             "talla": ["ver", "crear", "editar", "eliminar", "exportar"],
             "cliente": ["ver", "crear", "editar", "eliminar", "exportar"],
             "recetas": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "materia_prima": ["ver", "crear", "editar", "eliminar", "exportar"],
             "productosVariantes": ["buscador","productosVariantes"],
         }
 

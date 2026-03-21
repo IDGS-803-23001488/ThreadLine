@@ -6,7 +6,7 @@
     <div class="flex gap-2 justify-end w-full">
         
         {{ btn_secondary(
-            url_for('usuarios.crear'),
+            url_for(endpoint ~ '.editar', id=id|encrypt),
             svg_modificar,
             '',
         ) }}
