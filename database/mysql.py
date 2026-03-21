@@ -147,7 +147,6 @@ class Color(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(50))
     hex = db.Column(db.String(7))
-    activo = db.Column(db.Boolean, default=True)
     
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -179,7 +178,6 @@ class Categoria(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.String(255))
-    activo = db.Column(db.Boolean, default=True)
 
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -216,7 +214,6 @@ class Proveedor(BaseModel):
     nombre = db.Column(db.String(100), nullable=False)
     rfc = db.Column(db.String(20))
     correo = db.Column(db.String(100))
-    activo = db.Column(db.Boolean, default=True)
 
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -256,7 +253,7 @@ class Producto(BaseModel):
     categoria_id = db.Column(db.Integer, db.ForeignKey("categoria.id"))
     descripcion = db.Column(db.Text)
     imagen = db.Column(db.String(255))
-    activo = db.Column(db.Boolean, default=True)
+    color_id = db.Column(db.Integer, db.ForeignKey("color.id"), nullable=False)
 
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -273,12 +270,10 @@ class ProductoVariante(BaseModel):
     articulo_id = db.Column(db.Integer, db.ForeignKey("articulo.id"))
     producto_id = db.Column(db.Integer, db.ForeignKey("producto.id"), nullable=False)
     talla_id = db.Column(db.Integer, db.ForeignKey("talla.id"), nullable=False)
-    color_id = db.Column(db.Integer, db.ForeignKey("color.id"), nullable=False)
     precio_venta = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
 
     producto = db.relationship("Producto", backref="variantes")
     talla = db.relationship("Talla")
-    color = db.relationship("Color")
     articulo = db.relationship("Articulo")
 
     # Auditoría
@@ -290,7 +285,7 @@ class ProductoVariante(BaseModel):
     eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     activo = db.Column(db.Boolean, default=True)    
 
-    __table_args__ = (db.UniqueConstraint('producto_id', 'talla_id', 'color_id', name='uq_variante'),BASE_ARGS)
+    __table_args__ = (db.UniqueConstraint('producto_id', 'talla_id', name='uq_variante'),BASE_ARGS)
 
 # =====================================================
 # PRODUCCIÓN (RECETAS Y ÓRDENES)
