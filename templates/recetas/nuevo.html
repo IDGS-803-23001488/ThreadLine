@@ -1,0 +1,138 @@
+<!-- templates/recetas/lista.html -->
+{% extends "layout.html" %}
+{% from "macros/forms.html" import render_input, form_buttons %}
+{% from "macros/utiles.html" import btn_enlace, svg_equis  %}
+
+{% block container %}
+
+<form method="POST" class="space-y-6">
+    
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    {% if not producto_variante %}
+    <div class="flex justify-end">
+        <button 
+            type="submit"
+            name="accion"
+            value="definir_producto_variante"
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium 
+                   bg-blue-600 hover:bg-blue-700 text-white 
+                   rounded-xl shadow-sm hover:shadow 
+                   transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            Buscar producto
+        </button>
+    </div>
+    {% endif %}
+    
+    {% if producto_variante %}
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="p-6">
+                <div class="flex flex-col lg:flex-row gap-6">
+
+                    <div class="lg:w-48 flex-shrink-0">
+                        <img alt="{{ producto_variante.producto.nombre }}"
+                            class="w-full h-40 object-cover object-center rounded-xl border border-gray-200 dark:border-gray-700"
+                            src="https://dummyimage.com/200x200">
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+
+                        <h2 class="text-sm font-semibold text-gray-900 dark:text-white tracking-tight">
+                            {{ producto_variante.producto.nombre }}
+                        </h2>
+
+                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                            {{ producto_variante.producto.descripcion }}
+                        </p>
+
+                        <div class="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Color</span>
+                                <button type="button" 
+                                    class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-500 transition">
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Talla</span>
+                                <div class="relative">
+                                    <select class="appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
+                                                   text-gray-900 dark:text-white text-xs rounded-lg py-1.5 pl-3 pr-8 
+                                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            disabled>
+                                        <option selected>SM</option>
+                                        <option>M</option>
+                                        <option>L</option>
+                                        <option>XL</option>
+                                    </select>
+                                    <span class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <span class="text-lg font-bold text-gray-900 dark:text-white">
+                                ${{ producto_variante.precio_venta }}
+                            </span>
+                            <button 
+                                type="submit"
+                                name="accion"
+                                value="quitar_articulo_actual"
+                                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 
+                                       rounded-xl shadow-sm hover:shadow transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                Quitar Articulo Actual
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+
+        <div class="text-center py-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 mb-4">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">
+                Sin producto seleccionado
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Haz clic en "Buscar producto" para comenzar
+            </p>
+        </div>
+
+    {% endif %}
+    
+    {{ render_input(form.producto_variante_id) }}
+    <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+        {% if listo_para_guardar == True %}
+            {{ form_buttons(url_for('recetas.lista')) }}
+        {% else %}
+            {{ btn_enlace(
+                url_for('recetas.lista'),
+                svg_equis,
+                "Cerrar",
+                "gray"
+            ) }}
+        {% endif %}
+    </div>
+
+</form>
+
+{% endblock %}

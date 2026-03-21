@@ -21,9 +21,10 @@ from routes.categoria import categoria
 from routes.inventario import inventario
 from routes.talla import talla
 from routes.cliente import cliente
-from routes.recetas import recetas
+from routes.recetas import recetas, apiRecetas
 from routes.productosVariantes import productosVariantes , apiProductosVariantes
 from routes.materiaPrima import materia_prima
+from routes.explosion import explosion, apiExplosion
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
@@ -45,9 +46,12 @@ app.register_blueprint(inventario)
 app.register_blueprint(talla)
 app.register_blueprint(cliente)
 app.register_blueprint(recetas)
+app.register_blueprint(apiRecetas)
 app.register_blueprint(productosVariantes)
-app.register_blueprint(materia_prima)
 app.register_blueprint(apiProductosVariantes)
+app.register_blueprint(materia_prima)
+app.register_blueprint(explosion)
+app.register_blueprint(apiExplosion)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -147,6 +151,7 @@ def seed_data():
             "cliente": ["ver", "crear", "editar", "eliminar", "exportar"],
             "recetas": ["ver", "crear", "editar", "eliminar", "exportar"],
             "materia_prima": ["ver", "crear", "editar", "eliminar", "exportar"],
+            "explosion": ["ver", "crear"],    
             "productosVariantes": ["buscador","productosVariantes"],
         }
 

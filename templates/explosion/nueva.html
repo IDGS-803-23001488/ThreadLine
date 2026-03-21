@@ -1,0 +1,521 @@
+<!-- templates/explosion/nueva.html -->
+{% extends "layout.html" %}
+
+{% block container %}
+
+<form id="formOrden" method="POST" action="{{ url_for('explosion.nueva') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="forzar" id="inputForzar" value="0">
+
+    {# ── SECCIÓN 1: Receta + cantidad ── #}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+                 style="background:var(--color-primary-light)">
+                <svg class="w-4 h-4" style="color:var(--color-primary)"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877
+                             M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42
+                             15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63
+                             m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0
+                             004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276
+                             -3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904
+                             2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5
+                             L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-sm font-semibold text-gray-800">Configuración de la orden</h2>
+                <p class="text-xs text-gray-400">Selecciona la receta, cantidad y almacén de materia prima</p>
+            </div>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            <input type="hidden" name="receta_id" id="inputRecetaId">
+
+            {# Selector receta #}
+            <div class="md:col-span-1">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Receta <span class="text-red-500">*</span>
+                </label>
+                <button type="button" onclick="abrirModal()"
+                        class="w-full flex items-center gap-3 rounded-xl border border-gray-200
+                               bg-gray-50 px-4 py-2.5 text-sm text-left transition
+                               hover:border-gray-300 hover:bg-white focus:outline-none
+                               focus:ring-2 focus:border-transparent"
+                        style="--tw-ring-color:var(--color-primary)">
+                    <span id="recetaDot" class="w-3 h-3 rounded-full border border-gray-300
+                                                 flex-shrink-0" style="background:#e5e7eb"></span>
+                    <span id="recetaLabel" class="flex-1 text-gray-400">— Seleccionar receta —</span>
+                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none"
+                         stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/>
+                    </svg>
+                </button>
+            </div>
+
+            {# Cantidad #}
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Cantidad a producir <span class="text-red-500">*</span>
+                </label>
+                <input type="number" name="cantidad_solicitada" id="inputCantidad"
+                       min="1" placeholder="0"
+                       oninput="onCambioForm()"
+                       class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5
+                              text-sm text-gray-800 focus:outline-none focus:ring-2
+                              focus:border-transparent transition"
+                       style="--tw-ring-color:var(--color-primary)">
+            </div>
+
+            {# Almacén de MP #}
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Almacén de materia prima
+                </label>
+                <select name="inv_id" id="selectInv"
+                        onchange="onCambioForm()"
+                        class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5
+                               text-sm text-gray-700 focus:outline-none focus:ring-2
+                               focus:border-transparent transition"
+                        style="--tw-ring-color:var(--color-primary)">
+                    <option value="">— Cargando almacenes —</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {# ── SECCIÓN 2: Explosión de materiales ── #}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+                     style="background:#f0fdf4">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none"
+                         stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5
+                                 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25
+                                 m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5
+                                 m0 0l-.5 1.5"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-semibold text-gray-800">Explosión de materiales</h2>
+                    <p class="text-xs text-gray-400">Validación de stock vs. insumos requeridos</p>
+                </div>
+            </div>
+
+            {# Indicador de viabilidad #}
+            <div id="viabilidadBadge" class="hidden">
+                <span id="viabilidadTexto"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl
+                             text-xs font-semibold border"></span>
+            </div>
+        </div>
+
+        {# Tabla de explosión #}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100">
+                        <th class="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Materia prima</th>
+                        <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Cant. neta</th>
+                        <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Con merma</th>
+                        <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Stock</th>
+                        <th class="px-5 py-3 text-center text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-24">Estado</th>
+                        <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Faltante</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyExplosion"></tbody>
+            </table>
+
+            {# Estado vacío / loading #}
+            <div id="estadoExplosion"
+                 class="flex flex-col items-center justify-center py-14 gap-2 text-gray-300">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor"
+                     stroke-width="1.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5
+                             0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25
+                             m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5
+                             m0 0l-.5 1.5"/>
+                </svg>
+                <p class="text-sm font-medium" id="estadoTexto">
+                    Selecciona una receta y una cantidad para ver la explosión
+                </p>
+            </div>
+        </div>
+
+        {# Alerta de faltantes #}
+        <div id="alertaFaltantes"
+             class="hidden mx-6 mb-4 flex items-start gap-3 p-4 rounded-xl
+                    bg-amber-50 border border-amber-200 text-amber-800">
+            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none"
+                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71
+                         c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5
+                         -3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+            </svg>
+            <div class="flex-1">
+                <p class="text-sm font-semibold">Inventario insuficiente</p>
+                <p class="text-xs mt-0.5">
+                    Algunos insumos no tienen stock suficiente.
+                    Puedes forzar la orden marcando la casilla de abajo.
+                </p>
+                <label class="flex items-center gap-2 mt-2 cursor-pointer">
+                    <input type="checkbox" id="chkForzar"
+                           onchange="document.getElementById('inputForzar').value = this.checked ? '1' : '0'"
+                           class="w-4 h-4 rounded accent-amber-600">
+                    <span class="text-xs font-medium">Generar orden de todas formas (sin descuento de faltantes)</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    {# ── Acciones ── #}
+    <div class="flex items-center justify-end gap-3 pt-2">
+        <a href="{{ url_for('explosion.lista') }}"
+           class="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600
+                  bg-white border border-gray-200 hover:bg-gray-50 transition">
+            Cancelar
+        </a>
+        <button type="submit" id="btnGenerar" disabled
+                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm
+                       font-semibold text-white transition-all shadow-sm hover:shadow-md
+                       active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                style="background:var(--color-primary)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                 stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125
+                         1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985
+                         V5.653z"/>
+            </svg>
+            Generar orden
+        </button>
+    </div>
+</form>
+
+
+{# ── MODAL buscador de recetas ── #}
+<div id="modalRecetas"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,.45)">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden"
+         style="max-height:82vh">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+            <div>
+                <h3 class="text-base font-semibold text-gray-800">Seleccionar receta</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Solo recetas con insumos definidos</p>
+            </div>
+            <button type="button" onclick="cerrarModal()"
+                    class="w-8 h-8 flex items-center justify-center rounded-xl
+                           text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                     stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+            <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/>
+                </svg>
+                <input type="text" id="modalSearch"
+                       placeholder="Buscar por producto o talla…"
+                       oninput="buscarRecetas()"
+                       class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200
+                              bg-gray-50 text-sm text-gray-700 focus:outline-none
+                              focus:ring-2 focus:border-transparent transition"
+                       style="--tw-ring-color:var(--color-primary)">
+            </div>
+        </div>
+
+        <div id="modalLista" class="flex-1 overflow-y-auto divide-y divide-gray-50 min-h-0"></div>
+
+        <div class="px-6 py-3 border-t border-gray-100 flex items-center justify-between
+                    flex-shrink-0 bg-gray-50">
+            <button id="btnPrev" type="button" onclick="cambiarPagina(-1)"
+                    class="text-xs font-medium text-gray-500 hover:text-gray-800
+                           disabled:opacity-30 transition" disabled>← Anterior</button>
+            <span id="modalPagLabel" class="text-xs text-gray-400"></span>
+            <button id="btnNext" type="button" onclick="cambiarPagina(1)"
+                    class="text-xs font-medium text-gray-500 hover:text-gray-800
+                           disabled:opacity-30 transition" disabled>Siguiente →</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+const API_RECETAS     = "{{ url_for('api_explosion.api_recetas') }}";
+const API_VALIDAR     = "{{ url_for('api_explosion.api_validar') }}";
+const API_INVENTARIOS = "{{ url_for('api_explosion.api_inventarios') }}";
+
+// ── Estado ───────────────────────────────────────────────────
+let recetaSeleccionada = null;
+let modalPage  = 1;
+let modalQ     = '';
+let searchTimer = null;
+let validarTimer = null;
+
+// ─────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+    await cargarInventarios();
+});
+
+// ─────────────────────────────────────────────────────────────
+// Inventarios
+// ─────────────────────────────────────────────────────────────
+async function cargarInventarios() {
+    const res  = await fetch(API_INVENTARIOS);
+    const json = await res.json();
+    const sel  = document.getElementById('selectInv');
+    sel.innerHTML = '<option value="">— Seleccionar almacén —</option>';
+    json.data.forEach(inv => {
+        const opt = document.createElement('option');
+        opt.value       = inv.id;
+        opt.textContent = inv.nombre;
+        // Pre-seleccionar el que diga "materia prima"
+        if (inv.nombre.toLowerCase().includes('materia')) opt.selected = true;
+        sel.appendChild(opt);
+    });
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODAL de recetas
+// ─────────────────────────────────────────────────────────────
+function abrirModal() {
+    modalPage = 1; modalQ = '';
+    document.getElementById('modalSearch').value = '';
+    document.getElementById('modalRecetas').classList.replace('hidden', 'flex');
+    document.getElementById('modalSearch').focus();
+    fetchRecetas();
+}
+function cerrarModal() {
+    document.getElementById('modalRecetas').classList.replace('flex', 'hidden');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
+document.getElementById('modalRecetas').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalRecetas')) cerrarModal();
+});
+
+function buscarRecetas() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        modalPage = 1;
+        modalQ = document.getElementById('modalSearch').value;
+        fetchRecetas();
+    }, 280);
+}
+function cambiarPagina(dir) { modalPage += dir; fetchRecetas(); }
+
+async function fetchRecetas() {
+    const lista = document.getElementById('modalLista');
+    lista.innerHTML = `<div class="flex items-center justify-center py-10 text-gray-300 gap-2">
+        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
+        <span class="text-sm">Buscando…</span>
+    </div>`;
+
+    const res  = await fetch(`${API_RECETAS}?q=${encodeURIComponent(modalQ)}&page=${modalPage}`);
+    const json = await res.json();
+    renderModal(json);
+}
+
+function renderModal(json) {
+    const lista = document.getElementById('modalLista');
+    if (!json.data.length) {
+        lista.innerHTML = `<div class="flex flex-col items-center justify-center py-10 gap-2 text-gray-300">
+            <p class="text-sm">Sin resultados</p></div>`;
+    } else {
+        lista.innerHTML = json.data.map(r => `
+            <button type="button" onclick='seleccionarReceta(${JSON.stringify(r)})'
+                    class="w-full flex items-center gap-4 px-6 py-3.5
+                           hover:bg-gray-50 transition text-left group">
+                <span class="w-4 h-4 rounded-full border-2 border-white shadow flex-shrink-0"
+                      style="background:${r.color_hex || '#e5e7eb'}"></span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">${r.producto}</p>
+                    <p class="text-xs text-gray-400">
+                        ${r.color || 'Sin color'} · Talla ${r.talla}
+                        · <strong>${r.insumos}</strong> insumo(s)
+                    </p>
+                </div>
+                <span class="text-xs text-gray-400 flex-shrink-0">
+                    Base: ${r.cantidad_base} pza
+                </span>
+                <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-500 flex-shrink-0"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                </svg>
+            </button>`
+        ).join('');
+    }
+    document.getElementById('btnPrev').disabled = !json.has_prev;
+    document.getElementById('btnNext').disabled = !json.has_next;
+    document.getElementById('modalPagLabel').textContent =
+        `Pág. ${json.page} / ${json.pages} · ${json.total} resultado(s)`;
+}
+
+function seleccionarReceta(r) {
+    recetaSeleccionada = r;
+    document.getElementById('inputRecetaId').value = r.id;
+
+    const label = document.getElementById('recetaLabel');
+    const dot   = document.getElementById('recetaDot');
+    label.textContent = `${r.producto} · Talla ${r.talla}${r.color ? ' · ' + r.color : ''}`;
+    label.classList.replace('text-gray-400', 'text-gray-800');
+    dot.style.background  = r.color_hex || '#e5e7eb';
+    dot.style.borderColor = r.color_hex || '#d1d5db';
+
+    cerrarModal();
+    onCambioForm();
+}
+
+// ─────────────────────────────────────────────────────────────
+// Validación / explosión en tiempo real
+// ─────────────────────────────────────────────────────────────
+function onCambioForm() {
+    clearTimeout(validarTimer);
+    const recetaId = document.getElementById('inputRecetaId').value;
+    const cantidad = document.getElementById('inputCantidad').value;
+    if (!recetaId || !cantidad || parseInt(cantidad) < 1) return;
+    validarTimer = setTimeout(validarExplosion, 500);
+}
+
+async function validarExplosion() {
+    const recetaId = document.getElementById('inputRecetaId').value;
+    const cantidad = document.getElementById('inputCantidad').value;
+    const invId    = document.getElementById('selectInv').value;
+
+    // Loading state
+    const tbody = document.getElementById('tbodyExplosion');
+    const estado = document.getElementById('estadoExplosion');
+    tbody.innerHTML = '';
+    estado.classList.remove('hidden');
+    document.getElementById('estadoTexto').textContent = 'Calculando…';
+
+    const url = `${API_VALIDAR}?receta_id=${recetaId}&cantidad=${cantidad}${invId ? '&inv_id=' + invId : ''}`;
+    const res  = await fetch(url);
+    const json = await res.json();
+
+    renderExplosion(json);
+}
+
+function renderExplosion(json) {
+    const tbody  = document.getElementById('tbodyExplosion');
+    const estado = document.getElementById('estadoExplosion');
+    const badge  = document.getElementById('viabilidadBadge');
+    const badgeTxt = document.getElementById('viabilidadTexto');
+    const alerta   = document.getElementById('alertaFaltantes');
+    const btnGen   = document.getElementById('btnGenerar');
+
+    tbody.innerHTML = '';
+    estado.classList.add('hidden');
+    badge.classList.remove('hidden');
+    alerta.classList.add('hidden');
+    document.getElementById('chkForzar').checked = false;
+    document.getElementById('inputForzar').value = '0';
+
+    json.insumos.forEach(ins => {
+        const ok = ins.suficiente;
+        const tr = document.createElement('tr');
+        tr.className = `border-b border-gray-50 ${ok ? '' : 'bg-red-50/40'}`;
+        tr.innerHTML = `
+            <td class="px-5 py-3">
+                <p class="text-sm font-medium text-gray-800">${ins.nombre}</p>
+            </td>
+            <td class="px-5 py-3 text-right text-sm text-gray-600">
+                ${ins.cantidad_neta.toFixed(4)}
+                <span class="text-xs text-gray-400 ml-1">${ins.unidad}</span>
+            </td>
+            <td class="px-5 py-3 text-right">
+                <span class="text-sm font-medium ${ins.merma_pct > 0 ? 'text-amber-600' : 'text-gray-600'}">
+                    ${ins.cantidad_con_merma.toFixed(4)}
+                </span>
+                ${ins.merma_pct > 0
+                    ? `<span class="text-xs text-amber-500 ml-1">(+${ins.merma_pct}%)</span>`
+                    : ''}
+            </td>
+            <td class="px-5 py-3 text-right">
+                <span class="text-sm font-semibold ${ok ? 'text-emerald-600' : 'text-red-600'}">
+                    ${ins.stock_disponible.toFixed(4)}
+                </span>
+            </td>
+            <td class="px-5 py-3 text-center">
+                ${ok
+                    ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                   text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                           <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                               <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                           </svg>OK
+                       </span>`
+                    : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+                                   text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                           <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                           </svg>Falta
+                       </span>`
+                }
+            </td>
+            <td class="px-5 py-3 text-right text-sm ${ok ? 'text-gray-300' : 'text-red-600 font-semibold'}">
+                ${ok ? '—' : ins.faltante.toFixed(4) + ' ' + ins.unidad}
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Badge de viabilidad
+    if (json.viable) {
+        badgeTxt.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200';
+        badgeTxt.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+        </svg> Stock suficiente`;
+        btnGen.disabled = false;
+    } else {
+        badgeTxt.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border bg-red-50 text-red-700 border-red-200';
+        badgeTxt.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+        </svg> Stock insuficiente`;
+        alerta.classList.remove('hidden');
+        // Habilitar botón solo cuando el usuario marca "forzar"
+        btnGen.disabled = true;
+        document.getElementById('chkForzar').addEventListener('change', function() {
+            btnGen.disabled = !this.checked;
+        }, { once: true });
+    }
+}
+
+// Validación al enviar
+document.getElementById('formOrden').addEventListener('submit', e => {
+    if (!document.getElementById('inputRecetaId').value) {
+        e.preventDefault();
+        return alert('Debes seleccionar una receta.');
+    }
+    const cant = parseInt(document.getElementById('inputCantidad').value);
+    if (!cant || cant < 1) {
+        e.preventDefault();
+        return alert('La cantidad debe ser mayor a 0.');
+    }
+});
+</script>
+
+{% endblock %}

@@ -235,7 +235,8 @@ class MateriaPrima(BaseModel):
     porcentaje_merma = db.Column(db.Numeric(5, 2), default=0.00)
     stock_minimo = db.Column(db.Numeric(10, 4), default=0.0000)
     stock_maximo = db.Column(db.Numeric(10, 4), default=0.0000)
-    activo = db.Column(db.Boolean, default=True)
+
+    unidad = db.relationship("Unidad", backref="materiaPrima")
 
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -254,6 +255,8 @@ class Producto(BaseModel):
     descripcion = db.Column(db.Text)
     imagen = db.Column(db.String(255))
     color_id = db.Column(db.Integer, db.ForeignKey("color.id"), nullable=False)
+
+    color = db.relationship("Color", backref="Productos")
 
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -299,6 +302,7 @@ class Receta(BaseModel):
     activo = db.Column(db.Boolean, default=True)
 
     producto_variante = db.relationship("ProductoVariante", backref="recetas")
+    detalles = db.relationship("RecetaDetalle", backref="receta", cascade="all, delete-orphan")
     
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -311,11 +315,14 @@ class Receta(BaseModel):
 
 class RecetaDetalle(BaseModel):
     __tablename__ = "receta_detalle"
+    receta_id = db.Column(db.Integer, db.ForeignKey("receta.id"), nullable=False)
     id = db.Column(db.Integer, primary_key=True)
     # articulo_id = db.Column(db.Integer, db.ForeignKey("articulo.id"), nullable=False)
     materia_prima_id = db.Column(db.Integer, db.ForeignKey("materia_prima.id"), nullable=False)
     cantidad_neta = db.Column(db.Numeric(10, 4), nullable=False)
     # cantidad_con_merma = db.Column(db.Numeric(10, 4), nullable=False)
+    
+    materia_prima = db.relationship("MateriaPrima", backref="materias_primas")
 
 class OrdenProduccion(BaseModel):
     __tablename__ = "orden_produccion"
@@ -326,6 +333,8 @@ class OrdenProduccion(BaseModel):
     estatus = db.Column(db.String(30), default='pendiente')
     fecha_inicio = db.Column(db.DateTime)
     fecha_fin = db.Column(db.DateTime)
+    
+    receta = db.relationship("Receta", backref="recetas")
 
 # =====================================================
 # E-COMMERCE (CLIENTES, CARRITO, PEDIDOS)
@@ -429,6 +438,28 @@ class MovimientoInventario(BaseModel):
     empaque_id = db.Column(db.Integer, db.ForeignKey("empaque.id"))
     signo = db.Column(db.Integer, nullable=False)
     existencia = db.Column(db.Numeric(10, 2))
+
+class StockArticulo(BaseModel):
+    __tablename__ = "stock_articulo" 
+    id          = db.Column(db.Integer, primary_key=True)
+    articulo_id = db.Column(db.Integer, db.ForeignKey("articulo.id"), nullable=False)
+    inv_id      = db.Column(db.Integer, db.ForeignKey("inventarios.id"), nullable=False)
+    cantidad    = db.Column(db.Numeric(10, 4), nullable=False, default=0.0000)
+ 
+    # Auditoría
+    fecha_creacion  = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion   = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    actualizado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+ 
+    # Relaciones
+    articulo    = db.relationship("Articulo",    backref="stocks")
+    inventario = db.relationship("Inventario", backref="stocks")
+
+ 
+    __table_args__ = (
+        db.UniqueConstraint("articulo_id", "inv_id", name="uq_stock_articulo_inv"),
+        BASE_ARGS
+    )
 
 # =====================================================
 # MODELO COMPRA
