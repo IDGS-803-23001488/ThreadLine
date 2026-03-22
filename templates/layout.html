@@ -1,205 +1,368 @@
 <!-- templates/layout.html -->
-{% from "macros/sidebar.html" import sidebar_section, sidebar_item %}
-{% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque, svg_proveedor, svg_unidad, svg_empaque, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color %}
+{% from "macros/sidebar.html" import panel_section, panel_item %}
+{% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque,
+    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color %}
 
 <!DOCTYPE html>
 <html lang="es" class="h-full">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ titulo if titulo else "Panel de Administración" }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='imagenes/logo.png') }}" type="image/x-icon">
+    <style>
+        /* ═══════════════════════════════════════
+           PALETA DE COLORES — editar aquí
+        ═══════════════════════════════════════ */
+        :root {
+            /* Colores principales */
+            --color-primary:        #587E1E;  /* indigo — botón activo, acentos */
+            --color-primary-hover:  #7FB82E;  /* indigo oscuro — hover en primario */
+            --color-primary-light:  #eef2ff;  /* indigo muy suave — fondos activos */
+
+            /* Secundario */
+            --color-secondary:      #0c7779;  /* rose — logo, alertas, acciones críticas */
+            --color-secondary-hover: #61dbd1 ;  /* rose oscuro */
+
+            /* Terciario */
+            --color-tertiary:       #0ea5e9;  /* sky — avatar, badges informativos */
+            --color-tertiary-hover: #9DD54F;  /* sky oscuro */
+
+            /* Neutros UI */
+            --color-bg:             #f9fafb;  /* fondo general */
+            --color-surface:        #ffffff;  /* tarjetas, sidebar, header */
+            --color-border:         #f3f4f6;  /* bordes suaves */
+            --color-text:           #1f2937;  /* texto principal */
+            --color-text-muted:     #9ca3af;  /* íconos y labels inactivos */
+            --color-text-label:     #6b7280;  /* labels secundarios */
+
+            /* Rail hover */
+            --color-rail-hover:     #f3f4f6;
+        }
+
+        /* ── Rail ── */
+        .rail-btn { transition: background .15s; border-radius: 12px; }
+        .rail-btn:hover { background: var(--color-rail-hover); }
+        .rail-btn.activo { background: var(--color-primary); }
+        .rail-btn.activo svg { color: #fff !important; }
+
+        /* ── Panel expandible ── */
+        #sidePanel {
+            width: 0;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: width .3s cubic-bezier(.4,0,.2,1);
+            flex-shrink: 0;
+        }
+        #sidePanel.open { width: 18vw; min-width: 200px; }
+
+        /* ── Secciones ── */
+        .seccion { display: none; }
+        .seccion.visible { display: flex; flex-direction: column; gap: 2px; }
+
+        /* ── Aplicar variables a elementos base ── */
+        body { background: var(--color-bg); }
+        nav, #sidePanel, header { background: var(--color-surface); }
+        nav, #sidePanel { border-color: var(--color-border); }
+    </style>
 </head>
 
-<body class="h-full bg-gray-100 dark:bg-gray-900 antialiased">
+<body class="h-full bg-gray-50 antialiased">
+<div class="flex h-screen w-screen overflow-hidden">
 
-    <div class="flex h-screen overflow-hidden">
+    {# ════════════════════════════════
+       RAIL — siempre visible
+    ════════════════════════════════ #}
+    <nav class="flex flex-col items-center justify-between flex-shrink-0
+                w-[4.5vw] min-w-[56px] bg-white border-r border-gray-100 shadow-sm
+                py-5 px-1 z-20">
 
-        <aside id="sidebar"
-            class="fixed top-0 left-0 z-40 w-64 h-screen 
-            flex flex-col
-            transition-transform -translate-x-full 
-            bg-gradient-to-b from-gray-900 to-gray-800 
-            dark:from-gray-950 dark:to-gray-900 
-            text-gray-200 dark:text-gray-300 shadow-xl">
+        {# TOP: hamburger + botones de sección #}
+        <div class="flex flex-col items-center gap-1">
 
-            <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-700">
-                <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-red-600 text-white flex items-center justify-center rounded-xl font-semibold">
-                    T
-                </div>
-                <span class="text-lg font-semibold text-white">
-                    ThreadLine
-                </span>
-                <button type="button" data-drawer-hide="sidebar" aria-controls="sidebar" class="ml-auto text-gray-400 hover:text-white">
-                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+            {# Hamburger #}
+            <button onclick="toggleHamburger()"
+                    class="w-10 h-10 flex flex-col justify-center items-center gap-1.5
+                           rounded-xl hover:bg-gray-100 transition-colors mb-1">
+                <span class="w-5 h-0.5 bg-gray-500 rounded block"></span>
+                <span class="w-5 h-0.5 bg-gray-500 rounded block"></span>
+                <span class="w-5 h-0.5 bg-gray-500 rounded block"></span>
+            </button>
+
+            {# General #}
+            <button onclick="railClick('general')" data-key="general"
+                    class="rail-btn w-11 h-11 flex items-center justify-center
+                           {% if request.endpoint == 'main.index' %}activo{% endif %}">
+                <svg class="w-5 h-5 {% if request.endpoint == 'main.index' %}text-white{% else %}text-gray-400{% endif %}"
+                     fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+                </svg>
+            </button>
+
+            <div class="w-7 h-px bg-gray-100 my-1"></div>
+
+            {# Admin #}
+            {% set admin_activo = request.endpoint and (request.endpoint.startswith('usuarios.') or request.endpoint.startswith('roles.')) %}
+            <button onclick="railClick('admin')" data-key="admin"
+                    class="rail-btn w-11 h-11 flex items-center justify-center
+                           {% if admin_activo %}activo{% endif %}">
+                <svg class="w-5 h-5 {% if admin_activo %}text-white{% else %}text-gray-400{% endif %}"
+                     fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                </svg>
+            </button>
+
+            <div class="w-7 h-px bg-gray-100 my-1"></div>
+
+            {# Catálogos #}
+            {% set cat_activo = request.endpoint and (
+                request.endpoint.startswith('unidad.') or
+                request.endpoint.startswith('empaque.') or
+                request.endpoint.startswith('proveedor.') or
+                request.endpoint.startswith('color.') or
+                request.endpoint.startswith('categoria.') or
+                request.endpoint.startswith('inventario.') or
+                request.endpoint.startswith('talla.') or
+                request.endpoint.startswith('cliente.')
+            ) %}
+            <button onclick="railClick('catalogos')" data-key="catalogos"
+                    class="rail-btn w-11 h-11 flex items-center justify-center
+                           {% if cat_activo %}activo{% endif %}">
+                <svg class="w-5 h-5 {% if cat_activo %}text-white{% else %}text-gray-400{% endif %}"
+                     fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                </svg>
+            </button>
+
+            <div class="w-7 h-px bg-gray-100 my-1"></div>
+
+            {# Producción #}
+            {% set prod_activo = request.endpoint and request.endpoint.startswith('recetas.') %}
+            <button onclick="railClick('produccion')" data-key="produccion"
+                    class="rail-btn w-11 h-11 flex items-center justify-center
+                           {% if prod_activo %}activo{% endif %}">
+                <svg class="w-5 h-5 {% if prod_activo %}text-white{% else %}text-gray-400{% endif %}"
+                     fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z"/>
+                </svg>
+            </button>
+
+        </div>
+
+        {# BOTTOM: Logout #}
+        <a href="{{ url_for('auth.logout') }}" title="Cerrar sesión"
+           class="rail-btn w-11 h-11 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+            </svg>
+        </a>
+    </nav>
+
+    {# ════════════════════════════════
+       PANEL EXPANDIBLE
+    ════════════════════════════════ #}
+    <div id="sidePanel" class="flex flex-col bg-white border-r border-gray-100 z-10">
+
+        {# Logo #}
+        <div class="px-5 pt-5 pb-3 flex-shrink-0">
+            <div class="flex items-center gap-2 mb-5">
+                <div class="w-7 h-7 bg-gradient-to-br from-red-500 to-red-600
+                            text-white flex items-center justify-center
+                            rounded-lg font-bold text-sm flex-shrink-0">T</div>
+                <span class="text-base font-bold text-gray-800 tracking-tight whitespace-nowrap">ThreadLine</span>
+            </div>
+            <p id="panelLabel" class="text-[10px] font-semibold tracking-widest text-gray-400 uppercase whitespace-nowrap"></p>
+        </div>
+
+        {# Secciones — Jinja las renderiza, JS las muestra/oculta #}
+        <div class="flex-1 overflow-y-auto px-3 pb-4
+                    scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+
+            <div id="sec-general" class="seccion">
+                {{ panel_item(url_for('main.index'), svg_home(), "Inicio",
+                    request.endpoint == 'main.index') }}
             </div>
 
-            <nav class="flex-1 overflow-y-auto mt-6 px-4 space-y-2 pr-2
-                        scrollbar-thin
-                        scrollbar-thumb-gray-700
-                        scrollbar-track-transparent
-                        scrollbar-thumb-rounded-full
-                        hover:scrollbar-thumb-gray-600">
-                {{ sidebar_section("General") }}
-                {{ sidebar_item(url_for('main.index'), svg_home(), "Inicio", request.endpoint == 'main.index') }}
-
-                {{ sidebar_section("Administración") }}
-                {{ sidebar_item(url_for('usuarios.lista'), svg_user(), "Usuarios", request.endpoint and request.endpoint.startswith('usuarios.')) }}
-                {{ sidebar_item(url_for('roles.lista'), svg_roles(), "Roles", request.endpoint and request.endpoint.startswith('roles.')) }}
-
-                {{ sidebar_section("Catálogos") }}
-                {{ sidebar_item(url_for('unidad.lista'), svg_unidad(), "Unidad", request.endpoint and request.endpoint.startswith('unidad.')) }}
-                {{ sidebar_item(url_for('empaque.lista'), svg_empaque(), "Empaques", request.endpoint and request.endpoint.startswith('empaque.')) }}
-                {{ sidebar_item(url_for('proveedor.lista'), svg_proveedor(), "Proveedores", request.endpoint and request.endpoint.startswith('proveedor.')) }}
-                {{ sidebar_item(url_for('color.lista'), svg_color(), "Colores", request.endpoint and request.endpoint.startswith('color.')) }}
-                {{ sidebar_item(url_for('categoria.lista'), svg_categorias(), "Categoras", request.endpoint and request.endpoint.startswith('categoria.')) }}
-                {{ sidebar_item(url_for('inventario.lista'), svg_inventario(), "Inventario", request.endpoint and request.endpoint.startswith('inventario.')) }}
-                {{ sidebar_item(url_for('talla.lista'), svg_talla(), "Tallas", request.endpoint and request.endpoint.startswith('talla.')) }}
-                {{ sidebar_item(url_for('cliente.lista'), svg_clientes(), "Cliente", request.endpoint and request.endpoint.startswith('cliente.')) }}
-
-                {{ sidebar_section("Produccion") }}
-                {{ sidebar_item(url_for('recetas.lista'), svg_unidad(), "Recetas", request.endpoint and request.endpoint.startswith('recetas.')) }}
-                
-            </nav>
-
-            <div class="p-4 border-t border-gray-700 space-y-3">
-                <a href="{{ url_for('auth.logout') }}" class="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
-                        <path fill-rule="evenodd" d="M7.5 3.75A2.25 2.25 0 0 0 5.25 6v12A2.25 2.25 0 0 0 7.5 20.25h4.5a.75.75 0 0 0 0-1.5H7.5A.75.75 0 0 1 6.75 18V6c0-.414.336-.75.75-.75h4.5a.75.75 0 0 0 0-1.5H7.5Zm9.53 4.72a.75.75 0 0 0-1.06 1.06L17.69 11.25H9.75a.75.75 0 0 0 0 1.5h7.94l-1.72 1.72a.75.75 0 1 0 1.06 1.06l3-3a.75.75 0 0 0 0-1.06l-3-3Z" clip-rule="evenodd" />
-                    </svg>
-                    Cerrar sesión
-                </a>
+            <div id="sec-admin" class="seccion">
+                {{ panel_item(url_for('usuarios.lista'), svg_user(),  "Usuarios",
+                    request.endpoint and request.endpoint.startswith('usuarios.')) }}
+                {{ panel_item(url_for('roles.lista'),    svg_roles(), "Roles",
+                    request.endpoint and request.endpoint.startswith('roles.')) }}
             </div>
-        </aside>
 
-        <div class="flex-1 flex flex-col">
+            <div id="sec-catalogos" class="seccion">
+                {{ panel_section("Materiales") }}
+                {{ panel_item(url_for('unidad.lista'),    svg_unidad(),    "Unidad",
+                    request.endpoint and request.endpoint.startswith('unidad.')) }}
+                {{ panel_item(url_for('empaque.lista'),   svg_empaque(),   "Empaques",
+                    request.endpoint and request.endpoint.startswith('empaque.')) }}
+                {{ panel_item(url_for('proveedor.lista'), svg_proveedor(), "Proveedores",
+                    request.endpoint and request.endpoint.startswith('proveedor.')) }}
+                {{ panel_item(url_for('color.lista'),     svg_color(),     "Colores",
+                    request.endpoint and request.endpoint.startswith('color.')) }}
+                {{ panel_section("Producto") }}
+                {{ panel_item(url_for('categoria.lista'),  svg_categorias(), "Categorías",
+                    request.endpoint and request.endpoint.startswith('categoria.')) }}
+                {{ panel_item(url_for('inventario.lista'), svg_inventario(), "Inventario",
+                    request.endpoint and request.endpoint.startswith('inventario.')) }}
+                {{ panel_item(url_for('talla.lista'),      svg_talla(),      "Tallas",
+                    request.endpoint and request.endpoint.startswith('talla.')) }}
+                {{ panel_item(url_for('cliente.lista'),    svg_clientes(),   "Clientes",
+                    request.endpoint and request.endpoint.startswith('cliente.')) }}
+            </div>
 
-            <header class="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/30 px-6 py-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
-                <div class="flex items-center gap-3">
-                    <button class="text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg" type="button" data-drawer-target="sidebar" data-drawer-show="sidebar" aria-controls="sidebar">
-                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-
-                    <div>
-                        <h1 class="text-xl font-semibold text-gray-800 dark:text-white">
-                            {{ titulo }}
-                        </h1>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {% if descripcion %}
-                                {{ descripcion }}
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <div class="relative group">
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center rounded-xl font-semibold cursor-pointer shadow-md">
-                            A
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main class="flex-1 overflow-y-auto 
-                    scrollbar-thin
-                    scrollbar-thumb-gray-700
-                    scrollbar-track-gray-900
-                    scrollbar-thumb-rounded-full
-                    hover:scrollbar-thumb-gray-600
-                    bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 
-                    dark:from-gray-950 dark:via-gray-900 dark:to-gray-900
-                    bg-no-repeat bg-center"
-
-                {% if show_bg_image %}
-                style="background-image: url('{{ url_for('static', filename='imagenes/logo_gray.png') }}');
-                    background-size: 350px;
-                    background-blend-mode: overlay;"
-                {% endif %}
-            >
-                
-                <div class="max-w-6xl mx-auto p-8 space-y-6">
-
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            <div class="max-w-6xl mx-auto px-8 space-y-3">
-                                {% for category, message in messages %}
-                                    <div 
-                                        id="flash-{{ loop.index }}"
-                                        class="flex items-start gap-3 p-4 rounded-xl border-l-4 shadow-sm
-                                            {% if category == 'error' %} 
-                                                bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 border-red-500 
-                                            {% elif category == 'warning' %} 
-                                                bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 border-amber-500 
-                                            {% elif category == 'success' %} 
-                                                bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-200 border-emerald-500 
-                                            {% else %} 
-                                                bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border-blue-500 
-                                            {% endif %}">
-                                        
-                                        <!-- Ícono -->
-                                        <div class="flex-shrink-0 mt-0.5">
-                                            {% if category == 'error' %}
-                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                                </svg>
-                                            {% elif category == 'warning' %}
-                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                                </svg>
-                                            {% elif category == 'success' %}
-                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                </svg>
-                                            {% else %}
-                                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                </svg>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <!-- Mensaje -->
-                                        <p class="flex-1 text-sm font-medium leading-relaxed">
-                                            {{ message }}
-                                        </p>
-                                        
-                                        <!-- Botón cerrar (Flowbite data-attribute) -->
-                                        <button 
-                                            type="button"
-                                            data-dismiss-target="#flash-{{ loop.index }}"
-                                            aria-label="Cerrar"
-                                            class="flex-shrink-0 -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-7 w-7 
-                                                items-center justify-center 
-                                                hover:bg-black/10 dark:hover:bg-white/10 
-                                                transition-colors focus:outline-none">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    {% endwith %}
-
-                    {% block container %}
-                    {% endblock %}
-
-                </div>
-
-            </main>
+            <div id="sec-produccion" class="seccion">
+                {{ panel_item(url_for('recetas.lista'), svg_unidad(), "Recetas",
+                    request.endpoint and request.endpoint.startswith('recetas.')) }}
+            </div>
 
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
-</body>
+    {# ════════════════════════════════
+       CONTENIDO PRINCIPAL
+    ════════════════════════════════ #}
+    <div class="flex-1 flex flex-col overflow-hidden">
 
+        <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+            <div>
+                <h1 class="text-xl font-semibold text-gray-800">{{ titulo }}</h1>
+                {% if descripcion %}
+                    <p class="text-sm text-gray-500 mt-0.5">{{ descripcion }}</p>
+                {% endif %}
+            </div>
+            <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600
+                        text-white flex items-center justify-center
+                        rounded-xl font-semibold text-sm shadow-sm cursor-pointer">A</div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto bg-gray-50
+                     scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+            <div class="max-w-6xl mx-auto p-8 space-y-6">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="space-y-3">
+                            {% for category, message in messages %}
+                                <div id="flash-{{ loop.index }}"
+                                     class="flex items-center gap-3 p-4 rounded-xl border-l-4 shadow-sm
+                                        {% if category == 'error' %}bg-red-50 text-red-800 border-red-500
+                                        {% elif category == 'warning' %}bg-amber-50 text-amber-800 border-amber-500
+                                        {% elif category == 'success' %}bg-emerald-50 text-emerald-800 border-emerald-500
+                                        {% else %}bg-blue-50 text-blue-800 border-blue-500{% endif %}">
+                                    <p class="flex-1 text-sm font-medium">{{ message }}</p>
+                                    <button type="button" data-dismiss-target="#flash-{{ loop.index }}"
+                                            class="rounded-lg p-1.5 hover:bg-black/10 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block container %}{% endblock %}
+
+            </div>
+        </main>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+<script>
+    const STORAGE_KEY_OPEN   = 'sidebar_open';
+    const STORAGE_KEY_SECTION = 'sidebar_section';
+
+    const labels = {
+        general:    'GENERAL',
+        admin:      'ADMINISTRACIÓN',
+        catalogos:  'CATÁLOGOS',
+        produccion: 'PRODUCCIÓN'
+    };
+
+    let currentKey = null;
+    let panelOpen  = false;
+
+    function saveState() {
+        localStorage.setItem(STORAGE_KEY_OPEN,    panelOpen  ? '1' : '0');
+        localStorage.setItem(STORAGE_KEY_SECTION, currentKey || '');
+    }
+
+    function showSection(key) {
+        document.querySelectorAll('.seccion').forEach(el => el.classList.remove('visible'));
+        const sec = document.getElementById('sec-' + key);
+        if (sec) sec.classList.add('visible');
+        document.getElementById('panelLabel').textContent = labels[key] || '';
+        document.querySelectorAll('[data-key]').forEach(btn => {
+            const on = btn.dataset.key === key;
+            btn.classList.toggle('activo', on);
+            const svg = btn.querySelector('svg');
+            if (svg) {
+                // Remover clases de color que puso Jinja y forzar via style
+                svg.classList.remove('text-white', 'text-gray-400');
+                svg.style.color = on ? '#ffffff' : getComputedStyle(document.documentElement).getPropertyValue('--color-text-muted').trim();
+            }
+        });
+    }
+
+    function railClick(key) {
+        const panel = document.getElementById('sidePanel');
+        if (currentKey === key && panelOpen) {
+            panel.classList.remove('open');
+            panelOpen = false;
+        } else {
+            currentKey = key;
+            showSection(key);
+            panel.classList.add('open');
+            panelOpen = true;
+        }
+        saveState();
+    }
+
+    function toggleHamburger() {
+        const panel = document.getElementById('sidePanel');
+        if (panelOpen) {
+            panel.classList.remove('open');
+            panelOpen = false;
+        } else {
+            const key = currentKey || 'general';
+            currentKey = key;
+            showSection(key);
+            panel.classList.add('open');
+            panelOpen = true;
+        }
+        saveState();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Detectar sección activa por ruta (Jinja pone clase 'activo')
+        const activeBtn = document.querySelector('[data-key].activo');
+        const routeKey  = activeBtn ? activeBtn.dataset.key : null;
+
+        // 2. Leer estado guardado
+        const savedOpen    = localStorage.getItem(STORAGE_KEY_OPEN);
+        const savedSection = localStorage.getItem(STORAGE_KEY_SECTION);
+
+        // 3. La sección a mostrar: siempre la de la ruta activa (si existe),
+        //    si no, la que estaba guardada, si no, 'general'
+        currentKey = routeKey || savedSection || 'general';
+        showSection(currentKey);
+
+        // 4. Abrir/cerrar según lo guardado (por defecto abierto)
+        if (savedOpen === '0') {
+            panelOpen = false;
+            document.getElementById('sidePanel').classList.remove('open');
+        } else {
+            panelOpen = true;
+            document.getElementById('sidePanel').classList.add('open');
+        }
+    });
+</script>
+</body>
 </html>

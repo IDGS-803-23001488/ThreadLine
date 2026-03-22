@@ -1,13 +1,14 @@
 {%extends "layout.html"%}
 {% from "macros/table.html" import render_table%}
-{%block container%}
+{% from "macros/utiles.html" import btn_primary, svg_nuevo %}
 
-<div class="flex justify-between mb-4">
-    <a href="{{ url_for('color.crear') }}"
-       class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">
-        + Nuevo
-    </a>
-</div>
+{% block container %}
+
+{{ btn_primary(
+    url_for('color.crear'),
+    svg_nuevo,
+    '',
+) }}
 
 {{
     render_table(
