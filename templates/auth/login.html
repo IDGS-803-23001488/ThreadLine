@@ -1,120 +1,354 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión</title>
+    <title>ThreadLine</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='imagenes/logo.png') }}" type="image/x-icon">
+    <style>
+        * { font-family: 'Sora', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+
+        body { display: flex; min-height: 100vh; background: #0c7779; }
+
+        /* ══ LEFT ══ */
+        .left {
+            flex: 1;
+            background: #0c7779;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                repeating-linear-gradient(45deg,  transparent, transparent 22px, rgba(255,255,255,.04) 22px, rgba(255,255,255,.04) 23px),
+                repeating-linear-gradient(-45deg, transparent, transparent 22px, rgba(255,255,255,.03) 22px, rgba(255,255,255,.03) 23px);
+        }
+
+        .left::after {
+            content: '';
+            position: absolute;
+            width: 420px; height: 420px; border-radius: 50%;
+            bottom: -160px; right: -120px;
+            background: rgba(0,0,0,.07);
+        }
+
+        .blob {
+            position: absolute;
+            width: 280px; height: 280px; border-radius: 50%;
+            top: -100px; left: -80px;
+            background: rgba(255,255,255,.05);
+        }
+
+        /* ── Floating clothing icons ── */
+        .cloud-icon {
+            position: absolute;
+            color: rgba(255,255,255,.11);
+            z-index: 1;
+        }
+
+        @keyframes drift1 { 0%,100%{transform:translate(0,0) rotate(0deg)} 33%{transform:translate(16px,-20px) rotate(5deg)} 66%{transform:translate(-10px,13px) rotate(-4deg)} }
+        @keyframes drift2 { 0%,100%{transform:translate(0,0) rotate(0deg)} 40%{transform:translate(-18px,15px) rotate(-6deg)} 70%{transform:translate(12px,-9px) rotate(4deg)} }
+        @keyframes drift3 { 0%,100%{transform:translate(0,0) rotate(0deg)} 30%{transform:translate(9px,18px) rotate(3deg)} 60%{transform:translate(-14px,-11px) rotate(-5deg)} }
+        @keyframes drift4 { 0%,100%{transform:translate(0,0) rotate(0deg)} 50%{transform:translate(-7px,-16px) rotate(7deg)} }
+        @keyframes drift5 { 0%,100%{transform:translate(0,0) rotate(0deg)} 45%{transform:translate(20px,9px) rotate(-4deg)} 80%{transform:translate(-9px,16px) rotate(3deg)} }
+        @keyframes drift6 { 0%,100%{transform:translate(0,0) rotate(0deg)} 35%{transform:translate(-13px,18px) rotate(-3deg)} 70%{transform:translate(16px,-7px) rotate(6deg)} }
+
+        .left-content {
+            position: relative; z-index: 2;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 1.5rem; text-align: center;
+        }
+
+        .logo-circle {
+            width: 100px; height: 100px; border-radius: 50%;
+            background: rgba(255,255,255,.12);
+            border: 2px solid rgba(255,255,255,.25);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .brand-name {
+            font-size: 2rem; font-weight: 700;
+            color: #fff; letter-spacing: -.02em;
+        }
+
+        /* ══ RIGHT ══ */
+        .right {
+            width: 440px; flex-shrink: 0;
+            background: #f9fafb;
+            display: flex; align-items: center; justify-content: center;
+            padding: 2.5rem 2.75rem;
+        }
+
+        .card {
+            width: 100%; background: #fff;
+            border-radius: 20px; padding: 2.5rem 2rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,.07);
+        }
+
+        .card-title {
+            font-size: 1.3rem; font-weight: 600;
+            color: #1a2e2e; margin-bottom: 1.75rem; text-align: center;
+        }
+
+        .field-wrap { position: relative; margin-bottom: 1rem; }
+
+        .field-icon {
+            position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af; pointer-events: none;
+        }
+
+        .field {
+            width: 100%;
+            padding: .68rem 1rem .68rem 2.5rem;
+            border-radius: 10px; border: 1.5px solid #e5e7eb;
+            background: #f9fafb; font-size: .875rem; color: #1f2937;
+            outline: none; font-family: 'Sora', sans-serif;
+            transition: border-color .18s, box-shadow .18s;
+        }
+        .field::placeholder { color: #c4cece; }
+        .field:focus {
+            border-color: #0c7779; background: #fff;
+            box-shadow: 0 0 0 3px rgba(12,119,121,.1);
+        }
+
+        .eye-btn {
+            position: absolute; right: 10px; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: #9ca3af; transition: color .15s; padding: 2px;
+        }
+        .eye-btn:hover { color: #0c7779; }
+
+        .btn {
+            width: 100%; padding: .75rem; border-radius: 10px;
+            background: #0c7779; color: white; font-weight: 600;
+            font-size: .9rem; border: none; cursor: pointer; margin-top: .5rem;
+            font-family: 'Sora', sans-serif; letter-spacing: .02em;
+            transition: background .18s, box-shadow .18s, transform .1s;
+            box-shadow: 0 3px 12px rgba(12,119,121,.3);
+        }
+        .btn:hover { background: #085557; box-shadow: 0 5px 18px rgba(12,119,121,.4); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+
+        .link-small { font-size: .8rem; color: #0c7779; text-decoration: none; font-weight: 500; }
+        .link-small:hover { text-decoration: underline; }
+
+        .flash { padding: .6rem .85rem; border-radius: 8px; font-size: .78rem; margin-bottom: .9rem; border-left: 3px solid; }
+        .flash-error   { background:#fff0f0; color:#b91c1c; border-color:#f87171; }
+        .flash-success { background:#f0fdf4; color:#166534; border-color:#4ade80; }
+        .flash-info    { background:#f0fafa; color:#0c7779; border-color:#0c7779; }
+
+        @media (max-width: 700px) {
+            body { flex-direction: column; }
+            .left { padding: 3rem 2rem 2rem; min-height: 240px; }
+            .right { width: 100%; padding: 2rem 1.25rem 2.5rem; }
+            .logo-circle { width: 72px; height: 72px; }
+            .brand-name { font-size: 1.5rem; }
+        }
+    </style>
 </head>
+<body>
 
-<body class="h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center antialiased">
+<div class="left">
+    <div class="blob"></div>
 
-    <div class="w-full max-w-md px-6">
+    <!-- ── Camiseta / T-shirt ── -->
+    <svg class="cloud-icon" style="width:58px;top:7%;left:10%;animation:drift1 9s ease-in-out infinite;"
+         viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 8 C22 8 18 10 10 14 L16 24 L22 20 L22 54 L42 54 L42 20 L48 24 L54 14 C46 10 42 8 42 8 C42 8 40 13 32 13 C24 13 22 8 22 8 Z"/>
+    </svg>
 
-        <!-- Logo / Título -->
-        <div class="flex flex-col items-center mb-8">
-            <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 
-                        dark:from-red-600 dark:to-red-700 
-                        text-white flex items-center justify-center 
-                        rounded-2xl text-2xl font-bold shadow-lg 
-                        dark:shadow-red-900/30">
-                T
+    <!-- ── Chamarra / jacket con cierre ── -->
+    <svg class="cloud-icon" style="width:54px;top:16%;left:68%;animation:drift2 11s ease-in-out .5s infinite;"
+         viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 8 L10 16 L8 30 L18 30 L18 56 L46 56 L46 30 L56 30 L54 16 L42 8"/>
+        <path d="M22 8 L22 14 Q26 18 32 18 Q38 18 42 14 L42 8"/>
+        <!-- cierre central -->
+        <line x1="32" y1="18" x2="32" y2="56"/>
+        <!-- bolsillos -->
+        <rect x="19" y="36" width="8" height="6" rx="1"/>
+        <rect x="37" y="36" width="8" height="6" rx="1"/>
+    </svg>
+
+    <!-- ── Suéter / sweater cuello redondo ── -->
+    <svg class="cloud-icon" style="width:52px;top:65%;left:6%;animation:drift3 8s ease-in-out 1s infinite;"
+         viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10 C21 10 17 12 9 16 L15 27 L21 22 L21 54 L43 54 L43 22 L49 27 L55 16 C47 12 43 10 43 10"/>
+        <!-- cuello redondo -->
+        <path d="M21 10 Q32 16 43 10"/>
+        <path d="M21 10 Q32 6 43 10"/>
+        <!-- costuras manga -->
+        <line x1="21" y1="22" x2="21" y2="36"/>
+        <line x1="43" y1="22" x2="43" y2="36"/>
+        <!-- ribete inferior -->
+        <line x1="21" y1="52" x2="43" y2="52"/>
+    </svg>
+
+    <!-- ── Pantalón / jeans ── -->
+    <svg class="cloud-icon" style="width:46px;top:72%;left:62%;animation:drift4 10s ease-in-out .3s infinite;"
+         viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 10 L12 58 L26 58 L32 32 L38 58 L52 58 L48 10 Z"/>
+        <!-- cintura -->
+        <line x1="16" y1="10" x2="48" y2="10"/>
+        <line x1="16" y1="16" x2="48" y2="16"/>
+        <!-- costura central -->
+        <path d="M32 16 L32 32"/>
+    </svg>
+
+    <!-- ── Polo / camisa con cuello ── -->
+    <svg class="cloud-icon" style="width:48px;top:38%;left:5%;animation:drift5 12s ease-in-out .8s infinite;"
+         viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 8 C22 8 18 11 10 15 L16 25 L22 21 L22 54 L42 54 L42 21 L48 25 L54 15 C46 11 42 8 42 8"/>
+        <!-- cuello polo / solapas -->
+        <path d="M22 8 L28 18 L32 14 L36 18 L42 8"/>
+        <!-- botones -->
+        <line x1="32" y1="18" x2="32" y2="30"/>
+        <circle cx="32" cy="22" r="1.2" fill="currentColor"/>
+        <circle cx="32" cy="27" r="1.2" fill="currentColor"/>
+    </svg>
+
+    <!-- ── Hoodie / sudadera con capucha ── -->
+    <svg class="cloud-icon" style="width:56px;top:28%;left:76%;animation:drift6 13s ease-in-out 1.2s infinite;"
+         viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 10 C22 10 17 12 9 17 L15 27 L21 22 L21 54 L43 54 L43 22 L49 27 L55 17 C47 12 42 10 42 10"/>
+        <!-- capucha -->
+        <path d="M22 10 Q22 4 32 4 Q42 4 42 10"/>
+        <path d="M22 10 Q26 14 32 14 Q38 14 42 10"/>
+        <!-- bolsillo canguro -->
+        <path d="M24 40 Q24 46 32 46 Q40 46 40 40"/>
+        <!-- cordón capucha -->
+        <line x1="29" y1="14" x2="27" y2="22"/>
+        <line x1="35" y1="14" x2="37" y2="22"/>
+    </svg>
+
+    <!-- ── Calcetín / sock ── -->
+    <svg class="cloud-icon" style="width:36px;top:52%;left:74%;animation:drift1 14s ease-in-out 2s infinite;"
+         viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 8 L22 38 Q22 46 28 50 Q34 54 40 50 Q46 46 44 40 L36 32 L36 8 Z"/>
+        <!-- banda superior -->
+        <line x1="22" y1="14" x2="36" y2="14"/>
+        <line x1="22" y1="18" x2="36" y2="18"/>
+    </svg>
+
+    <!-- ── Vestido / dress ── -->
+    <svg class="cloud-icon" style="width:44px;top:82%;left:28%;animation:drift2 10s ease-in-out 1.8s infinite;"
+         viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- cuerpo superior -->
+        <path d="M24 8 L20 18 L26 18 L20 56 L44 56 L38 18 L44 18 L40 8 Z"/>
+        <!-- escote -->
+        <path d="M24 8 Q32 13 40 8"/>
+        <!-- cintura -->
+        <line x1="22" y1="30" x2="42" y2="30"/>
+        <!-- tirantes -->
+        <line x1="27" y1="8" x2="26" y2="18"/>
+        <line x1="37" y1="8" x2="38" y2="18"/>
+    </svg>
+
+    <!-- ── Gorro / beanie ── -->
+    <svg class="cloud-icon" style="width:38px;top:4%;left:48%;animation:drift3 11s ease-in-out .6s infinite;"
+         viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 36 Q16 16 32 12 Q48 16 48 36 Z"/>
+        <!-- pompón -->
+        <circle cx="32" cy="10" r="4"/>
+        <!-- ribete -->
+        <rect x="14" y="36" width="36" height="8" rx="4"/>
+        <!-- costuras -->
+        <line x1="32" y1="12" x2="32" y2="36"/>
+        <path d="M22 18 Q26 24 22 30"/>
+        <path d="M42 18 Q38 24 42 30"/>
+    </svg>
+
+    <!-- ── Content: logo + nombre ── -->
+    <div class="left-content">
+        <div class="logo-circle">
+            <img src="{{ url_for('static', filename='imagenes/logo.png') }}"
+                 alt="ThreadLine" width="54" height="54"
+                 style="object-fit:contain; filter:brightness(0) invert(1);"
+                 onerror="this.style.display='none'">
+        </div>
+        <div class="brand-name">ThreadLine</div>
+    </div>
+</div>
+
+<!-- ══ RIGHT ══ -->
+<div class="right">
+    <div class="card">
+
+        <p class="card-title">Iniciar Sesión</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="field-wrap">
+                <span class="field-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </span>
+                <input type="email" name="correo" required placeholder="Correo electrónico" class="field">
             </div>
-            <h1 class="mt-4 text-2xl font-semibold text-gray-800 dark:text-white">
-                ThreadLine
-            </h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Panel de Administración
-            </p>
-        </div>
 
-        <!-- Card -->
-        <div class="bg-white dark:bg-gray-800 
-                    shadow-xl dark:shadow-gray-950/40 
-                    rounded-2xl p-8 border border-gray-200 
-                    dark:border-gray-700">
-
-            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-6 text-center">
-                Iniciar Sesión
-            </h2>
-
-            <!-- Flash messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="space-y-3 mb-4">
-                        {% for category, message in messages %}
-                            <div class="p-3 text-sm rounded-xl border-l-4
-                                {% if category == 'error' %}
-                                    bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-500
-                                {% elif category == 'success' %}
-                                    bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border-green-500
-                                {% else %}
-                                    bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border-blue-500
-                                {% endif %}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
-
-            <!-- Formulario -->
-            <form method="POST" class="space-y-5">
-
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                <!-- Usuario -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Correo Electrónico
-                    </label>
-                    <input type="text" 
-                           name="correo" 
-                           required
-                           class="w-full px-4 py-2 rounded-xl 
-                                  bg-gray-50 dark:bg-gray-700 
-                                  border border-gray-300 dark:border-gray-600
-                                  text-gray-800 dark:text-white
-                                  focus:ring-2 focus:ring-blue-500 focus:outline-none
-                                  transition-all duration-200">
-                </div>
-
-                <!-- Contraseña -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Contraseña
-                    </label>
-                    <input type="password" 
-                           name="contrasenia" 
-                           required
-                           class="w-full px-4 py-2 rounded-xl 
-                                  bg-gray-50 dark:bg-gray-700 
-                                  border border-gray-300 dark:border-gray-600
-                                  text-gray-800 dark:text-white
-                                  focus:ring-2 focus:ring-blue-500 focus:outline-none
-                                  transition-all duration-200">
-                </div>
-
-                <!-- Botón -->
-                <button type="submit"
-                        class="w-full py-2 rounded-xl
-                               bg-blue-600 hover:bg-blue-700
-                               text-white font-medium
-                               transition-all duration-200
-                               shadow-md hover:shadow-lg">
-                    Ingresar
+            <div class="field-wrap">
+                <span class="field-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                    </svg>
+                </span>
+                <input type="password" name="contrasenia" id="pw" required
+                       placeholder="Contraseña" class="field" style="padding-right:2.4rem;">
+                <button type="button" class="eye-btn" onclick="togglePw()">
+                    <svg id="eye" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
                 </button>
+            </div>
 
-            </form>
+            <button type="submit" class="btn">Entrar</button>
+        </form>
 
-        </div>
-
-        <!-- Footer -->
-        <div class="text-center mt-6 text-xs text-gray-400 dark:text-gray-500">
-            Versión 1.0.0
-        </div>
+        <p style="text-align:center;margin-top:1.25rem;font-size:.8rem;color:#9ca3af;">
+            ¿No tienes cuenta?
+            <a href="*" class="link-small">Regístrate aquí</a>
+        </p>
 
     </div>
+</div>
 
+<script>
+function togglePw() {
+    const f = document.getElementById('pw');
+    const i = document.getElementById('eye');
+    if (f.type === 'password') {
+        f.type = 'text';
+        i.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+            <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>`;
+    } else {
+        f.type = 'password';
+        i.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>`;
+    }
+}
+</script>
 </body>
 </html>

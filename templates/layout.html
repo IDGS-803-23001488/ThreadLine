@@ -237,9 +237,12 @@
                     <p class="text-sm text-white mt-0.5">{{ descripcion }}</p>
                 {% endif %}
             </div>
-            <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600
+            <div class="w-9 h-9 bg-gradient-to-br from-white to-white
                         text-white flex items-center justify-center
-                        rounded-xl font-semibold text-sm shadow-sm cursor-pointer">A</div>
+                        rounded-xl font-semibold text-sm shadow-sm cursor-pointer"
+                        style="color:var(--color-primary)">
+                {{ g.usuario_actual.usuario[:2].upper() }}
+            </div>
         </header>
 
         <main class="flex-1 overflow-y-auto bg-gray-50
