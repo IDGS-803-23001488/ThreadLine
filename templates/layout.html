@@ -1,7 +1,7 @@
 <!-- templates/layout.html -->
 {% from "macros/sidebar.html" import panel_section, panel_item %}
 {% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque,
-    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color %}
+    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color, svg_produccion %}
 
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -17,7 +17,7 @@
         ═══════════════════════════════════════ */
         :root {
             /* Colores principales */
-            --color-primary:        #587E1E;  /* indigo — botón activo, acentos */
+            --color-primary:        #0c7779;  /* indigo — botón activo, acentos */
             --color-primary-hover:  #7FB82E;  /* indigo oscuro — hover en primario */
             --color-primary-light:  #eef2ff;  /* indigo muy suave — fondos activos */
 
@@ -169,9 +169,7 @@
         {# Logo #}
         <div class="px-5 pt-5 pb-3 flex-shrink-0">
             <div class="flex items-center gap-2 mb-5">
-                <div class="w-7 h-7 bg-gradient-to-br from-red-500 to-red-600
-                            text-white flex items-center justify-center
-                            rounded-lg font-bold text-sm flex-shrink-0">T</div>
+                <img class="w-7 h-7 " src="{{ url_for('static', filename='imagenes/logo.png') }}" alt="Logo">
                 <span class="text-base font-bold text-gray-800 tracking-tight whitespace-nowrap">ThreadLine</span>
             </div>
             <p id="panelLabel" class="text-[10px] font-semibold tracking-widest text-gray-400 uppercase whitespace-nowrap"></p>
@@ -212,11 +210,15 @@
                     request.endpoint and request.endpoint.startswith('talla.')) }}
                 {{ panel_item(url_for('cliente.lista'),    svg_clientes(),   "Clientes",
                     request.endpoint and request.endpoint.startswith('cliente.')) }}
+                {{ panel_item(url_for('materia_prima.lista'),    svg_clientes(),   "Materia Prima",
+                    request.endpoint and request.endpoint.startswith('materia_prima.')) }}
             </div>
 
             <div id="sec-produccion" class="seccion">
                 {{ panel_item(url_for('recetas.lista'), svg_unidad(), "Recetas",
                     request.endpoint and request.endpoint.startswith('recetas.')) }}
+                {{ panel_item(url_for('explosion.lista'), svg_produccion(), "Explosión de Producción",
+                    request.endpoint and request.endpoint.startswith('explosion.')) }}
             </div>
 
         </div>
@@ -227,11 +229,12 @@
     ════════════════════════════════ #}
     <div class="flex-1 flex flex-col overflow-hidden">
 
-        <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between border-b border-gray-200 flex-shrink-0">
+        <header class="shadow-sm px-6 py-4 flex items-center justify-between border-b border-gray-200 flex-shrink-0"
+        style="background: var(--color-primary)">
             <div>
-                <h1 class="text-xl font-semibold text-gray-800">{{ titulo }}</h1>
+                <h1 class="text-xl font-semibold text-white">{{ titulo }}</h1>
                 {% if descripcion %}
-                    <p class="text-sm text-gray-500 mt-0.5">{{ descripcion }}</p>
+                    <p class="text-sm text-white mt-0.5">{{ descripcion }}</p>
                 {% endif %}
             </div>
             <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600

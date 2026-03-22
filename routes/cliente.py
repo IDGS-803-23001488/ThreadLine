@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from database.mysql import db, Cliente 
 from forms import ClienteForm
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
+from utils.security import hash_password
 
 
 cliente = Blueprint("cliente", __name__, url_prefix = "/cliente")
@@ -72,7 +73,7 @@ def crear():
         nuevo = Cliente(
             nombre=form.nombre.data,
             correo = form.correo.data,
-            contrasenia = form.contrasenia.data,
+            contrasenia = hash_password(form.contrasenia.data),
             telefono=form.telefono.data,
             direccion= form.direccion.data,
             creado_por=g.usuario_actual.id
@@ -104,8 +105,14 @@ def editar(id):
     form = ClienteForm(request.form, obj=color_obj)
     
     if request.method == "POST" and form.validate():
-        
-        form.populate_obj(color_obj)
+
+        color_obj.nombre = form.nombre.data
+        color_obj.correo = form.correo.data
+        color_obj.telefono = form.telefono.data
+        color_obj.direccion = form.direccion.data
+
+        if form.cambiar_contrasenia.data and form.contrasenia.data:
+            color_obj.contrasenia = hash_password(form.contrasenia.data)
         
         color_obj.editado_por = g.usuario_actual.id
         color_obj.fecha_edicion = datetime.datetime.utcnow()

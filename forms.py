@@ -1,6 +1,6 @@
 # forms.py
 from wtforms import Form
-from wtforms import StringField,TextAreaField, IntegerField, PasswordField, EmailField, BooleanField, SelectField, HiddenField
+from wtforms import StringField,TextAreaField, IntegerField, PasswordField, EmailField, BooleanField, SelectField, HiddenField, DecimalField
 from wtforms import validators
 
 class UserForm(Form):
@@ -63,8 +63,9 @@ class TallaForm(Form):
 class ClienteForm(Form):
     nombre = StringField('Nombre', [validators.DataRequired(message="El nombre es obligatorio"),validators.Length(min=3, max=100)])
     correo = StringField('Correo electrónico', [validators.DataRequired(message="El correo es obligatorio"),validators.Email(message="Ingresa un correo válido"),validators.Length(max=100)])
-    contrasenia = PasswordField('Contraseña', [validators.DataRequired(message="La contraseña es obligatoria"),validators.Length(min=6, max=255)])
+    contrasenia = PasswordField('Contraseña', [validators.Optional(),validators.DataRequired(message="La contraseña es obligatoria"),validators.Length(min=6, max=255)])
     telefono = StringField('Teléfono', [validators.Optional(),validators.Length(max=20)])
+    cambiar_contrasenia = BooleanField("Cambiar contraseña")
     direccion = StringField('Dirección', [validators.Optional(), validators.Length(max=255)])
 
 class ProveedorForm(Form):
@@ -86,3 +87,13 @@ class RecetaForm(Form):
             validators.number_range(min = 1)
         ]
     )
+    
+class MateriaPrimaForm(Form):
+    id = IntegerField('id')
+    nombre = StringField('Nombre',[validators.DataRequired()])
+    unidad_id = SelectField('Unidad',[validators.DataRequired()])
+    empaque_id = SelectField('Empaque')
+    proveedor_id = SelectField('Proveedor')
+    porcentaje_merma = DecimalField('Porcentaje de merma',[validators.Optional()])
+    stock_minimo = DecimalField('Stock mínimo',[validators.Optional(),validators.DataRequired("Coloca el maximo de stock"),validators.number_range(min=0,max=200)])
+    stock_maximo = DecimalField('Stock máximo',[validators.Optional(), validators.DataRequired("Coloca el maximo de stock"), validators.number_range(min=0, max=200)])

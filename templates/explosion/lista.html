@@ -1,0 +1,184 @@
+<!-- templates/explosion/lista.html -->
+{% extends "layout.html" %}
+
+{% block container %}
+
+{# ── Filtros + botón nueva orden ── #}
+<div class="flex flex-col sm:flex-row sm:items-center gap-3">
+
+    <form method="GET" class="flex-1 flex gap-2">
+        <div class="relative flex-1">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/>
+            </svg>
+            <input type="text" name="search" value="{{ search }}"
+                   placeholder="Buscar por producto…"
+                   class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white
+                          text-sm text-gray-700 focus:outline-none focus:ring-2
+                          focus:border-transparent transition"
+                   style="--tw-ring-color:var(--color-primary)">
+        </div>
+
+        <select name="estatus"
+                class="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm
+                       text-gray-700 focus:outline-none focus:ring-2 focus:border-transparent"
+                style="--tw-ring-color:var(--color-primary)"
+                onchange="this.form.submit()">
+            <option value="">Todos los estatus</option>
+            {% for val, label in [('pendiente','Pendiente'),('en_proceso','En proceso'),
+                                   ('completada','Completada'),('cancelada','Cancelada')] %}
+            <option value="{{ val }}" {% if estatus_filtro == val %}selected{% endif %}>
+                {{ label }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit"
+                class="px-4 py-2.5 rounded-xl text-sm font-medium text-white transition"
+                style="background:var(--color-primary)">
+            Buscar
+        </button>
+    </form>
+
+    <a href="{{ url_for('explosion.nueva') }}"
+       class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
+              text-white shadow-sm hover:shadow-md active:scale-95 transition flex-shrink-0"
+       style="background:var(--color-primary)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+        </svg>
+        Nueva orden
+    </a>
+</div>
+
+{# ── Tarjetas de órdenes ── #}
+{% if pagination.items %}
+<div class="grid gap-4">
+    {% for orden in pagination.items %}
+
+    {% set v = orden.receta.producto_variante %}
+    {% set color_hex = v.producto.color.hex if v.producto.color else '#e5e7eb' %}
+
+    {# Clases de estatus #}
+    {% set estatus_cfg = {
+        'pendiente':   ('bg-amber-50 text-amber-700 border-amber-200',   'Pendiente'),
+        'en_proceso':  ('bg-blue-50 text-blue-700 border-blue-200',      'En proceso'),
+        'completada':  ('bg-emerald-50 text-emerald-700 border-emerald-200','Completada'),
+        'cancelada':   ('bg-red-50 text-red-700 border-red-200',         'Cancelada'),
+    } %}
+    {% set est_cls, est_label = estatus_cfg.get(orden.estatus, ('bg-gray-100 text-gray-600 border-gray-200', orden.estatus)) %}
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md
+                transition-shadow overflow-hidden">
+        <div class="flex items-center gap-5 px-6 py-4">
+
+            {# Dot de color #}
+            <div class="w-10 h-10 rounded-xl flex-shrink-0 border-2 border-white shadow-sm"
+                 style="background:{{ color_hex }}"></div>
+
+            {# Info principal #}
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <p class="text-sm font-semibold text-gray-800 truncate">
+                        {{ v.producto.nombre }}
+                    </p>
+                    <span class="text-xs text-gray-400">·</span>
+                    <span class="text-xs text-gray-500">Talla {{ v.talla.nombre }}</span>
+                    {% if v.producto.color %}
+                    <span class="text-xs text-gray-400">·</span>
+                    <span class="text-xs text-gray-500">{{ v.producto.color.nombre }}</span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-4 mt-1">
+                    <span class="text-xs text-gray-400">
+                        Orden <strong class="text-gray-600">#{{ orden.id }}</strong>
+                    </span>
+                    <span class="text-xs text-gray-400">
+                        Solicitadas: <strong class="text-gray-600">{{ orden.cantidad_solicitada }}</strong>
+                    </span>
+                    <span class="text-xs text-gray-400">
+                        Producidas: <strong class="text-gray-600">{{ orden.cantidad_producida }}</strong>
+                    </span>
+                    {% if orden.fecha_inicio %}
+                    <span class="text-xs text-gray-400">
+                        {{ orden.fecha_inicio.strftime('%d/%m/%Y') }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Progreso #}
+            {% if orden.cantidad_solicitada > 0 %}
+            {% set pct = ((orden.cantidad_producida / orden.cantidad_solicitada) * 100)|int %}
+            <div class="hidden sm:flex flex-col items-end gap-1 flex-shrink-0 w-28">
+                <span class="text-xs text-gray-400">{{ pct }}%</span>
+                <div class="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all"
+                         style="width:{{ pct }}%; background:var(--color-primary)"></div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Estatus badge #}
+            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium
+                         border flex-shrink-0 {{ est_cls }}">
+                {{ est_label }}
+            </span>
+
+            {# Acciones #}
+            <a href="{{ url_for('explosion.detalle', id=orden.id | encrypt) }}"
+               class="w-8 h-8 flex items-center justify-center rounded-xl flex-shrink-0
+                      text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                     stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{# Paginación #}
+{% if pagination.pages > 1 %}
+<div class="flex items-center justify-center gap-2 pt-2">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for('explosion.lista', page=pagination.prev_num, search=search, estatus=estatus_filtro) }}"
+       class="px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
+        ← Anterior
+    </a>
+    {% endif %}
+    <span class="text-sm text-gray-400">
+        Página {{ pagination.page }} de {{ pagination.pages }}
+    </span>
+    {% if pagination.has_next %}
+    <a href="{{ url_for('explosion.lista', page=pagination.next_num, search=search, estatus=estatus_filtro) }}"
+       class="px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
+        Siguiente →
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm
+            flex flex-col items-center justify-center py-16 gap-3 text-gray-300">
+    <svg class="w-12 h-12" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42
+                 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655
+                 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164
+                 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004
+                 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091
+                 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5
+                 L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437"/>
+    </svg>
+    <p class="text-sm font-medium">Sin órdenes de producción</p>
+    <p class="text-xs">Crea la primera orden usando el botón <strong>Nueva orden</strong></p>
+</div>
+{% endif %}
+
+{% endblock %}
