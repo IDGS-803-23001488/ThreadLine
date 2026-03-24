@@ -1,28 +1,86 @@
-<!-- templates/materia_prima/crear.html -->
+<!-- templates/categoria/crear.html -->
 {% extends "layout.html" %}
 {% from "macros/forms.html" import render_input, form_buttons %}
 
 {% block container %}
 
-<div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg max-w-lg mx-auto">
+<div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg max-w-2xl mx-auto">
 
-<form method="POST">
+    <form method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1">
 
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    {{ render_input(form.nombre) }}
-    {{ render_input(form.unidad_id) }}
-    {{ render_input(form.empaque_id) }}
-    {{ render_input(form.proveedor_id) }}
-    {{ render_input(form.porcentaje_merma) }}
-    {{ render_input(form.stock_minimo) }}
-    {{ render_input(form.stock_maximo) }}
-        
-    {{ form_buttons(url_for('materia_prima.lista')) }}
+        <div>
+        {{ render_input(form.nombre) }}
+        {{ render_input(form.unidad_id) }}
+        {{ render_input(form.empaque_id) }}
+        {{ render_input(form.proveedor_id) }}
+        {{ render_input(form.stock_minimo) }}
+        {{ render_input(form.stock_maximo) }}
+        </div>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Foto
+            </label>
+            <div class="flex items-center justify-center w-full">
+                <label for="dropzone-file" class="relative flex flex-col items-center justify-center w-full max-w-xs mx-auto 
+                            aspect-[2/3]
+                            bg-neutral-secondary-medium border border-dashed border-default-strong 
+                            rounded-base cursor-pointer hover:bg-neutral-tertiary-medium overflow-hidden">
 
+                    <!-- 🔹 CONTENIDO -->
+                    <div id="upload-content" style="color: white;" class="flex flex-col items-center justify-center text-body z-10 hidden">
 
-</form>
+                        <svg class="w-8 h-8 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-width="2"
+                                d="M15 17h3a3 3 0 0 0 0-6h-.025a5.56 5.56 0 0 0 .025-.5A5.5 5.5 0 0 0 7.207 9.021C7.137 9.017 7.071 9 7 9a4 4 0 1 0 0 8h2.167M12 19v-9m0 0-2 2m2-2 2 2" />
+                        </svg>
+
+                        <p class="mb-2 text-sm">
+                            <span class="font-semibold">Click para subir una imagen</span> o arrastra y suelta
+                        </p>
+                        <p class="text-xs">PNG o JPG</p>
+                    </div>
+
+                    <!-- 🔹 PREVIEW -->
+                    <img src="{{ url_for('static', filename=imagen) }}" id="preview-img" class="absolute w-full h-full inset-0 object-contain z-20" />
+
+                    <!-- 🔹 INPUT -->
+                    <input id="dropzone-file" name="imagen" type="file" accept="image/png, image/jpeg" class="hidden" />
+                </label>
+            </div>
+        </div>
+        <div></div>
+        {{ form_buttons(url_for('materia_prima.lista')) }}
+    </form>
 
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+    const input = document.getElementById("dropzone-file");
+    const preview = document.getElementById("preview-img");
+    const content = document.getElementById("upload-content");
+
+    if (!input) return;
+
+    input.addEventListener("change", function(e) {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        if (!["image/jpeg", "image/png"].includes(file.type)) {
+            alert("Solo se permiten JPG o PNG");
+            input.value = "";
+            return;
+        }
+
+        const url = URL.createObjectURL(file);
+        preview.src = url;
+    });
+
+});
+</script>
 
 {% endblock %}
