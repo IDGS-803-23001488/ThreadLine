@@ -11,11 +11,10 @@ migrations
 __pycache__/
 
 # Ignorar las imagenes subidas por el usuario
-uploads/*
-!uploads/.gitkeep
+uploads
 
 # Ignorar archivos compilados de Python
 *.pyc
 *.pyo
 *.pyd
-config_local.py
+config_local

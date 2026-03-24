@@ -1,9 +1,15 @@
 # routes/recetas.py
 import datetime
-from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify, make_response
 from database.mysql import db, Receta, RecetaDetalle, ProductoVariante, MateriaPrima, Producto, Talla, Color
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from sqlalchemy import or_
+from io import BytesIO
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import Frame, KeepInFrame
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
 
 recetas = Blueprint(
     "recetas",
@@ -293,3 +299,170 @@ def eliminar(id):
 
     flash("Receta eliminada correctamente", "success")
     return redirect(url_for("recetas.lista"))
+
+@recetas.route("/pdf/<id>")
+@decrypt_url_id()
+@login_requerido
+@permiso_requerido("recetas", "ver")
+def generar_pdf(id):
+    receta = Receta.query.get_or_404(id)
+    v = receta.producto_variante
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=30,
+        bottomMargin=30
+    )
+
+    styles = getSampleStyleSheet()
+
+    # 🎨 Colores del layout
+    PRIMARY = colors.HexColor("#0c7779")
+    TEXT = colors.HexColor("#1f2937")
+    MUTED = colors.HexColor("#6b7280")
+    BORDER = colors.HexColor("#e5e7eb")
+
+    # 🧾 Estilos personalizados
+    title_style = ParagraphStyle(
+        "title",
+        parent=styles["Heading1"],
+        fontSize=16,
+        textColor=colors.white,
+        alignment=1,  # center
+        spaceAfter=10
+    )
+
+    label_style = ParagraphStyle(
+        "label",
+        parent=styles["Normal"],
+        fontSize=9,
+        textColor=MUTED
+    )
+
+    value_style = ParagraphStyle(
+        "value",
+        parent=styles["Normal"],
+        fontSize=11,
+        textColor=TEXT,
+        spaceAfter=6
+    )
+
+    elements = []
+
+    # =========================================
+    # 🟩 HEADER (tipo navbar)
+    # =========================================
+    header_data = [[Paragraph(f"RECETA DE PRODUCCIÓN #{receta.id}", title_style)]]
+
+    header = Table(header_data, colWidths=[doc.width])
+    header.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), PRIMARY),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+    ]))
+
+    elements.append(header)
+    elements.append(Spacer(1, 14))
+
+    # =========================================
+    # 📦 CARD DE INFORMACIÓN
+    # =========================================
+    info_data = [
+        [
+            Paragraph("<b>Producto</b>", label_style),
+            Paragraph("<b>Talla</b>", label_style),
+            Paragraph("<b>Color</b>", label_style),
+            Paragraph("<b>Cantidad Base</b>", label_style),
+        ],
+        [
+            Paragraph(v.producto.nombre, value_style),
+            Paragraph(v.talla.nombre, value_style),
+            Paragraph(v.producto.color.nombre if v.producto.color else "—", value_style),
+            Paragraph(str(receta.cantidad_base), value_style),
+        ]
+    ]
+
+    info_table = Table(info_data, colWidths=[doc.width/4.0]*4)
+
+    info_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
+        ("BOX", (0, 0), (-1, -1), 1, BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, BORDER),
+
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+
+    elements.append(info_table)
+    elements.append(Spacer(1, 18))
+
+    # =========================================
+    # 📊 TABLA DE INSUMOS
+    # =========================================
+    data = [["Materia Prima", "Cantidad", "Unidad", "Merma %"]]
+
+    for d in receta.detalles:
+        data.append([
+            d.materia_prima.nombre,
+            f"{float(d.cantidad_neta):,.2f}",
+            d.materia_prima.unidad.sigla if d.materia_prima.unidad else "—",
+            f"{float(d.materia_prima.porcentaje_merma or 0):,.2f}",
+        ])
+
+    table = Table(data, colWidths=[
+        doc.width * 0.4,
+        doc.width * 0.2,
+        doc.width * 0.2,
+        doc.width * 0.2,
+    ])
+
+    table.setStyle(TableStyle([
+        # Header
+        ("BACKGROUND", (0, 0), (-1, 0), PRIMARY),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+
+        # Filas alternadas
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f9fafb")]),
+
+        # Bordes suaves
+        ("LINEBELOW", (0, 0), (-1, 0), 1, PRIMARY),
+        ("LINEBELOW", (0, 1), (-1, -1), 0.25, BORDER),
+
+        # Padding
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+
+    elements.append(table)
+
+    # =========================================
+    # 📄 FOOTER
+    # =========================================
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph(
+        f"Generado el {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        ParagraphStyle("footer", fontSize=8, textColor=MUTED, alignment=1)
+    ))
+
+    # --- Construir PDF ---
+    doc.build(elements)
+
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = make_response(pdf)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"inline; filename=receta_{receta.id}.pdf"
+
+    return response

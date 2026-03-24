@@ -172,6 +172,20 @@
 </svg>
 {% endmacro %}
 
+{% macro svg_print() %}
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 32 32"
+     fill="currentColor"
+     class="size-5">
+    <path d="M30,21c0,1.104-0.896,2-2,2h-2c-0.446-1.723-2.138-3-4-3H10c-1.862,0-3.554,1.277-4,3H4
+             c-1.104,0-2-0.896-2-2v-2c0-1.104,0.896-2,2-2h24c1.104,0,2,0.896,2,2V21z
+
+             M28,17H4c-2.209,0-4,1.791-4,4v2c0,2.209,1.791,4,4,4h2c0.446,1.723,2.138,3,4,3h12
+             c1.862,0,3.554-1.277,4-3h2c2.209,0,4-1.791,4-4v-2C32,18.791,30.209,17,28,17z
+
+             M26,6c0-2.209-1.791-4-4-4H10C7.791,2,6,3.791,6,6v9h20V6z"/>
+</svg>
+{% endmacro %}
 
 <!-- ═══════════════════════════════════════════════════════════
      MODALES DE CONFIRMACIÓN
@@ -255,6 +269,21 @@
 {# btn_secondary: usa --color-secondary del :root #}
 {% macro btn_secondary(enlace, icono, texto="Acción") %}
 <a href="{{ enlace }}"
+   class="inline-flex items-center gap-2 text-white font-medium rounded-lg text-sm px-4 py-2.5
+          border border-transparent shadow-sm transition-colors"
+   style="background: var(--color-secondary);"
+   onmouseover="this.style.background='var(--color-secondary-hover)'"
+   onmouseout="this.style.background='var(--color-secondary)'"
+   >
+    {{ icono() }}
+    {{ texto }}
+</a>
+{% endmacro %}
+
+{% macro btn_secondary_add(enlace, icono, texto="Acción") %}
+<a href="{{ enlace }}"
+   target="_blank"
+   rel="noopener noreferrer"
    class="inline-flex items-center gap-2 text-white font-medium rounded-lg text-sm px-4 py-2.5
           border border-transparent shadow-sm transition-colors"
    style="background: var(--color-secondary);"
