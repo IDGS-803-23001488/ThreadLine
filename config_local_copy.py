@@ -10,6 +10,6 @@ class DevelopmentConfig(Config):
     MAIL_SERVER = "smtp.gmail.com"
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = "angelgutierrez.yuki@gmail.com"
-    MAIL_PASSWORD = "wcyw binq cvlc gnjv"
-    MAIL_DEFAULT_SENDER = "angelgutierrez.yuki@gmail.com"
+    MAIL_USERNAME = "tu_correo@gmail.com"
+    MAIL_PASSWORD = "tu_app_password"
+    MAIL_DEFAULT_SENDER = "tu_correo@gmail.com"

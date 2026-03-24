@@ -42,7 +42,7 @@ class Usuario(BaseModel):
     usuario = db.Column(db.String(50), nullable=False, unique=True)
     correo = db.Column(db.String(100), nullable=False, unique=True)
     contrasenia = db.Column(db.String(255), nullable=False)
-    
+    bloqueado = db.Column(db.Boolean, default=False)
     roles = db.relationship("Rol", secondary=usuario_rol, backref="usuarios")
     
     # Auditoría
@@ -90,12 +90,16 @@ class Token(BaseModel):
     __tablename__ = "token"
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
-    token = db.Column(db.String(36), unique=True, default=lambda: str(uuid.uuid4()))
+    token = db.Column(db.String(36), nullable=False)
+    tipo = db.Column(db.String(50), nullable=False)
+    intentos = db.Column(db.Integer, default=0)
     tipo = db.Column(db.String(50), nullable=False) # login, recovery, etc
     fecha_expiracion = db.Column(db.DateTime, nullable=False)
+    fecha_actualizacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     usado = db.Column(db.Boolean, default=False)
     
     usuario = db.relationship("Usuario", backref="tokens")
+    
     def esta_expirado(self):
         return datetime.datetime.utcnow() > self.fecha_expiracion
 
