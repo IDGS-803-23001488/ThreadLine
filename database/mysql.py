@@ -42,7 +42,7 @@ class Usuario(BaseModel):
     usuario = db.Column(db.String(50), nullable=False, unique=True)
     correo = db.Column(db.String(100), nullable=False, unique=True)
     contrasenia = db.Column(db.String(255), nullable=False)
-    
+    bloqueado = db.Column(db.Boolean, default=False)
     roles = db.relationship("Rol", secondary=usuario_rol, backref="usuarios")
     
     # Auditoría
@@ -95,6 +95,7 @@ class Token(BaseModel):
     intentos = db.Column(db.Integer, default=0)
     tipo = db.Column(db.String(50), nullable=False) # login, recovery, etc
     fecha_expiracion = db.Column(db.DateTime, nullable=False)
+    fecha_actualizacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     usado = db.Column(db.Boolean, default=False)
     
     usuario = db.relationship("Usuario", backref="tokens")

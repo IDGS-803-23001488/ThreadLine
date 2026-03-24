@@ -1,4 +1,5 @@
 # app.py
+import datetime
 from flask import Flask, render_template, g, session, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
@@ -68,8 +69,6 @@ def forbidden(e):
 
 @app.before_request
 def verificar_token():
-    print("ENDPOINT:", request.endpoint)
-    print("COOKIE:", request.cookies.get("auth_token"))
     rutas_libres = [
         "auth.login",
         "auth.verificar_2fa",
@@ -81,12 +80,11 @@ def verificar_token():
 
     token_cookie = request.cookies.get("auth_token")
 
+    # 🔒 No autenticado
     if not token_cookie:
         if request.path.startswith("/api"):
             return {"error": "No autenticado"}, 401
         return redirect(url_for("auth.login"))
-
-    print("TOKEN COOKIE:", token_cookie)
 
     token_db = Token.query.filter_by(
         token=token_cookie,
@@ -94,14 +92,49 @@ def verificar_token():
         usado=False
     ).first()
 
-    print("TOKEN DB:", token_db)
-
-    if not token_db or token_db.esta_expirado():
+    # 🔒 Token inválido
+    if not token_db:
         if request.path.startswith("/api"):
             return {"error": "Token inválido"}, 401
         return redirect(url_for("auth.login"))
 
+    # 🔒 Token expirado
+    if token_db.esta_expirado():
+        token_db.usado = True
+        db.session.commit()
+
+        resp = redirect(url_for("auth.login"))
+        resp.set_cookie("auth_token", "", expires=0)
+
+        if request.path.startswith("/api"):
+            return {"error": "Sesión expirada"}, 401
+
+        return resp
+
+    # 🔒 Usuario bloqueado
+    if token_db.usuario.bloqueado:
+        token_db.usado = True
+        db.session.commit()
+
+        resp = redirect(url_for("auth.login"))
+        resp.set_cookie("auth_token", "", expires=0)
+
+        if request.path.startswith("/api"):
+            return {"error": "Usuario bloqueado"}, 403
+
+        return resp
+
+    # ✅ Usuario válido
     g.usuario_actual = token_db.usuario
+    g.token_actual = token_db
+
+    # 🔄 Renovación inteligente (solo si faltan <5 min)
+    ahora = datetime.datetime.utcnow()
+
+    if token_db.fecha_expiracion - ahora < datetime.timedelta(minutes=5):
+        token_db.fecha_expiracion = ahora + datetime.timedelta(minutes=10)
+        db.session.commit()
+
 
 @app.context_processor
 def inject_request():

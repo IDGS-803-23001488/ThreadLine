@@ -10,6 +10,8 @@ import random
 from flask_mail import Message
 from extensions import mail
 
+REQUIERE_2FA = False
+
 auth = Blueprint("auth", __name__)
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -20,8 +22,34 @@ def login():
         contrasenia = request.form.get("contrasenia")
 
         user = Usuario.query.filter_by(correo=correo, activo=True).first()
-
+        if user and user.bloqueado:
+            return usuario_bloqueado_response(user)
+        
         if user and verify_password(user.contrasenia, contrasenia):
+
+            if not REQUIERE_2FA:
+                nuevo_token = str(uuid.uuid4())
+
+                login_token = Token(
+                    usuario_id=user.id,
+                    token=nuevo_token,
+                    tipo="login",
+                    fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+                )
+
+                db.session.add(login_token)
+                db.session.commit()
+
+                response = make_response(redirect(url_for("main.index")))
+                response.set_cookie(
+                    "auth_token",
+                    nuevo_token,
+                    httponly=True,
+                    samesite="Lax",
+                    secure=False
+                )
+
+                return response
 
             codigo = str(random.randint(100000, 999999))
 
@@ -73,6 +101,17 @@ Expira en 10 minutos.
 
     mail.send(msg)
 
+def usuario_bloqueado_response(user):
+    Token.query.filter_by(usuario_id=user.id, usado=False).update({
+        "usado": True
+    })
+    db.session.commit()
+
+    if request.path.startswith("/api"):
+        return {"error": "Usuario bloqueado"}, 403
+
+    flash("Tu cuenta está bloqueada. Contacta al administrador.", "error")
+    return redirect(url_for("auth.login"))
 
 @auth.route("/verificar-2fa/<int:user_id>", methods=["GET", "POST"])
 def verificar_2fa(user_id):
@@ -88,20 +127,19 @@ def verificar_2fa(user_id):
         ).first()
 
         if token_db:
-
-            # 🔒 validar expiración
             if token_db.esta_expirado():
                 flash("Código expirado", "error")
                 return redirect(request.url)
 
-            # 🔥 anti brute force
-            if token_db.intentos >= 5:
-                flash("Demasiados intentos", "error")
-                return redirect(url_for("auth.login"))
+            if token_db.intentos >= 3:
+                user = Usuario.query.get(user_id)
+                user.bloqueado = True
+                db.session.commit()
+
+                return usuario_bloqueado_response(user)
 
             token_db.usado = True
 
-            # 🔑 crear sesión real
             nuevo_token = str(uuid.uuid4())
 
             login_token = Token(
@@ -120,13 +158,12 @@ def verificar_2fa(user_id):
                 nuevo_token,
                 httponly=True,
                 samesite="Lax",
-                secure=False  # 🔥 IMPORTANTE EN LOCAL
+                secure=False
             )
 
             return response
 
         else:
-            # 🔥 aumentar intentos si existe alguno activo
             intento = Token.query.filter_by(
                 usuario_id=user_id,
                 tipo="2fa",

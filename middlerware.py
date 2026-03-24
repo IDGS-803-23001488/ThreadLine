@@ -1,4 +1,6 @@
 # middlerware.py
+import datetime
+from database.mysql import db
 from flask import g, redirect, abort, url_for, request, jsonify
 from functools import wraps
 from functools import wraps
@@ -12,14 +14,27 @@ def login_requerido(f):
     @wraps(f)
     def decorated(*args, **kwargs):
 
-        if not hasattr(g, "usuario_actual"):
+        if not hasattr(g, "usuario_actual") or not hasattr(g, "token_actual"):
             
             if request.path.startswith("/api"):
-                return jsonify({
-                    "error": "No autenticado"
-                }), 401
+                return jsonify({"error": "No autenticado"}), 401
             
             return redirect(url_for("auth.login"))
+
+        token = g.token_actual
+
+        if token.esta_expirado():
+            
+            token.usado = True
+            db.session.commit()
+
+            if request.path.startswith("/api"):
+                return jsonify({"error": "Sesión expirada"}), 401
+
+            return redirect(url_for("auth.login"))
+
+        token.fecha_expiracion = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+        db.session.commit()
 
         return f(*args, **kwargs)
 
