@@ -4,8 +4,9 @@ from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
 from database.mysql import db, Usuario, Rol, Permiso, Token
 from config import DevelopmentConfig
-# from database.mongo import ConexionMongo
 from utils.crypto_url import encrypt_id
+from extensions import mail
+# from database.mongo import ConexionMongo
 
 # Blueprints
 from routes.main import main
@@ -28,6 +29,8 @@ from routes.explosion import explosion, apiExplosion
 
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
+
+mail.init_app(app)
 
 csrf = CSRFProtect(app)
 db.init_app(app)
@@ -65,10 +68,15 @@ def forbidden(e):
 
 @app.before_request
 def verificar_token():
+    print("ENDPOINT:", request.endpoint)
+    print("COOKIE:", request.cookies.get("auth_token"))
+    rutas_libres = [
+        "auth.login",
+        "auth.verificar_2fa",
+        "static"
+    ]
 
-    rutas_libres = ["auth.login", "static"]
-
-    if request.endpoint in rutas_libres:
+    if request.endpoint and any(request.endpoint.startswith(r) for r in rutas_libres):
         return
 
     token_cookie = request.cookies.get("auth_token")
@@ -78,7 +86,15 @@ def verificar_token():
             return {"error": "No autenticado"}, 401
         return redirect(url_for("auth.login"))
 
-    token_db = Token.query.filter_by(token=token_cookie, usado=False).first()
+    print("TOKEN COOKIE:", token_cookie)
+
+    token_db = Token.query.filter_by(
+        token=token_cookie,
+        tipo="login",
+        usado=False
+    ).first()
+
+    print("TOKEN DB:", token_db)
 
     if not token_db or token_db.esta_expirado():
         if request.path.startswith("/api"):
@@ -224,4 +240,5 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         seed_data()
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=8000)
+
