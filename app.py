@@ -26,8 +26,13 @@ from routes.productosVariantes import productosVariantes , apiProductosVariantes
 from routes.materiaPrima import materia_prima
 from routes.explosion import explosion, apiExplosion
 
+import os
+
+UPLOAD_FOLDER = 'static/uploads'
+
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 csrf = CSRFProtect(app)
 db.init_app(app)

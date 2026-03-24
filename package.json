@@ -4,6 +4,6 @@
     "tailwindcss": "^4.2.1"
   },
   "dependencies": {
-    "tailwind-scrollbar": "^4.0.0-beta.0"
+    "tailwind-scrollbar": "^4.0.2"
   }
 }
