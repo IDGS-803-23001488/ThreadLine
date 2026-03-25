@@ -1,0 +1,5 @@
+<form method="POST" action="{{ url_for('auth.login_user') }}">
+     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" name="tipo" value="cliente">Entrar como Cliente</button>
+    <button type="submit" name="tipo" value="empleado">Entrar como Empleado</button>
+</form>

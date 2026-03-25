@@ -53,7 +53,7 @@ class Usuario(BaseModel):
     editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     activo = db.Column(db.Boolean, default=True)
-
+    
     def tiene_permiso(self, modulo, accion):
         for rol in self.roles:
             if not rol.activo: continue
@@ -93,7 +93,6 @@ class Token(BaseModel):
     token = db.Column(db.String(36), nullable=False)
     tipo = db.Column(db.String(50), nullable=False)
     intentos = db.Column(db.Integer, default=0)
-    tipo = db.Column(db.String(50), nullable=False) # login, recovery, etc
     fecha_expiracion = db.Column(db.DateTime, nullable=False)
     fecha_actualizacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     usado = db.Column(db.Boolean, default=False)
@@ -347,8 +346,6 @@ class Cliente(BaseModel):
     __tablename__ = "cliente"
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
-    correo = db.Column(db.String(100), unique=True, nullable=False)
-    contrasenia = db.Column(db.String(255), nullable=False)
     telefono = db.Column(db.String(20))
     direccion = db.Column(db.String(255))
     activo = db.Column(db.Boolean, default=True)
@@ -362,7 +359,14 @@ class Cliente(BaseModel):
     editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
     activo = db.Column(db.Boolean, default=True)
-
+    
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
+    usuario = db.relationship(
+        "Usuario",
+        foreign_keys=[usuario_id], 
+        backref="cliente",
+        uselist=False
+    )
 class Carrito(BaseModel):
     __tablename__ = "carrito"
     id = db.Column(db.Integer, primary_key=True)

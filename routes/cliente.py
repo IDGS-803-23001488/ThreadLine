@@ -1,7 +1,7 @@
 
 import datetime 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from database.mysql import db, Cliente 
+from database.mysql import db, Cliente, Usuario, Rol
 from forms import ClienteForm
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.security import hash_password
@@ -21,12 +21,14 @@ def lista():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 5, type=int)
     
-    query = Cliente.query.filter_by(activo=True)
-    
+    query = db.session.query(Cliente).join(
+        Usuario, Cliente.usuario_id == Usuario.id
+    ).filter(Cliente.activo == True)
+        
     if search:
         query = query.filter(
             Cliente.nombre.ilike(f"%{search}%") |
-            Cliente.correo.ilike(f"%{search}%") |
+            Usuario.correo.ilike(f"%{search}%") |
             Cliente.telefono.ilike(f"%{search}%")
         )
     
@@ -37,8 +39,11 @@ def lista():
     )
     
     rows = [
-        [("ID", c.id), ("Nombre", c.nombre), ("Correo", c.correo), ("Teléfono", c.telefono), ("Direcion", c.direccion)]
+        [
+            
+            ("ID", c.id), ("Nombre", c.nombre), ("Correo", c.usuario.correo if c.usuario else "Sin usuario"), ("Teléfono", c.telefono), ("Direcion", c.direccion)]
         for c in pagination.items
+        
     ]
     
     return render_template(
@@ -64,18 +69,40 @@ def crear():
     
     if request.method == "POST" and form.validate():
         
-        existente = Cliente.query.filter_by(correo = form.correo.data).first()
+        existente = Usuario.query.filter_by(correo = form.correo.data).first()
         
         if existente :
             flash("El correo ya existe","correo")
             return render_template("cliente/crear.html",form=form)
         
+        rol_cliente = Rol.query.filter_by(nombre = "cliente").first()
+        if not rol_cliente:
+            rol_cliente = Rol(
+                nombre = "cliente",
+                descripcion = "Rol de clientes",
+                activo = True,
+                creado_por=g.usuario_actual.id
+            )
+            db.session.add(rol_cliente)
+            db.session.flush()
+            
+        nuevo_usuario = Usuario(
+            usuario = form.correo.data,
+            correo = form.correo.data,
+            contrasenia=hash_password(form.contrasenia.data),
+            creado_por=g.usuario_actual.id,
+        )
+        
+        nuevo_usuario.roles.append(rol_cliente)
+        
+        db.session.add(nuevo_usuario)
+        db.session.flush()
+        
         nuevo = Cliente(
             nombre=form.nombre.data,
-            correo = form.correo.data,
-            contrasenia = hash_password(form.contrasenia.data),
             telefono=form.telefono.data,
             direccion= form.direccion.data,
+            usuario_id = nuevo_usuario.id,
             creado_por=g.usuario_actual.id
         )
         
@@ -101,13 +128,18 @@ def crear():
 @permiso_requerido("cliente", "editar")
 def editar(id):
     color_obj = Cliente.query.filter_by(id=id, activo=True).first_or_404()
-    
+    usuario = color_obj.usuario
     form = ClienteForm(request.form, obj=color_obj)
     
     if request.method == "POST" and form.validate():
-
+        existente = Usuario.query.filter_by(correo = form.correo.data).first()
+        
+        if existente :
+            flash("El correo ya existe","correo")
+            return render_template("cliente/crear.html",form=form)
+        
         color_obj.nombre = form.nombre.data
-        color_obj.correo = form.correo.data
+        usuario.correo = form.correo.data
         color_obj.telefono = form.telefono.data
         color_obj.direccion = form.direccion.data
 
