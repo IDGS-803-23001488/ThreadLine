@@ -64,6 +64,12 @@ def crear():
     
     if request.method == "POST" and form.validate():
         
+        existente = Talla.query.filter_by(nombre = form.nombre.data).first()
+        
+        if existente :
+            flash("La talla ya existe","talla")
+            return render_template("talla/crear.html",form=form)
+        
         nuevo = Talla(
             nombre=form.nombre.data,
             orden=form.orden.data,
