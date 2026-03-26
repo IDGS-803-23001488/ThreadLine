@@ -1,0 +1,63 @@
+{% extends "auth/base.html" %}
+
+{% block container %}
+<p class="card-title">Verificación en 2 pasos</p>
+
+<p style="text-align:center;font-size:.8rem;color:#6b7280;margin-bottom:1.2rem;">
+    Ingresa el código enviado a tu correo
+</p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <!-- 🔢 INPUT CÓDIGO -->
+    <div class="field-wrap">
+        <span class="field-icon">
+            <!-- icono código -->
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2"/>
+                <path d="M7 8h10M7 12h6M7 16h8"/>
+            </svg>
+        </span>
+
+        <input type="text"
+                name="codigo"
+                maxlength="6"
+                pattern="\d{6}"
+                inputmode="numeric"
+                required
+                placeholder="Código de 6 dígitos"
+                class="field text-center tracking-widest text-lg"
+                class="field text-center tracking-[0.5em] text-xl"
+                style="letter-spacing: .4rem; padding-left:2.5rem;"
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                oninput="if(this.value.length===6)this.form.submit()"
+                >
+    </div>
+
+    <button type="submit" class="btn">Verificar</button>
+</form>
+
+<!-- 🔁 REENVIAR -->
+<div style="text-align:center;margin-top:1rem;">
+    <a href="{{ url_for('auth.login') }}"
+        class="link-small">
+        Volver al login
+    </a>
+</div>
+
+<!-- ⏱ MENSAJE -->
+<p style="text-align:center;margin-top:1rem;font-size:.75rem;color:#9ca3af;">
+    El código expira en 10 minutos
+</p>
+{% endblock %}

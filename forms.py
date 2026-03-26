@@ -94,7 +94,6 @@ class MateriaPrimaForm(Form):
     unidad_id = SelectField('Unidad',[validators.DataRequired()])
     empaque_id = SelectField('Empaque')
     proveedor_id = SelectField('Proveedor')
-    porcentaje_merma = DecimalField('Porcentaje de merma',[validators.Optional()])
     stock_minimo = DecimalField('Stock mínimo',[validators.Optional(),validators.DataRequired("Coloca el maximo de stock"),validators.number_range(min=0,max=200)])
     stock_maximo = DecimalField('Stock máximo',[validators.Optional(), validators.DataRequired("Coloca el maximo de stock"), validators.number_range(min=0, max=200)])
 

@@ -1,7 +1,7 @@
 <!-- templates/layout.html -->
 {% from "macros/sidebar.html" import panel_section, panel_item %}
 {% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque,
-    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color, svg_produccion %}
+    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color, svg_produccion, svg_insumos %}
 
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -212,7 +212,7 @@
                     request.endpoint and request.endpoint.startswith('talla.')) }}
                 {{ panel_item(url_for('cliente.lista'),    svg_clientes(),   "Clientes",
                     request.endpoint and request.endpoint.startswith('cliente.')) }}
-                {{ panel_item(url_for('materia_prima.lista'),    svg_clientes(),   "Materia Prima",
+                {{ panel_item(url_for('materia_prima.lista'),    svg_insumos(),   "Materia Prima",
                     request.endpoint and request.endpoint.startswith('materia_prima.')) }}
             </div>
 
@@ -239,9 +239,12 @@
                     <p class="text-sm text-white mt-0.5">{{ descripcion }}</p>
                 {% endif %}
             </div>
-            <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600
+            <div class="w-9 h-9 bg-gradient-to-br from-white to-white
                         text-white flex items-center justify-center
-                        rounded-xl font-semibold text-sm shadow-sm cursor-pointer">A</div>
+                        rounded-xl font-semibold text-sm shadow-sm cursor-pointer"
+                        style="color:var(--color-primary)">
+                {{ g.usuario_actual.usuario[:2].upper() }}
+            </div>
         </header>
 
         <main class="flex-1 overflow-y-auto bg-gray-50
@@ -277,6 +280,32 @@
         </main>
     </div>
 
+</div>
+
+<div id="modalFoto"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,.45)">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden"
+         style="max-height:85vh">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+            <div>
+                <h3 class="text-base font-semibold text-gray-800">Foto Seleccionada</h3>
+            </div>
+            <button type="button" onclick="cerrarFoto()"
+                    class="w-8 h-8 flex items-center justify-center rounded-xl
+                           text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto divide-y divide-gray-50 min-h-0">
+            <img id="img_caja" class="w-full h-full inset-0 object-contain z-20" />
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
@@ -344,6 +373,21 @@
         }
         saveState();
     }
+
+    function verImagen(ruta) {
+        document.getElementById('modalFoto').classList.replace('hidden', 'flex');
+        document.getElementById('img_caja').src = ruta;
+        console.log(ruta)
+    }
+
+    function cerrarFoto() {
+        document.getElementById('modalFoto').classList.replace('flex', 'hidden');
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarFoto(); });
+    document.getElementById('modalFoto').addEventListener('click', e => {
+        if (e.target === document.getElementById('modalFoto')) cerrarFoto();
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
         // 1. Detectar sección activa por ruta (Jinja pone clase 'activo')

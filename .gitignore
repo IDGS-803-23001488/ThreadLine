@@ -11,8 +11,11 @@ migrations
 # Ignorar todas las carpetas __pycache__ en cualquier nivel
 __pycache__/
 
+# Ignorar las imagenes subidas por el usuario
+uploads
+
 # Ignorar archivos compilados de Python
 *.pyc
 *.pyo
 *.pyd
-config_local.py
+config_local
