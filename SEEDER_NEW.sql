@@ -101,36 +101,36 @@ INSERT IGNORE INTO proveedor (id, nombre, rfc, correo, activo, fecha_creacion) V
 -- =============================================================
 INSERT IGNORE INTO materia_prima
     (id, nombre, unidad_id, empaque_id, proveedor_id,
-     porcentaje_merma, stock_minimo, stock_maximo, activo, fecha_creacion)
+     stock_minimo, stock_maximo, activo, fecha_creacion)
 VALUES
 -- Telas
-(1,  'Tela jersey algodón 180g',    1,  1, 1,  5.00,  50.0000, 500.0000, 1, NOW()),
-(2,  'Tela mezclilla 12oz',         1,  2, 3,  8.00,  30.0000, 300.0000, 1, NOW()),
-(3,  'Tela gabardina stretch',      1,  1, 1,  6.00,  20.0000, 200.0000, 1, NOW()),
-(4,  'Tela polar fleece',           1,  2, 6,  4.00,  15.0000, 150.0000, 1, NOW()),
-(5,  'Tela licra deportiva',        1,  1, 7,  3.00,  10.0000, 100.0000, 1, NOW()),
-(6,  'Tela lino natural',           1,  1, 6,  7.00,  10.0000,  80.0000, 1, NOW()),
-(7,  'Tela popelina blanca',        1,  2, 1,  5.00,  20.0000, 200.0000, 1, NOW()),
-(8,  'Tela French Terry',           1,  1, 4,  4.00,  15.0000, 150.0000, 1, NOW()),
-(9,  'Tela oxford 600D',            1,  2, 3,  6.00,  10.0000,  80.0000, 1, NOW()),
-(10, 'Tela seda artificial',        1,  1, 1, 10.00,   5.0000,  50.0000, 1, NOW()),
+(1,  'Tela jersey algodón 180g',    1,  1, 1,  50.0000, 500.0000, 1, NOW()),
+(2,  'Tela mezclilla 12oz',         1,  2, 3,  30.0000, 300.0000, 1, NOW()),
+(3,  'Tela gabardina stretch',      1,  1, 1,  20.0000, 200.0000, 1, NOW()),
+(4,  'Tela polar fleece',           1,  2, 6,  15.0000, 150.0000, 1, NOW()),
+(5,  'Tela licra deportiva',        1,  1, 7,  10.0000, 100.0000, 1, NOW()),
+(6,  'Tela lino natural',           1,  1, 6,  10.0000,  80.0000, 1, NOW()),
+(7,  'Tela popelina blanca',        1,  2, 1,  20.0000, 200.0000, 1, NOW()),
+(8,  'Tela French Terry',           1,  1, 4,  15.0000, 150.0000, 1, NOW()),
+(9,  'Tela oxford 600D',            1,  2, 3,  10.0000,  80.0000, 1, NOW()),
+(10, 'Tela seda artificial',        1,  1, 1,   5.0000,  50.0000, 1, NOW()),
 -- Hilos
-(11, 'Hilo poliéster negro 40/2',   4,  4, 2,  2.00, 100.0000, 999.0000, 1, NOW()),
-(12, 'Hilo algodón blanco 40/2',    4,  4, 2,  2.00, 100.0000, 999.0000, 1, NOW()),
-(13, 'Hilo overlock gris',          4,  4, 2,  2.00,  50.0000, 500.0000, 1, NOW()),
-(14, 'Hilo elástico transparente',  4,  4, 2,  3.00,  20.0000, 200.0000, 1, NOW()),
+(11, 'Hilo poliéster negro 40/2',   4,  4, 2, 100.0000, 999.0000, 1, NOW()),
+(12, 'Hilo algodón blanco 40/2',    4,  4, 2, 100.0000, 999.0000, 1, NOW()),
+(13, 'Hilo overlock gris',          4,  4, 2,  50.0000, 500.0000, 1, NOW()),
+(14, 'Hilo elástico transparente',  4,  4, 2,  20.0000, 200.0000, 1, NOW()),
 -- Avíos
-(15, 'Cierre metálico 20cm',        4,  5, 8,  1.00, 200.0000,1000.0000, 1, NOW()),
-(16, 'Cierre de plástico 15cm',     4,  5, 8,  1.00, 200.0000,1000.0000, 1, NOW()),
-(17, 'Botón camisa 4 hoyos 12mm',   4,  3, 2,  0.50, 500.0000,5000.0000, 1, NOW()),
-(18, 'Botón pantalón metálico',     4,  3, 5,  0.50, 200.0000,2000.0000, 1, NOW()),
-(19, 'Elástico de 3cm',             1,  9, 4,  2.00,  20.0000, 200.0000, 1, NOW()),
-(20, 'Etiqueta tejida marca',       4,  6, 4,  0.00, 500.0000,5000.0000, 1, NOW()),
-(21, 'Etiqueta talla y lavado',     4,  6, 4,  0.00, 500.0000,5000.0000, 1, NOW()),
-(22, 'Remache metálico dorado',     4, 10, 5,  0.50, 300.0000,3000.0000, 1, NOW()),
-(23, 'Hombrera espuma 1cm',         9,  4, 4,  2.00,  20.0000, 200.0000, 1, NOW()),
-(24, 'Cordón capucha redondo 1cm',  1,  4, 4,  5.00,  10.0000, 100.0000, 1, NOW()),
-(25, 'Entretela termoadherible',    1,  1, 1,  8.00,  10.0000, 100.0000, 1, NOW());
+(15, 'Cierre metálico 20cm',        4,  5, 8, 200.0000,1000.0000, 1, NOW()),
+(16, 'Cierre de plástico 15cm',     4,  5, 8, 200.0000,1000.0000, 1, NOW()),
+(17, 'Botón camisa 4 hoyos 12mm',   4,  3, 2, 500.0000,5000.0000, 1, NOW()),
+(18, 'Botón pantalón metálico',     4,  3, 5, 200.0000,2000.0000, 1, NOW()),
+(19, 'Elástico de 3cm',             1,  9, 4,  20.0000, 200.0000, 1, NOW()),
+(20, 'Etiqueta tejida marca',       4,  6, 4, 500.0000,5000.0000, 1, NOW()),
+(21, 'Etiqueta talla y lavado',     4,  6, 4, 500.0000,5000.0000, 1, NOW()),
+(22, 'Remache metálico dorado',     4, 10, 5, 300.0000,3000.0000, 1, NOW()),
+(23, 'Hombrera espuma 1cm',         9,  4, 4,  20.0000, 200.0000, 1, NOW()),
+(24, 'Cordón capucha redondo 1cm',  1,  4, 4,  10.0000, 100.0000, 1, NOW()),
+(25, 'Entretela termoadherible',    1,  1, 1,  10.0000, 100.0000, 1, NOW());
 
 -- =============================================================
 -- PRODUCTOS

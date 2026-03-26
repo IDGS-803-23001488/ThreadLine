@@ -1,4 +1,4 @@
 try:
-    from config_local_copy import *
+    from config_local import *
 except ImportError:
     pass

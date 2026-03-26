@@ -149,18 +149,19 @@ function agregarVariante() {
 
     row.innerHTML = `
         <td class="py-2">
-            <select name="talla_id[]" class="w-full px-2 py-1 border rounded">
-                <option value="">Selecciona</option>
-                {% for t in form_variante.talla_id.choices %}
-                    <option value="{{ t[0] }}">{{ t[1] }}</option>
-                {% endfor %}
+            <select name="talla_id[]" 
+                class="w-full px-2 py-1 border rounded bg-gray-800 text-white dark:bg-gray-800 dark:text-white">
+                    <option value="">Selecciona</option>
+                    {% for t in form_variante.talla_id.choices %}
+                        <option value="{{ t[0] }}">{{ t[1] }}</option>
+                    {% endfor %}
             </select>
         </td>
 
         <td class="py-2">
             <input type="number" step="0.01" name="precio_venta[]" 
-                   placeholder="0.00"
-                   class="w-full px-2 py-1 border rounded">
+                placeholder="0.00"
+                class="w-full px-2 py-1 border rounded bg-gray-800 text-white dark:bg-gray-800 dark:text-white">
         </td>
 
         <td class="py-2 text-right">
