@@ -97,3 +97,51 @@ class MateriaPrimaForm(Form):
     porcentaje_merma = DecimalField('Porcentaje de merma',[validators.Optional()])
     stock_minimo = DecimalField('Stock mínimo',[validators.Optional(),validators.DataRequired("Coloca el maximo de stock"),validators.number_range(min=0,max=200)])
     stock_maximo = DecimalField('Stock máximo',[validators.Optional(), validators.DataRequired("Coloca el maximo de stock"), validators.number_range(min=0, max=200)])
+
+class ProductoForm(Form):
+    id = IntegerField('id')
+
+    nombre = StringField(
+        'Nombre',
+        [validators.DataRequired(), validators.Length(min=3, max=100)]
+    )
+
+    categoria_id = SelectField(
+        "Categoría",
+        coerce=int,
+        validators=[validators.DataRequired()]
+    )
+
+    color_id = SelectField(
+        "Color",
+        coerce=int,
+        validators=[validators.DataRequired()]
+    )
+
+    descripcion = TextAreaField(
+        'Descripción',
+        [validators.Optional(), validators.Length(max=255)]
+    )
+
+class ProductoVarianteForm(Form):
+    id = IntegerField('id')
+
+    producto_id = SelectField(
+        "Producto",
+        coerce=int,
+        validators=[validators.DataRequired()]
+    )
+
+    talla_id = SelectField(
+        "Talla",
+        coerce=int,
+        validators=[validators.DataRequired()]
+    )
+
+    precio_venta = DecimalField(
+        "Precio",
+        [
+            validators.DataRequired(),
+            validators.NumberRange(min=0)
+        ]
+    )

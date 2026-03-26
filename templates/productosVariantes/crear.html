@@ -1,0 +1,188 @@
+<!-- templates/productos/crear.html -->
+{% extends "layout.html" %}
+{% from "macros/forms.html" import render_input, form_buttons %}
+
+{% block container %}
+
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!--PRODUCTO -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+                📦 Información del producto
+            </h2>
+            
+            <div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- 🔹 IZQUIERDA (FORMULARIO) -->
+                    <div class="lg:col-span-2 space-y-6">
+
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {{ render_input(form_producto.nombre) }}
+                                {{ render_input(form_producto.categoria_id) }}
+                                {{ render_input(form_producto.color_id) }}
+                            </div>
+
+                            <div class="mt-4">
+                                {{ render_input(form_producto.descripcion) }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 🔹 DERECHA (IMAGEN) -->
+                    <div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                            <h2 class="text-lg font-semibold mb-4">🖼️ Imagen</h2>
+
+                            <!-- TU DROPZONE -->
+                            <label for="dropzone-file"
+                                class="relative flex flex-col items-center justify-center w-full 
+                                    aspect-[2/3]
+                                    bg-neutral-secondary-medium border border-dashed border-default-strong 
+                                    rounded-base cursor-pointer hover:bg-neutral-tertiary-medium overflow-hidden">
+
+                                <div id="upload-content"
+                                    class="flex flex-col items-center justify-center text-body z-10">
+                                    <p class="text-sm font-semibold">Subir imagen</p>
+                                    <p class="text-xs">PNG o JPG</p>
+                                </div>
+
+                                <img id="preview-img"
+                                    class="absolute inset-0 w-full h-full object-cover hidden z-20" />
+
+                                <input id="dropzone-file"
+                                    name="imagen"
+                                    type="file"
+                                    accept="image/png, image/jpeg"
+                                    class="hidden" />
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 🔹 VARIANTES DINÁMICAS -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
+                    🎯 Variantes del producto
+                </h2>
+
+                <button type="button"
+                        onclick="agregarVariante()"
+                        class="px-3 py-1.5 text-sm rounded-lg text-white"
+                        style="background:var(--color-primary)">
+                    + Agregar
+                </button>
+            </div>
+
+            <!-- Tabla -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs uppercase text-gray-500 border-b">
+                        <tr>
+                            <th class="py-2">Talla</th>
+                            <th class="py-2">Precio</th>
+                            <th class="py-2 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="variantes-container">
+                        <!-- filas dinámicas -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 🔹 BOTONES -->
+        <div class="flex justify-end">
+            {{ form_buttons(url_for('productosVariantes.lista')) }}
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const input = document.getElementById("dropzone-file");
+    const preview = document.getElementById("preview-img");
+    const content = document.getElementById("upload-content");
+
+    if (!input) return; // 🔥 seguridad extra
+
+    input.addEventListener("change", function(e) {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        if (!["image/jpeg", "image/png"].includes(file.type)) {
+            alert("Solo se permiten JPG o PNG");
+            input.value = "";
+            return;
+        }
+
+        const url = URL.createObjectURL(file);
+        preview.src = url;
+
+        preview.classList.remove("hidden");
+        content.classList.add("hidden");
+    });
+
+});
+
+function agregarVariante() {
+
+    const container = document.getElementById("variantes-container");
+
+    const row = document.createElement("tr");
+    row.classList.add("border-b");
+
+    row.innerHTML = `
+        <td class="py-2">
+            <select name="talla_id[]" class="w-full px-2 py-1 border rounded">
+                <option value="">Selecciona</option>
+                {% for t in form_variante.talla_id.choices %}
+                    <option value="{{ t[0] }}">{{ t[1] }}</option>
+                {% endfor %}
+            </select>
+        </td>
+
+        <td class="py-2">
+            <input type="number" step="0.01" name="precio_venta[]" 
+                   placeholder="0.00"
+                   class="w-full px-2 py-1 border rounded">
+        </td>
+
+        <td class="py-2 text-right">
+            <button type="button"
+                    onclick="eliminarFila(this)"
+                    class="text-red-500 hover:text-red-700">
+                ✕
+            </button>
+        </td>
+    `;
+
+    container.appendChild(row);
+}
+
+function eliminarFila(btn) {
+    btn.closest("tr").remove();
+}
+
+// 👉 Agregar una fila inicial automáticamente
+document.addEventListener("DOMContentLoaded", function() {
+    agregarVariante();
+});
+</script>
+
+{% endblock %}

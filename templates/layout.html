@@ -202,6 +202,8 @@
                 {{ panel_item(url_for('color.lista'),     svg_color(),     "Colores",
                     request.endpoint and request.endpoint.startswith('color.')) }}
                 {{ panel_section("Producto") }}
+                {{ panel_item(url_for('productosVariantes.lista'),  svg_categorias(), "Productos",
+                    request.endpoint and request.endpoint.startswith('producto.')) }}
                 {{ panel_item(url_for('categoria.lista'),  svg_categorias(), "Categorías",
                     request.endpoint and request.endpoint.startswith('categoria.')) }}
                 {{ panel_item(url_for('inventario.lista'), svg_inventario(), "Inventario",

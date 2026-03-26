@@ -154,7 +154,7 @@ def seed_data():
             "recetas": ["ver", "crear", "editar", "eliminar", "exportar"],
             "materia_prima": ["ver", "crear", "editar", "eliminar", "exportar"],
             "explosion": ["ver", "crear"],    
-            "productosVariantes": ["buscador","productosVariantes"],
+            "productosVariantes": ["ver","crear", "editar", "eliminar"]
         }
 
         permisos_db = []
