@@ -2,8 +2,8 @@
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify, make_response
 from database.mysql import db, Receta, RecetaDetalle, ProductoVariante, MateriaPrima, Producto, Talla, Color
-from middlerware import login_requerido, permiso_requerido, decrypt_url_id
-from sqlalchemy import or_
+from securrity.middlerware import login_requerido, permiso_requerido, decrypt_url_id
+from sqlalchemy import or_, exists
 from io import BytesIO
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.platypus import Frame, KeepInFrame
@@ -188,12 +188,24 @@ def api_variantes():
     page     = request.args.get("page", 1, type=int)
     per_page = 10
 
+    variantes_con_receta = db.session.query(Receta.producto_variante_id).filter(
+        Receta.activo == True
+    ).subquery()
+
     query = (
         ProductoVariante.query
         .join(Producto)
         .join(Talla)
-        .filter(ProductoVariante.activo == True, Producto.activo == True)
+        .filter(
+            ProductoVariante.activo == True,
+            Producto.activo == True,
+            ~exists().where(
+                (Receta.producto_variante_id == ProductoVariante.id) &
+                (Receta.activo == True)
+            )
+        )
     )
+    print(str(query))
 
     if search:
         query = query.filter(
@@ -226,7 +238,6 @@ def api_variantes():
         "has_prev": pag.has_prev,
     })
 
-
 # ===========================================
 # API — Materias primas
 # ===========================================
@@ -243,7 +254,6 @@ def api_materias_primas():
                 "id":     mp.id,
                 "nombre": mp.nombre,
                 "unidad": mp.unidad.sigla if mp.unidad else "—",
-                "merma":  float(mp.porcentaje_merma or 0),
             }
             for mp in materias
         ]
@@ -277,7 +287,6 @@ def api_detalle(id):
                 "nombre":           d.materia_prima.nombre,
                 "cantidad_neta":    float(d.cantidad_neta),
                 "unidad":           d.materia_prima.unidad.sigla if d.materia_prima.unidad else "—",
-                "merma":            float(d.materia_prima.porcentaje_merma or 0),
             }
             for d in receta.detalles
         ],
@@ -407,19 +416,17 @@ def generar_pdf(id):
     # =========================================
     # 📊 TABLA DE INSUMOS
     # =========================================
-    data = [["Materia Prima", "Cantidad", "Unidad", "Merma %"]]
+    data = [["Materia Prima", "Cantidad", "Unidad"]]
 
     for d in receta.detalles:
         data.append([
             d.materia_prima.nombre,
             f"{float(d.cantidad_neta):,.2f}",
             d.materia_prima.unidad.sigla if d.materia_prima.unidad else "—",
-            f"{float(d.materia_prima.porcentaje_merma or 0):,.2f}",
         ])
 
     table = Table(data, colWidths=[
-        doc.width * 0.4,
-        doc.width * 0.2,
+        doc.width * 0.6,
         doc.width * 0.2,
         doc.width * 0.2,
     ])

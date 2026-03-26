@@ -6,14 +6,13 @@ from sqlalchemy import or_
 from database.mysql import (
     db, OrdenProduccion, Receta, RecetaDetalle,
     ProductoVariante, Producto, Talla, MateriaPrima,
-    StockArticulo, Inventario, MovimientoInventario, TipoMovimiento
+    StockArticulo, Inventario, MovimientoInventario, TipoMovimiento,
+    MermaEncabezado, MermaDetalle, Articulo  # ← Asegurar imports
 )
-from middlerware import login_requerido, permiso_requerido, decrypt_url_id
+from securrity.middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.crypto_url import encrypt_id
 
 explosion = Blueprint("explosion", __name__, url_prefix="/explosion")
-apiExplosion = Blueprint("api_explosion", __name__, url_prefix="/api/explosion")
-
 
 # ══════════════════════════════════════════════════════
 # VISTA — Lista de órdenes de producción
@@ -129,7 +128,7 @@ def _procesar_orden():
 
     for insumo in insumos:
         mp    = insumo["materia_prima"]
-        cant  = insumo["cantidad_con_merma"]
+        cant  = insumo["cantidad_neta"]  # Ya no se usa merma
 
         # Actualizar stock estático
         stock = StockArticulo.query.filter_by(
@@ -164,7 +163,7 @@ def _calcular_insumos(receta: Receta, cantidad: int, inv_id: int):
     """
     Retorna (faltantes: bool, insumos: list[dict])
     donde cada insumo tiene: materia_prima, cantidad_neta,
-    cantidad_con_merma, stock_disponible, suficiente.
+    stock_disponible, suficiente.
     """
     INV_MP   = inv_id or _inv_mp_default()
     faltantes = False
@@ -174,20 +173,14 @@ def _calcular_insumos(receta: Receta, cantidad: int, inv_id: int):
 
     for detalle in receta.detalles:
         mp      = detalle.materia_prima
-        merma   = mp.porcentaje_merma or Decimal("0")
         c_neta  = Decimal(str(detalle.cantidad_neta)) * factor
-
-        if merma < 100:
-            c_merma = c_neta / (1 - merma / Decimal("100"))
-        else:
-            c_merma = c_neta
 
         # Stock disponible
         stock = StockArticulo.query.filter_by(
             articulo_id=mp.articulo_id, inv_id=INV_MP
         ).first()
         disponible = stock.cantidad if stock else Decimal("0")
-        suficiente = disponible >= c_merma
+        suficiente = disponible >= c_neta
 
         if not suficiente:
             faltantes = True
@@ -195,10 +188,9 @@ def _calcular_insumos(receta: Receta, cantidad: int, inv_id: int):
         insumos.append({
             "materia_prima":      mp,
             "cantidad_neta":      round(c_neta,  4),
-            "cantidad_con_merma": round(c_merma, 4),
             "stock_disponible":   disponible,
             "suficiente":         suficiente,
-            "faltante":           max(Decimal("0"), c_merma - disponible),
+            "faltante":           max(Decimal("0"), c_neta - disponible),
         })
 
     return faltantes, insumos
@@ -210,103 +202,3 @@ def _inv_mp_default():
         Inventario.nombre.ilike("%materia%"), Inventario.activo == True
     ).first()
     return inv.id if inv else 2   # fallback al id=2 del seed
-
-
-# ══════════════════════════════════════════════════════
-# API — Recetas disponibles (para modal buscador)
-# ══════════════════════════════════════════════════════
-@apiExplosion.route("/recetas", methods=["GET"])
-@login_requerido
-@permiso_requerido("explosion", "crear")
-def api_recetas():
-    q        = request.args.get("q", "", type=str)
-    page     = request.args.get("page", 1, type=int)
-    per_page = 8
-
-    query = (
-        Receta.query.filter_by(activo=True)
-        .join(Receta.producto_variante)
-        .join(ProductoVariante.producto)
-        .join(ProductoVariante.talla)
-    )
-
-    if q:
-        query = query.filter(
-            or_(
-                Producto.nombre.ilike(f"%{q}%"),
-                Talla.nombre.ilike(f"%{q}%"),
-            )
-        )
-
-    pag = query.order_by(Producto.nombre.asc()).paginate(
-        page=page, per_page=per_page, error_out=False
-    )
-
-    return jsonify({
-        "data": [
-            {
-                "id":            r.id,
-                "producto":      r.producto_variante.producto.nombre,
-                "talla":         r.producto_variante.talla.nombre,
-                "color":         r.producto_variante.producto.color.nombre if r.producto_variante.producto.color else None,
-                "color_hex":     r.producto_variante.producto.color.hex    if r.producto_variante.producto.color else None,
-                "cantidad_base": r.cantidad_base,
-                "insumos":       len(r.detalles),
-            }
-            for r in pag.items
-        ],
-        "total":    pag.total,
-        "pages":    pag.pages,
-        "page":     pag.page,
-        "has_next": pag.has_next,
-        "has_prev": pag.has_prev,
-    })
-
-
-# ══════════════════════════════════════════════════════
-# API — Explosión previa (validar antes de confirmar)
-# ══════════════════════════════════════════════════════
-@apiExplosion.route("/validar", methods=["GET"])
-@login_requerido
-@permiso_requerido("explosion", "crear")
-def api_validar():
-    receta_id = request.args.get("receta_id", type=int)
-    cantidad  = request.args.get("cantidad",  type=int)
-    inv_id    = request.args.get("inv_id",    type=int)
-
-    if not receta_id or not cantidad or cantidad < 1:
-        return jsonify({"error": "Parámetros inválidos"}), 400
-
-    receta = Receta.query.get_or_404(receta_id)
-    faltantes, insumos = _calcular_insumos(receta, cantidad, inv_id)
-
-    return jsonify({
-        "viable":    not faltantes,
-        "faltantes": faltantes,
-        "insumos": [
-            {
-                "nombre":            i["materia_prima"].nombre,
-                "unidad":            i["materia_prima"].unidad.sigla if i["materia_prima"].unidad else "—",
-                "cantidad_neta":     float(i["cantidad_neta"]),
-                "cantidad_con_merma":float(i["cantidad_con_merma"]),
-                "stock_disponible":  float(i["stock_disponible"]),
-                "suficiente":        i["suficiente"],
-                "faltante":          float(i["faltante"]),
-                "merma_pct":         float(i["materia_prima"].porcentaje_merma or 0),
-            }
-            for i in insumos
-        ],
-    })
-
-
-# ══════════════════════════════════════════════════════
-# API — Inventarios disponibles (almacenes de MP)
-# ══════════════════════════════════════════════════════
-@apiExplosion.route("/inventarios", methods=["GET"])
-@login_requerido
-@permiso_requerido("explosion", "crear")
-def api_inventarios():
-    invs = Inventario.query.filter_by(activo=True).order_by(Inventario.nombre).all()
-    return jsonify({
-        "data": [{"id": i.id, "nombre": i.nombre} for i in invs]
-    })

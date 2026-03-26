@@ -458,7 +458,6 @@ class StockArticulo(BaseModel):
     articulo    = db.relationship("Articulo",    backref="stocks")
     inventario = db.relationship("Inventario", backref="stocks")
 
- 
     __table_args__ = (
         db.UniqueConstraint("articulo_id", "inv_id", name="uq_stock_articulo_inv"),
         BASE_ARGS
@@ -568,3 +567,30 @@ class SolicitudProduccion(BaseModel):
     variante = db.relationship("ProductoVariante", backref="solicitudes")
     solicitante = db.relationship("Usuario", foreign_keys=[solicitado_por])
     encargado = db.relationship("Usuario", foreign_keys=[atendido_por])
+
+class MermaEncabezado(BaseModel):
+    __tablename__ = "merma_encabezado"
+    id = db.Column(db.Integer, primary_key=True)
+    solicitud_produccion_id = db.Column(db.Integer, db.ForeignKey("solicitud_produccion.id"), nullable=False)
+    
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+
+class MermaDetalle(BaseModel):
+    __tablename__ = "merma_detalle"
+
+    id = db.Column(db.Integer, primary_key=True)
+    merma_id = db.Column(db.Integer, db.ForeignKey("merma_encabezado.id"), nullable=False)
+    materia_prima_id = db.Column(db.Integer, db.ForeignKey("materia_prima.id"), nullable=False)
+
+    cantidad = db.Column(db.Numeric(10, 4), nullable=False)
+    motivo = db.Column(db.String(255))
+
+    # Relaciones
+    merma = db.relationship("MermaEncabezado", backref=db.backref("detalles", cascade="all, delete-orphan"))
+    materia_prima = db.relationship("MateriaPrima")

@@ -104,6 +104,27 @@
 </svg>
 {% endmacro %}
 
+{% macro svg_merma() %}
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 48 48"
+     fill="currentColor"
+     class="w-full h-full">
+    
+    <g>
+        <polygon points="27.75,9.652 27.75,1.304 20.38,1.304 20.38,9.652 15.245,9.652 24.278,19.174 32.886,9.652"></polygon>
+        
+        <polygon points="24.978,26.805 24.978,46.695 24.979,46.695 40.75,46.695 40.75,45.391 40.75,26.805 24.979,26.805"></polygon>
+        
+        <polygon points="7.25,26.805 7.25,46.695 7.25,46.695 23.021,46.695 23.021,45.391 23.021,26.805 7.25,26.805"></polygon>
+        
+        <polygon points="40.714,24.326 48,16.129 32.151,16.129 24.978,24.327 24.979,24.326"></polygon>
+        
+        <polygon points="0,16.129 7.286,24.326 23.021,24.326 23.022,24.326 15.849,16.129"></polygon>
+    </g>
+
+</svg>
+{% endmacro %}
+
 <!-- ═══════════════════════════════════════════════════════════
      SVGs de acciones (botones, tablas) — tamaño fijo size-5
 ════════════════════════════════════════════════════════════ -->
@@ -172,6 +193,14 @@
 </svg>
 {% endmacro %}
 
+{% macro svg_regreso() %}
+<svg width="24px" height="24px" viewBox="0 0 24 24" role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="arrowLeftIconTitle" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" color="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title id="arrowLeftIconTitle">Arrow Left</title> <path d="M9 6l-6 6 6 6"></path> <path d="M21 12H4"></path> <path stroke-linecap="round" d="M3 12h1"></path> </g></svg>
+{% endmacro %}
+
+{% macro svg_add() %}
+<svg width="24px" height="24px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Add_Plus_Circle"> <path id="Vector" d="M8 12H12M12 12H16M12 12V16M12 12V8M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
+{% endmacro %}
+
 {% macro svg_print() %}
 <svg xmlns="http://www.w3.org/2000/svg"
      viewBox="0 0 32 32"
@@ -184,6 +213,30 @@
              c1.862,0,3.554-1.277,4-3h2c2.209,0,4-1.791,4-4v-2C32,18.791,30.209,17,28,17z
 
              M26,6c0-2.209-1.791-4-4-4H10C7.791,2,6,3.791,6,6v9h20V6z"/>
+</svg>
+{% endmacro %}
+
+{% macro svg_warning() %}
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="currentColor"
+     class="size-5 text-white">
+    
+    <path d="M12 7.75V13"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+    
+    <path d="M21.08 8.58003V15.42C21.08 16.54 20.48 17.58 19.51 18.15L13.57 21.58C12.6 22.14 11.4 22.14 10.42 21.58L4.47998 18.15C3.50998 17.59 2.90997 16.55 2.90997 15.42V8.58003C2.90997 7.46003 3.50998 6.41999 4.47998 5.84999L10.42 2.42C11.39 1.86 12.59 1.86 13.57 2.42L19.51 5.84999C20.48 6.41999 21.08 7.45003 21.08 8.58003Z"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+    
+    <path d="M12 16.2V16.2999"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
 </svg>
 {% endmacro %}
 
@@ -252,28 +305,36 @@
 <!-- ═══════════════════════════════════════════════════════════
      BOTONES
 ════════════════════════════════════════════════════════════ -->
+{# style_primary: usa --color-primary del :root #}
+{% macro style_primary() %}
+    class="inline-flex items-center gap-2 text-white font-medium rounded-lg text-sm px-4 py-2.5
+            border border-transparent shadow-sm transition-colors"
+    style="background: var(--color-primary);"
+    onmouseover="this.style.background='var(--color-primary-hover)'"
+    onmouseout="this.style.background='var(--color-primary)'"
+{% endmacro %}
 
-{# btn_primary: usa --color-primary del :root #}
 {% macro btn_primary(enlace, icono, texto="Nuevo") %}
 <a href="{{ enlace }}"
-   class="inline-flex items-center gap-2 text-white font-medium rounded-lg text-sm px-4 py-2.5
-          border border-transparent shadow-sm transition-colors"
-   style="background: var(--color-primary);"
-   onmouseover="this.style.background='var(--color-primary-hover)'"
-   onmouseout="this.style.background='var(--color-primary)'">
+   {{style_primary()}}>
     {{ icono() }}
     {{ texto }}
 </a>
 {% endmacro %}
 
+{% macro style_secondary() %}
+    class="inline-flex items-center gap-2 text-white font-medium rounded-lg text-sm px-4 py-2.5
+            border border-transparent shadow-sm transition-colors"
+    style="background: var(--color-secondary);"
+    onmouseover="this.style.background='var(--color-secondary-hover)'"
+    onmouseout="this.style.background='var(--color-secondary)'"
+{% endmacro %}
+
+
 {# btn_secondary: usa --color-secondary del :root #}
 {% macro btn_secondary(enlace, icono, texto="Acción") %}
 <a href="{{ enlace }}"
-   class="inline-flex items-center gap-2 text-white font-medium rounded-lg text-sm px-4 py-2.5
-          border border-transparent shadow-sm transition-colors"
-   style="background: var(--color-secondary);"
-   onmouseover="this.style.background='var(--color-secondary-hover)'"
-   onmouseout="this.style.background='var(--color-secondary)'"
+   {{style_secondary()}}
    >
     {{ icono() }}
     {{ texto }}
@@ -323,5 +384,6 @@
        onmouseover="this.style.background='{{ hover[color] }}'"
        onmouseout="this.style.background='{% if color == 'primary' %}var(--color-primary){% else %}{{ colores[color].replace('background:','').strip() }}{% endif %}'">
         {{ icono() }}
+        {{ texto }}
     </a>
 {% endmacro %}

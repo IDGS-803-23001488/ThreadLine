@@ -3,7 +3,7 @@ import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, current_app
 from database.mysql import db, MateriaPrima, Unidad, Empaque, Proveedor, Articulo
 from forms import MateriaPrimaForm
-from middlerware import login_requerido, permiso_requerido, decrypt_url_id
+from securrity.middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from werkzeug.utils import secure_filename
 import os
 import uuid

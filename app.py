@@ -1,34 +1,17 @@
 # app.py
 import datetime
-from flask import Flask, render_template, g, session, redirect, url_for, request
+from flask import Flask, g, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
-from database.mysql import db, Usuario, Rol, Permiso, Token
-from config import DevelopmentConfig
+from database.mysql import db,Token
+from securrity.config import DevelopmentConfig
 from utils.crypto_url import encrypt_id
 from extensions import mail
 # from database.mongo import ConexionMongo
 
 # Blueprints
-from routes.main import main
-from routes.usuarios import usuarios
-from routes.auth import auth
-from routes.roles import roles
-from routes.unidad import unidad
-from routes.empaque import empaque
-from routes.color import color
-from routes.proveedores import proveedor
-from utils.security import hash_password
-from routes.categoria import categoria
-from routes.inventario import inventario
-from routes.talla import talla
-from routes.cliente import cliente
-from routes.recetas import recetas, apiRecetas
-from routes.productosVariantes import productosVariantes , apiProductosVariantes
-from routes.materiaPrima import materia_prima
-from routes.explosion import explosion, apiExplosion
-
-import os
+from routes import register_blueprints
+from database.seed import seed_data
 
 UPLOAD_FOLDER = 'static/uploads'
 
@@ -37,40 +20,10 @@ app.config.from_object(DevelopmentConfig)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 mail.init_app(app)
-
 csrf = CSRFProtect(app)
 db.init_app(app)
 migrate = Migrate(app, db)
-
-app.register_blueprint(main)
-app.register_blueprint(usuarios)
-app.register_blueprint(auth)
-app.register_blueprint(roles)
-app.register_blueprint(unidad)
-app.register_blueprint(empaque)
-app.register_blueprint(color)
-app.register_blueprint(proveedor)
-app.register_blueprint(categoria)
-app.register_blueprint(inventario)
-app.register_blueprint(talla)
-app.register_blueprint(cliente)
-app.register_blueprint(recetas)
-app.register_blueprint(apiRecetas)
-app.register_blueprint(productosVariantes)
-app.register_blueprint(apiProductosVariantes)
-app.register_blueprint(materia_prima)
-app.register_blueprint(explosion)
-app.register_blueprint(apiExplosion)
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template("404.html"), 404
-
-@app.errorhandler(403)
-def forbidden(e):
-    if request.path.startswith("/api"):
-        return {"error": "Forbidden", "detalle": e.description}, 403
-    return render_template("403.html", error=e.description), 403
+register_blueprints(app)
 
 @app.before_request
 def verificar_token():
@@ -140,7 +93,6 @@ def verificar_token():
         token_db.fecha_expiracion = ahora + datetime.timedelta(minutes=10)
         db.session.commit()
 
-
 @app.context_processor
 def inject_request():
     from flask import request
@@ -185,98 +137,8 @@ def registrar_log(response):
 def encrypt_filter(value):
     return encrypt_id(value)
 
-def seed_data():
-    from sqlalchemy.exc import IntegrityError
-
-    try:
-        # =========================================
-        # PERMISOS (DINÁMICO)
-        # =========================================
-        PERMISOS = {
-            "usuarios": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "roles": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "unidad": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "empaque": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "color": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "proveedor": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "categoria": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "inventario": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "talla": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "cliente": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "recetas": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "materia_prima": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "explosion": ["ver", "crear"],    
-            "productosVariantes": ["buscador","productosVariantes"],
-        }
-
-        permisos_db = []
-
-        for modulo, acciones in PERMISOS.items():
-            for accion in acciones:
-                permiso = Permiso.query.filter_by(
-                    modulo=modulo, accion=accion
-                ).first()
-
-                if not permiso:
-                    permiso = Permiso(modulo=modulo, accion=accion)
-                    db.session.add(permiso)
-
-                permisos_db.append(permiso)
-
-        db.session.flush()
-
-        # =========================================
-        # ROL ADMIN
-        # =========================================
-        admin_role = Rol.query.filter_by(nombre="Administrador").first()
-
-        if not admin_role:
-            admin_role = Rol(
-                nombre="Administrador",
-                descripcion="Rol con todos los permisos del sistema"
-            )
-            db.session.add(admin_role)
-            db.session.flush()
-
-        # =========================================
-        # ASIGNAR PERMISOS AL ADMIN
-        # =========================================
-        for permiso in permisos_db:
-            if permiso not in admin_role.permisos:
-                admin_role.permisos.append(permiso)
-
-        # =========================================
-        # USUARIO ADMIN
-        # =========================================
-        admin_user = Usuario.query.filter_by(usuario="admin").first()
-
-        if not admin_user:
-            admin_user = Usuario(
-                usuario="admin",
-                correo="admin@example.com",
-                contrasenia=hash_password("admin123"),  # ⚠️ luego usa hash
-                activo=True
-            )
-            db.session.add(admin_user)
-            db.session.flush()
-
-        # =========================================
-        # ASIGNAR ROL AL USUARIO
-        # =========================================
-        if admin_role not in admin_user.roles:
-            admin_user.roles.append(admin_role)
-
-        # =========================================
-        # COMMIT
-        # =========================================
-        db.session.commit()
-
-    except IntegrityError:
-        db.session.rollback()
-
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         seed_data()
     app.run(debug=True, host='0.0.0.0', port=8000)
-

@@ -3,7 +3,7 @@ import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from database.mysql import db, Talla 
 from forms import TallaForm
-from middlerware import login_requerido, permiso_requerido, decrypt_url_id
+from securrity.middlerware import login_requerido, permiso_requerido, decrypt_url_id
 
 talla = Blueprint("talla", __name__, url_prefix = "/talla")
 

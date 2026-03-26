@@ -63,7 +63,7 @@
                     Cantidad base <span class="text-red-500">*</span>
                 </label>
                 <input type="number" name="cantidad_base" id="cantidadBase"
-                       min="1" value="{{ receta.cantidad_base if receta else 1 }}" required
+                       min="1" value="{{ receta.cantidad_base if receta else 1 }}" required disabled
                        class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5
                               text-sm text-gray-800 focus:outline-none focus:ring-2
                               focus:border-transparent transition"
@@ -115,8 +115,6 @@
                         <th class="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Materia prima</th>
                         <th class="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-36">Cantidad neta</th>
                         <th class="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-20">Unidad</th>
-                        <th class="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-20">% Merma</th>
-                        <th class="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Con merma</th>
                         <th class="w-10"></th>
                     </tr>
                 </thead>
@@ -142,9 +140,6 @@
                     flex items-center justify-between">
             <span class="text-xs text-gray-400">
                 <span id="totalInsumos" class="font-semibold text-gray-700">0</span> insumo(s)
-            </span>
-            <span class="text-xs text-gray-400">
-                Cantidades con merma calculadas automáticamente
             </span>
         </div>
     </div>
@@ -398,17 +393,9 @@ function buildOptions(selectedId) {
         const sel = selectedId == mp.id ? 'selected' : '';
         html += `<option value="${mp.id}"
                           data-unidad="${mp.unidad}"
-                          data-merma="${mp.merma}"
                           ${sel}>${mp.nombre}</option>`;
     });
     return html;
-}
-
-function calcConMerma(cantidad, merma) {
-    const c = parseFloat(cantidad);
-    const m = parseFloat(merma) || 0;
-    if (!c || c <= 0 || m >= 100) return null;
-    return (c / (1 - m / 100)).toFixed(4);
 }
 
 function agregarFila(mpId = null, cantidad = '') {
@@ -420,8 +407,7 @@ function agregarFila(mpId = null, cantidad = '') {
     tr.className = 'border-b border-gray-50 hover:bg-gray-50/60 transition-colors group';
 
     tr.innerHTML = `
-        <td class="px-5 py-3 text-xs text-gray-300 font-medium num-fila"></td>
-
+        <td class="px-5 py-3 text-xs text-gray-300 font-medium num-fila">${filaIdx}</td>
         <td class="px-5 py-3">
             <select name="materia_prima_id" required
                     onchange="onMpChange(this, ${idx})"
@@ -431,35 +417,21 @@ function agregarFila(mpId = null, cantidad = '') {
                     style="--tw-ring-color:var(--color-primary)">
                 ${buildOptions(mpId)}
             </select>
-        </td>
-
+         </td>
         <td class="px-5 py-3">
             <input type="number" name="cantidad_neta" required
                    min="0.0001" step="0.0001" value="${cantidad}"
                    placeholder="0.0000"
-                   oninput="onCantidadChange(this, ${idx})"
                    class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2
                           text-sm text-gray-700 focus:outline-none focus:ring-2
                           focus:border-transparent transition"
                    style="--tw-ring-color:var(--color-primary)">
-        </td>
-
+         </td>
         <td class="px-5 py-3">
             <span id="u-${idx}"
                   class="inline-block px-2 py-1 rounded-md text-xs font-medium
                          bg-gray-100 text-gray-500">—</span>
-        </td>
-
-        <td class="px-5 py-3">
-            <span id="m-${idx}"
-                  class="inline-block px-2 py-1 rounded-md text-xs font-medium
-                         bg-amber-50 text-amber-600">—</span>
-        </td>
-
-        <td class="px-5 py-3">
-            <span id="cm-${idx}" class="text-sm font-semibold text-gray-400">—</span>
-        </td>
-
+         </td>
         <td class="px-3 py-3">
             <button type="button" onclick="eliminarFila(this)"
                     class="w-7 h-7 flex items-center justify-center rounded-lg
@@ -477,7 +449,6 @@ function agregarFila(mpId = null, cantidad = '') {
 
     if (mpId) {
         onMpChange(tr.querySelector('select'), idx);
-        if (cantidad) onCantidadChange(tr.querySelector('input[name="cantidad_neta"]'), idx);
     }
 
     actualizarUI();
@@ -486,29 +457,9 @@ function agregarFila(mpId = null, cantidad = '') {
 function onMpChange(sel, idx) {
     const opt    = sel.options[sel.selectedIndex];
     const unidad = opt?.dataset?.unidad || '—';
-    const merma  = opt?.dataset?.merma  || 0;
 
     const spU = document.getElementById(`u-${idx}`);
-    const spM = document.getElementById(`m-${idx}`);
     if (spU) spU.textContent = unidad;
-    if (spM) spM.textContent = merma > 0 ? `${merma}%` : '0%';
-
-    const inp = sel.closest('tr').querySelector('input[name="cantidad_neta"]');
-    if (inp?.value) onCantidadChange(inp, idx);
-}
-
-function onCantidadChange(inp, idx) {
-    const tr    = inp.closest('tr');
-    const sel   = tr.querySelector('select[name="materia_prima_id"]');
-    const merma = sel?.options[sel.selectedIndex]?.dataset?.merma || 0;
-    const spCm  = document.getElementById(`cm-${idx}`);
-    if (!spCm) return;
-
-    const val = calcConMerma(inp.value, merma);
-    spCm.textContent = val ?? '—';
-    spCm.className   = val
-        ? 'text-sm font-semibold text-emerald-600'
-        : 'text-sm font-semibold text-gray-400';
 }
 
 function eliminarFila(btn) {

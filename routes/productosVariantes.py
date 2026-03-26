@@ -2,7 +2,7 @@
 import datetime 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
 from database.mysql import db, Producto, ProductoVariante
-from middlerware import login_requerido, permiso_requerido
+from securrity.middlerware import login_requerido, permiso_requerido
 from sqlalchemy import or_
 
 productosVariantes = Blueprint(

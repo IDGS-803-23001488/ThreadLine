@@ -3,7 +3,7 @@ import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from database.mysql import db, Usuario, Rol
 from forms import UserForm
-from middlerware import login_requerido, permiso_requerido, decrypt_url_id
+from securrity.middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.excel_export import exportar_excel
 from utils.security import hash_password
 

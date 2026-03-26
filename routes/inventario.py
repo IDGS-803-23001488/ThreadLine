@@ -3,7 +3,7 @@ import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from database.mysql import db, Inventario 
 from forms import InventarioForm
-from middlerware import login_requerido, permiso_requerido, decrypt_url_id
+from securrity.middlerware import login_requerido, permiso_requerido, decrypt_url_id
 
 inventario = Blueprint("inventario", __name__, url_prefix = "/inventario")
 
