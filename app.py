@@ -26,7 +26,8 @@ from routes.cliente import cliente
 from routes.recetas import recetas, apiRecetas
 from routes.productosVariantes import productosVariantes , apiProductosVariantes
 from routes.materiaPrima import materia_prima
-from routes.explosion import explosion, apiExplosion
+from routes.explosion_materiales.explosion import explosion
+from routes.explosion_materiales.api_explosion import apiExplosion
 
 import os
 

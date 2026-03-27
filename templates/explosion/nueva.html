@@ -125,9 +125,8 @@
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-100">
                         <th class="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Materia prima</th>
-                        <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Cant. neta</th>
-                        <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Con merma</th>
-                        <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Stock</th>
+                        <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Cantidad requerida</th>
+                        <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Stock disponible</th>
                         <th class="px-5 py-3 text-center text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-24">Estado</th>
                         <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Faltante</th>
                     </tr>
@@ -366,8 +365,8 @@ function renderModal(json) {
                      fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
                 </svg>
-            </button>`
-        ).join('');
+            </button>
+        `).join('');
     }
     document.getElementById('btnPrev').disabled = !json.has_prev;
     document.getElementById('btnNext').disabled = !json.has_next;
@@ -443,17 +442,10 @@ function renderExplosion(json) {
             <td class="px-5 py-3">
                 <p class="text-sm font-medium text-gray-800">${ins.nombre}</p>
             </td>
-            <td class="px-5 py-3 text-right text-sm text-gray-600">
-                ${ins.cantidad_neta.toFixed(4)}
-                <span class="text-xs text-gray-400 ml-1">${ins.unidad}</span>
-            </td>
             <td class="px-5 py-3 text-right">
-                <span class="text-sm font-medium ${ins.merma_pct > 0 ? 'text-amber-600' : 'text-gray-600'}">
-                    ${ins.cantidad_con_merma.toFixed(4)}
+                <span class="text-sm font-medium text-gray-600">
+                    ${ins.cantidad_neta.toFixed(4)} <span class="text-xs text-gray-400 ml-1">${ins.unidad}</span>
                 </span>
-                ${ins.merma_pct > 0
-                    ? `<span class="text-xs text-amber-500 ml-1">(+${ins.merma_pct}%)</span>`
-                    : ''}
             </td>
             <td class="px-5 py-3 text-right">
                 <span class="text-sm font-semibold ${ok ? 'text-emerald-600' : 'text-red-600'}">
