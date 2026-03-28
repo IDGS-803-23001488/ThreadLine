@@ -1,12 +1,11 @@
 # app.py
 import datetime
 from flask import Flask, render_template, g, session, redirect, url_for, request
-from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
 from database.mysql import db, Usuario, Rol, Permiso, Token
 from config import DevelopmentConfig
 from utils.crypto_url import encrypt_id
-from extensions import mail
+from extensions import mail, csrf
 # from database.mongo import ConexionMongo
 
 # Blueprints
@@ -38,10 +37,11 @@ UPLOAD_FOLDER = 'static/uploads'
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken', 'X-CSRF-Token']
+
 
 mail.init_app(app)
-
-csrf = CSRFProtect(app)
+csrf.init_app(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -243,7 +243,8 @@ def seed_data():
             "materia_prima": ["ver", "crear", "editar", "eliminar", "exportar"],
             "explosion": ["ver", "crear"],    
             "productosVariantes": ["ver","crear", "editar", "eliminar"],
-            "ecomerce": ["ver","crear", "editar", "eliminar"]
+            "ecomerce": ["ver","crear", "editar", "eliminar"],
+            "mermas": ["ver","crear", "editar", "eliminar"]
 
         }
 
