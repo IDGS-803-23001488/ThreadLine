@@ -1,0 +1,323 @@
+<!-- templates/mermas/crear.html -->
+{% extends "layout.html" %}
+{% from "macros/utiles.html" import 
+    btn_enlace, 
+    svg_regreso,
+    svg_warning
+%}
+
+{% block container %}
+
+<div class="flex justify-between mb-4">
+    {{ btn_enlace(
+        url_for('explosion.detalle', id=orden_id_encrypted),
+        svg_regreso,
+        'Volver a la orden',
+        'secondary'
+    ) }}
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-amber-50">
+            <span class="text-amber-600">
+                {{ svg_warning() }}
+            </span>
+        </div>
+        <div>
+            <h2 class="text-sm font-semibold text-gray-800">Capturar mermas</h2>
+            <p class="text-xs text-gray-500 mt-0.5">
+                Orden #{{ orden.id }} · {{ orden.receta.producto_variante.producto.nombre }}
+                {{ orden.receta.producto_variante.talla.nombre }}
+            </p>
+        </div>
+    </div>
+
+    <div class="p-6">
+        <!-- 🔹 CONTROL GLOBAL -->
+        <div class="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input id="chkMermaGlobal"
+                       type="checkbox"
+                       class="w-5 h-5 rounded-lg border-gray-300">
+                <span class="text-sm font-medium text-gray-700">
+                    Merma total del artículo
+                </span>
+            </label>
+
+            <input id="inputMermaGlobal"
+                   type="number"
+                   step="0.0001"
+                   placeholder="Cantidad de merma total"
+                   class="w-full mt-3 px-4 py-3 rounded-xl border border-gray-200
+                          bg-white text-gray-800 hidden
+                          focus:outline-none focus:ring-2"
+                   style="--tw-ring-color:var(--color-primary)">
+            <p id="errorMermaGlobal" class="text-xs text-red-500 mt-2 hidden"></p>
+        </div>
+
+        <!-- 🔹 TABLA DE MATERIAS PRIMAS -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100">
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Materia prima</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide w-32">Disponible</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide w-40">Merma</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide w-24">Unidad</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for det in orden.receta.detalles %}
+                    {% set mp = det.materia_prima %}
+
+                    {% set stock_obj = mp.articulo.stocks | selectattr('inventario.nombre', 'search', '(?i)materia') | first if mp.articulo else none %}
+                    {% set stock_qty = stock_obj.cantidad | float if stock_obj else 0 %}
+
+                    <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                        <td class="px-4 py-3">
+                            <p class="text-sm font-medium text-gray-800">{{ mp.nombre }}</p>
+                            {% if mp.proveedor %}
+                            <p class="text-xs text-gray-400">{{ mp.proveedor.nombre }}</p>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-4 py-3 text-right">
+                            <span class="text-sm font-semibold text-gray-600">
+                                {{ "%.4f"|format(stock_qty) }}
+                            </span>
+                        </td>
+
+                        <td class="px-4 py-3">
+                            <input type="number"
+                                   step="0.0001"
+                                   placeholder="0.0000"
+                                   class="inputMerma w-full px-3 py-2 rounded-xl border border-gray-200
+                                          bg-gray-50 text-right focus:outline-none focus:ring-2
+                                          transition"
+                                   style="--tw-ring-color:var(--color-primary)">
+                        </td>
+
+                        <td class="px-4 py-3 text-right">
+                            <span class="inline-block px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-500">
+                                {{ mp.unidad.sigla if mp.unidad else '—' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer con botones -->
+        <div class="mt-6 pt-4 border-t border-gray-100 flex justify-end gap-3">
+            <a href="{{ url_for('explosion.detalle', id=orden_id_encrypted) }}"
+               class="px-4 py-2 text-sm rounded-xl border border-gray-200
+                      text-gray-600 hover:bg-gray-50 transition">
+                Cancelar
+            </a>
+
+            <button id="btnGuardarMermas"
+                    class="px-6 py-2 text-sm font-semibold rounded-xl text-white shadow
+                           hover:shadow-lg active:scale-[.98] transition
+                           opacity-50 cursor-not-allowed"
+                    style="background:var(--color-primary)"
+                    disabled>
+                Guardar mermas
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+const MAX_PRODUCIR = {{ orden.cantidad_solicitada - orden.cantidad_producida }};
+const chkMermaGlobal = document.getElementById('chkMermaGlobal');
+const inputMermaGlobal = document.getElementById('inputMermaGlobal');
+const tablaWrapper = document.querySelector('.overflow-x-auto');
+const btnGuardarMermas = document.getElementById('btnGuardarMermas');
+const errorMermaGlobal = document.getElementById('errorMermaGlobal');
+
+function getInputsMermas() {
+    return document.querySelectorAll('.inputMerma');
+}
+
+function validarCantidad(valor, maximo) {
+    if (isNaN(valor) || valor === '') {
+        return { valido: false, mensaje: '' };
+    }
+    
+    if (valor <= 0) {
+        return { valido: false, mensaje: 'La cantidad debe ser mayor a 0' };
+    }
+    
+    if (valor > maximo) {
+        return { valido: false, mensaje: `La cantidad no puede exceder ${maximo}` };
+    }
+    
+    return { valido: true, mensaje: '' };
+}
+
+function aplicarEstadoValidacion(resultado, inputElement, btnElement, errorElement) {
+    if (resultado.valido) {
+        inputElement.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+        inputElement.classList.add('border-gray-200');
+        errorElement.classList.add('hidden');
+        btnElement.disabled = false;
+        btnElement.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        inputElement.classList.remove('border-gray-200');
+        inputElement.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+        
+        if (resultado.mensaje) {
+            errorElement.textContent = resultado.mensaje;
+            errorElement.classList.remove('hidden');
+        } else {
+            errorElement.classList.add('hidden');
+        }
+        
+        btnElement.disabled = true;
+        btnElement.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+chkMermaGlobal.addEventListener('change', function () {
+    const inputsTabla = getInputsMermas();
+
+    if (this.checked) {
+        tablaWrapper.classList.add('opacity-40');
+        inputsTabla.forEach(inp => {
+            inp.value = '';
+            inp.disabled = true;
+        });
+
+        inputMermaGlobal.classList.remove('hidden');
+
+    } else {
+        tablaWrapper.classList.remove('opacity-40');
+        inputsTabla.forEach(inp => {
+            inp.disabled = false;
+        });
+
+        inputMermaGlobal.classList.add('hidden');
+        inputMermaGlobal.value = '';
+    }
+
+    validarMermas();
+});
+
+function validarMermas() {
+    if (chkMermaGlobal.checked) {
+        const valor = parseFloat(inputMermaGlobal.value);
+        const resultado = validarCantidad(valor, MAX_PRODUCIR);
+        
+        aplicarEstadoValidacion(
+            resultado,
+            inputMermaGlobal,
+            btnGuardarMermas,
+            errorMermaGlobal
+        );
+        return;
+    }
+
+    let valido = false;
+    const inputsTabla = getInputsMermas();
+
+    inputsTabla.forEach(inp => {
+        const val = parseFloat(inp.value);
+        if (val && val > 0) valido = true;
+    });
+
+    btnGuardarMermas.disabled = !valido;
+    btnGuardarMermas.classList.toggle('opacity-50', !valido);
+    btnGuardarMermas.classList.toggle('cursor-not-allowed', !valido);
+}
+
+inputMermaGlobal.addEventListener('input', function () {
+    const valor = parseFloat(this.value);
+    const resultado = validarCantidad(valor, MAX_PRODUCIR);
+
+    aplicarEstadoValidacion(
+        resultado,
+        inputMermaGlobal,
+        btnGuardarMermas,
+        errorMermaGlobal
+    );
+});
+
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('inputMerma')) {
+        validarMermas();
+    }
+});
+
+// Manejar Enter en inputs
+inputMermaGlobal.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !btnGuardarMermas.disabled) {
+        btnGuardarMermas.click();
+    }
+});
+
+document.querySelectorAll('.inputMerma').forEach(input => {
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !btnGuardarMermas.disabled) {
+            btnGuardarMermas.click();
+        }
+    });
+});
+
+// Función para guardar mermas
+btnGuardarMermas.addEventListener('click', async function() {
+    const datos = {
+        orden_id: {{ orden.id }},
+        mermas: []
+    };
+
+    if (chkMermaGlobal.checked) {
+        const cantidad = parseFloat(inputMermaGlobal.value);
+        if (cantidad && cantidad > 0 && cantidad <= MAX_PRODUCIR) {
+            datos.merma_global = cantidad;
+        } else {
+            return;
+        }
+    } else {
+        const inputsTabla = getInputsMermas();
+        inputsTabla.forEach((input, index) => {
+            const valor = parseFloat(input.value);
+            if (valor && valor > 0) {
+                datos.mermas.push({
+                    materia_prima_id: {{ orden.receta.detalles[loop.index0].materia_prima.id if loop.index0 < orden.receta.detalles|length else 0 }},
+                    cantidad: valor
+                });
+            }
+        });
+    }
+
+    if (datos.mermas.length === 0 && !datos.merma_global) {
+        return;
+    }
+
+    try {
+        const response = await fetch('{{ url_for("mermas.guardar") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datos)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            window.location.href = '{{ url_for("explosion.detalle", id=orden_id_encrypted) }}';
+        } else {
+            alert(result.error || 'Error al guardar las mermas');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error de conexión al guardar las mermas');
+    }
+});
+</script>
+
+{% endblock %}
