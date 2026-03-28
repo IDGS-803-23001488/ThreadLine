@@ -1,7 +1,37 @@
 <!-- templates/explosion/detalle.html -->
 {% extends "layout.html" %}
+{% from "macros/utiles.html" import 
+    btn_enlace, 
+    svg_regreso, 
+    svg_add,
+    svg_warning, 
+    svg_produccion,
+    style_primary, 
+    style_secondary
+%}
 
 {% block container %}
+
+<div class="flex justify-between mb-4">
+    {{ btn_enlace(
+        url_for('explosion.lista'),
+        svg_regreso,
+        '',
+        'primary'
+    ) }}
+
+    <div class="flex gap-2">
+        <button type="button" onclick="abrirModal('modalProduccion')"
+                {{style_primary()}}>
+            {{svg_add()}}
+        </button>
+        <button type="button" onclick="abrirModal('modalMermas')"
+                {{ style_secondary()}}>
+            {{svg_warning()}}
+        </button>
+    </div>
+
+</div>
 
 {% set v = orden.receta.producto_variante %}
 {% set color_hex = v.producto.color.hex if v.producto.color else '#e5e7eb' %}
@@ -16,114 +46,151 @@
 {% set est_cls, est_label = estatus_cfg.get(orden.estatus, ('bg-gray-100 text-gray-600 border-gray-200', orden.estatus)) %}
 
 {# ── Encabezado ── #}
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="px-6 py-5 flex items-center gap-5">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        <div class="w-12 h-12 rounded-2xl border-2 border-white shadow flex-shrink-0"
-             style="background:{{ color_hex }}"></div>
+    <!-- 🟦 CARD IZQUIERDA (INFO) -->
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
-        <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-3 flex-wrap">
-                <h2 class="text-lg font-bold text-gray-800">
-                    {{ v.producto.nombre }}
-                </h2>
-                <span class="text-sm text-gray-400">·</span>
-                <span class="text-sm text-gray-500">Talla {{ v.talla.nombre }}</span>
-                {% if v.producto.color %}
-                <span class="text-sm text-gray-400">·</span>
-                <span class="text-sm text-gray-500">{{ v.producto.color.nombre }}</span>
-                {% endif %}
-                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs
-                             font-medium border {{ est_cls }}">
-                    {{ est_label }}
-                </span>
+        <!-- Header -->
+        <div class="px-6 py-5 flex items-center gap-5">
+
+            <div class="w-12 h-12 rounded-2xl border-2 border-white shadow flex-shrink-0"
+                style="background:{{ color_hex }}"></div>
+
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <!-- Nombre ocupa todo el ancho -->
+                    <h2 class="text-lg font-bold text-gray-800 w-full">
+                        {{ v.producto.nombre }}
+                    </h2>
+
+                    <!-- Info secundaria -->
+                    <div class="flex items-center gap-3 flex-wrap mt-1">
+                        <span class="text-sm text-gray-500">Talla {{ v.talla.nombre }}</span>
+
+                        {% if v.producto.color %}
+                        <span class="text-sm text-gray-400">·</span>
+                        <span class="text-sm text-gray-500">{{ v.producto.color.nombre }}</span>
+                        {% endif %}
+
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs
+                                    font-medium border {{ est_cls }}">
+                            {{ est_label }}
+                        </span>
+                    </div>
+                </div>
+
+                <p class="text-xs text-gray-400 mt-1">
+                    Orden <strong class="text-gray-600">#{{ orden.id }}</strong>
+                    · Receta #{{ orden.receta.id }}
+
+                    {% if orden.fecha_inicio %}
+                    · Iniciada {{ orden.fecha_inicio.strftime('%d/%m/%Y %H:%M') }}
+                    {% endif %}
+
+                    {% if orden.fecha_fin %}
+                    · Finalizada {{ orden.fecha_fin.strftime('%d/%m/%Y %H:%M') }}
+                    {% endif %}
+                </p>
             </div>
-            <p class="text-xs text-gray-400 mt-1">
-                Orden <strong class="text-gray-600">#{{ orden.id }}</strong>
-                &nbsp;·&nbsp; Receta #{{ orden.receta.id }}
-                {% if orden.fecha_inicio %}
-                &nbsp;·&nbsp; Iniciada {{ orden.fecha_inicio.strftime('%d/%m/%Y %H:%M') }}
-                {% endif %}
-                {% if orden.fecha_fin %}
-                &nbsp;·&nbsp; Finalizada {{ orden.fecha_fin.strftime('%d/%m/%Y %H:%M') }}
-                {% endif %}
-            </p>
         </div>
 
-        <a href="{{ url_for('explosion.lista') }}"
-           class="flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium text-gray-600
-                  bg-gray-100 hover:bg-gray-200 transition">
-            ← Volver
-        </a>
+        <!-- 🔽 MÉTRICAS DENTRO -->
+        <div class="px-6 pb-5">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+                {% set cards = [
+                    ('Solicitadas',  orden.cantidad_solicitada, '#0c7779', 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z'),
+                    ('Producidas',   orden.cantidad_producida,  '#10b981', 'M4.5 12.75l6 6 9-13.5'),
+                    ('Insumos',      orden.receta.detalles|length, '#f59e0b', 'M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125'),
+                    ('Base receta',  orden.receta.cantidad_base, '#6366f1', 'M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5'),
+                ] %}
+
+                {% for label, valor, color, path in cards %}
+                <div class="bg-gray-50 rounded-xl border border-gray-100 px-4 py-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+                            {{ label }}
+                        </span>
+
+                        <div class="w-6 h-6 rounded-md flex items-center justify-center"
+                            style="background:{{ color }}18">
+                            <svg class="w-3 h-3" style="color:{{ color }}"
+                                fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ path }}"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <p class="text-lg font-bold text-gray-800">
+                        {{ valor }}
+                    </p>
+                </div>
+                {% endfor %}
+
+            </div>
+        </div>
+
     </div>
 
-    {# Barra de progreso #}
+    <!-- 🟩 CARD DERECHA (PROGRESO) -->
     {% if orden.cantidad_solicitada > 0 %}
-    {% set pct = ((orden.cantidad_producida / orden.cantidad_solicitada) * 100) | int %}
-    <div class="px-6 pb-5">
-        <div class="flex items-center justify-between mb-1.5">
-            <span class="text-xs text-gray-400">Progreso de producción</span>
-            <span class="text-xs font-semibold text-gray-600">
-                {{ orden.cantidad_producida }} / {{ orden.cantidad_solicitada }} pzas
-                ({{ pct }}%)
-            </span>
-        </div>
-        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all"
-                 style="width:{{ pct }}%; background:var(--color-primary)"></div>
-        </div>
-    </div>
-    {% endif %}
-</div>
+        {% set pct = ((orden.cantidad_producida / orden.cantidad_solicitada) * 100) | int %}
+        {% set radius = 70 %}
+        {% set circumference = 2 * 3.1416 * radius %}
+        {% set offset = circumference - (pct / 100 * circumference) %}
 
-{# ── Métricas rápidas ── #}
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6
+                    flex flex-col items-center justify-center">
 
-    {% set cards = [
-        ('Solicitadas',  orden.cantidad_solicitada, '#0c7779', 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z'),
-        ('Producidas',   orden.cantidad_producida,  '#10b981', 'M4.5 12.75l6 6 9-13.5'),
-        ('Insumos',      orden.receta.detalles|length, '#f59e0b', 'M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125'),
-        ('Base receta',  orden.receta.cantidad_base, '#6366f1', 'M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5'),
-    ] %}
+            <div class="relative w-40 h-40 mb-3">
 
-    {% for label, valor, color, path in cards %}
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
-        <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">{{ label }}</span>
-            <div class="w-7 h-7 rounded-lg flex items-center justify-center"
-                 style="background:{{ color }}18">
-                <svg class="w-3.5 h-3.5" style="color:{{ color }}"
-                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ path }}"/>
+                <svg class="w-full h-full transform -rotate-90">
+                    <!-- Fondo -->
+                    <circle cx="50%" cy="50%" r="{{ radius }}"
+                            stroke="#e5e7eb"
+                            stroke-width="20"
+                            fill="none"/>
+
+                    <!-- Progreso -->
+                    <circle cx="50%" cy="50%" r="{{ radius }}"
+                            stroke="var(--color-primary)"
+                            stroke-width="20"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-dasharray="{{ circumference }}"
+                            stroke-dashoffset="{{ offset }}"
+                            style="transition: stroke-dashoffset .5s ease"/>
                 </svg>
+
+                <!-- % centro -->
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-xl font-bold text-gray-700">
+                        {{ pct }}%
+                    </span>
+                </div>
+
             </div>
+
+            <p class="text-sm font-semibold text-gray-700">
+                {{ orden.cantidad_producida }} / {{ orden.cantidad_solicitada }} pzas
+            </p>
+
         </div>
-        <p class="text-2xl font-bold text-gray-800">{{ valor }}</p>
-    </div>
-    {% endfor %}
+    {% endif %}
+
 </div>
 
-{# ── Tabla de explosión (insumos de la receta) ── #}
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
     <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-        <div class="w-8 h-8 rounded-xl flex items-center justify-center"
-             style="background:#f0fdf4">
-            <svg class="w-4 h-4 text-emerald-600" fill="none"
-                 stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5
-                         0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25
-                         m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5
-                         m0 0l-.5 1.5"/>
-            </svg>
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center bg-emerald-50">
+            <span style="color:var(--color-primary);">
+                {{ svg_produccion() }}
+            </span>
         </div>
         <div>
             <h2 class="text-sm font-semibold text-gray-800">Explosión de materiales</h2>
-            <p class="text-xs text-gray-400">
-                Insumos requeridos para producir
-                <strong class="text-gray-600">{{ orden.cantidad_solicitada }} piezas</strong>
-            </p>
         </div>
     </div>
 
@@ -133,10 +200,8 @@
                 <tr class="bg-gray-50 border-b border-gray-100">
                     <th class="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide">#</th>
                     <th class="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Materia prima</th>
-                    <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Cant. neta</th>
-                    <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Con merma</th>
+                    <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Cantidad requerida</th>
                     <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-20">Unidad</th>
-                    <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-20">% Merma</th>
                     <th class="px-5 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-28">Stock actual</th>
                 </tr>
             </thead>
@@ -145,14 +210,12 @@
 
                 {% for det in orden.receta.detalles %}
                 {% set mp = det.materia_prima %}
-                {% set merma = mp.porcentaje_merma | float %}
                 {% set c_neta = det.cantidad_neta | float * factor %}
-                {% set c_merma = (c_neta / (1 - merma / 100)) if merma < 100 else c_neta %}
 
                 {# Stock actual #}
                 {% set stock_obj = mp.articulo.stocks | selectattr('inventario.nombre', 'search', '(?i)materia') | first if mp.articulo else none %}
                 {% set stock_qty = stock_obj.cantidad | float if stock_obj else 0 %}
-                {% set ok = stock_qty >= c_merma %}
+                {% set ok = stock_qty >= c_neta %}
 
                 <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors
                            {{ 'bg-red-50/30' if not ok else '' }}">
@@ -170,25 +233,9 @@
                     </td>
 
                     <td class="px-5 py-3 text-right">
-                        <span class="text-sm font-medium {{ 'text-amber-600' if merma > 0 else 'text-gray-600' }}">
-                            {{ "%.4f" | format(c_merma) }}
-                        </span>
-                    </td>
-
-                    <td class="px-5 py-3 text-right">
                         <span class="inline-block px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-500">
                             {{ mp.unidad.sigla if mp.unidad else '—' }}
                         </span>
-                    </td>
-
-                    <td class="px-5 py-3 text-right">
-                        {% if merma > 0 %}
-                        <span class="inline-block px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-                            {{ merma }}%
-                        </span>
-                        {% else %}
-                        <span class="text-xs text-gray-300">0%</span>
-                        {% endif %}
                     </td>
 
                     <td class="px-5 py-3 text-right">
@@ -197,7 +244,7 @@
                         </span>
                         {% if not ok %}
                         <p class="text-[10px] text-red-400 mt-0.5">
-                            Faltan {{ "%.4f" | format(c_merma - stock_qty) }}
+                            Faltan {{ "%.4f" | format(c_neta - stock_qty) }}
                         </p>
                         {% endif %}
                     </td>
@@ -207,5 +254,300 @@
         </table>
     </div>
 </div>
+
+<div id="modalProduccion"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,.45)">
+
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
+
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">
+                Capturar producción
+            </h3>
+
+            <button type="button" onclick="cerrarModal('modalProduccion')"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl
+                           text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Contenido -->
+        <div class="px-6 py-8 space-y-6">
+            <div>
+                <input id="inputCantidad"
+                    type="number"
+                    placeholder="Max: {{ orden.cantidad_solicitada - orden.cantidad_producida }}"
+                    class="w-full mt-2 px-4 py-4 text-lg rounded-2xl border border-gray-200
+                            bg-gray-50 text-gray-800 focus:outline-none
+                            focus:ring-2 focus:border-transparent transition"
+                    style="--tw-ring-color:var(--color-primary)">
+
+                <p id="errorCantidad" class="text-xs text-red-500 mt-2 hidden"></p>
+
+            </div>
+                <button id="btnGuardarProduccion"
+                        class="w-full py-4 text-base font-semibold rounded-2xl text-white shadow-md
+                            hover:shadow-lg active:scale-[.98] transition opacity-50 cursor-not-allowed"
+                        style="background:var(--color-primary)"
+                        disabled>
+                    Guardar producción
+                </button>
+
+        </div>
+
+    </div>
+</div>
+
+<div id="modalMermas"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,.45)">
+
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden">
+
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">
+                Capturar mermas
+            </h3>
+
+            <button type="button" onclick="cerrarModal('modalMermas')"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl
+                           text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- 🔹 CONTROL GLOBAL -->
+        <div class="px-6 py-4 border-b border-gray-100 space-y-3">
+
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input id="chkMermaGlobal"
+                       type="checkbox"
+                       class="w-5 h-5 rounded-lg border-gray-300">
+
+                <span class="text-sm font-medium text-gray-700">
+                    Merma total del artículo
+                </span>
+            </label>
+
+            <input id="inputMermaGlobal"
+                   type="number"
+                   step="0.0001"
+                   placeholder="Cantidad de merma total"
+                   class="w-full px-4 py-3 rounded-xl border border-gray-200
+                          bg-gray-50 text-gray-800 hidden
+                          focus:outline-none focus:ring-2"
+                   style="--tw-ring-color:var(--color-primary)">
+            <p id="errorMermaGlobal" class="text-xs text-red-500 mt-2 hidden"></p>
+
+        </div>
+
+        <!-- 🔹 TABLA -->
+        <div class="overflow-y-auto max-h-[400px]" id="tablaMermasWrapper">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100">
+                        <th class="px-4 py-3 text-left text-xs text-gray-400">MP</th>
+                        <th class="px-4 py-3 text-right text-xs text-gray-400">Disponible</th>
+                        <th class="px-4 py-3 text-right text-xs text-gray-400">Merma</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for det in orden.receta.detalles %}
+                    {% set mp = det.materia_prima %}
+
+                    {% set stock_obj = mp.articulo.stocks | selectattr('inventario.nombre', 'search', '(?i)materia') | first if mp.articulo else none %}
+                    {% set stock_qty = stock_obj.cantidad | float if stock_obj else 0 %}
+
+                    <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                        <td class="px-4 py-1">
+                            <p class="text-sm font-medium text-gray-800">{{ mp.nombre }}</p>
+                        </td>
+
+                        <td class="px-4 py-1 text-right text-gray-600">
+                            {{ "%.4f"|format(stock_qty) }}
+                        </td>
+
+                        <td class="px-4 py-1">
+                            <input type="number"
+                                   step="0.0001"
+                                   placeholder="0.0000"
+                                   class="inputMerma w-full px-3 py-2 rounded-xl border border-gray-200
+                                          bg-gray-50 text-right focus:outline-none focus:ring-2"
+                                   style="--tw-ring-color:var(--color-primary)">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+
+            <button type="button"
+                    onclick="cerrarModal('modalMermas')"
+                    class="px-4 py-2 text-sm rounded-xl border border-gray-200
+                           text-gray-600 hover:bg-gray-50">
+                Cancelar
+            </button>
+
+            <button id="btnGuardarMermas"
+                    class="px-6 py-2 text-sm font-semibold rounded-xl text-white shadow
+                           opacity-50 cursor-not-allowed"
+                    style="background:var(--color-primary)"
+                    disabled>
+                Guardar mermas
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+const MAX_PRODUCIR = {{ orden.cantidad_solicitada - orden.cantidad_producida }};
+const inputCantidad = document.getElementById('inputCantidad');
+const btnGuardar = document.getElementById('btnGuardarProduccion');
+const errorCantidad = document.getElementById('errorCantidad');
+
+
+inputCantidad.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !btnGuardar.disabled) {
+        btnGuardar.click();
+    }
+});
+
+inputCantidad.addEventListener('input', function () {
+    const valor = parseFloat(this.value);
+
+    const resultado = validarCantidad(valor, MAX_PRODUCIR);
+
+    aplicarEstadoValidacion(
+        resultado,
+        inputCantidad,
+        btnGuardar,
+        errorCantidad
+    );
+});
+
+
+const chkMermaGlobal = document.getElementById('chkMermaGlobal');
+const inputMermaGlobal = document.getElementById('inputMermaGlobal');
+const tablaWrapper = document.getElementById('tablaMermasWrapper');
+const btnGuardarMermas = document.getElementById('btnGuardarMermas');
+const errorMermaGlobal = document.getElementById('errorMermaGlobal');
+
+function getInputsMermas() {
+    return document.querySelectorAll('#modalMermas .inputMerma');
+}
+
+chkMermaGlobal.addEventListener('change', function () {
+
+    const inputsTabla = getInputsMermas();
+
+    if (this.checked) {
+        tablaWrapper.classList.add('opacity-40');
+        inputsTabla.forEach(inp => {
+            inp.value = '';
+            inp.disabled = true;
+        });
+
+        inputMermaGlobal.classList.remove('hidden');
+
+    } else {
+        tablaWrapper.classList.remove('opacity-40');
+        inputsTabla.forEach(inp => {
+            inp.disabled = false;
+        });
+
+        inputMermaGlobal.classList.add('hidden');
+        inputMermaGlobal.value = '';
+    }
+
+    validarMermas();
+});
+
+function validarMermas() {
+
+    if (chkMermaGlobal.checked) return;
+
+    let valido = false;
+
+    const inputsTabla = getInputsMermas();
+
+    inputsTabla.forEach(inp => {
+        const val = parseFloat(inp.value);
+        if (val && val > 0) valido = true;
+    });
+
+    btnGuardarMermas.disabled = !valido;
+    btnGuardarMermas.classList.toggle('opacity-50', !valido);
+    btnGuardarMermas.classList.toggle('cursor-not-allowed', !valido);
+}
+
+
+inputMermaGlobal.addEventListener('input', function () {
+    const valor = parseFloat(this.value);
+
+    const resultado = validarCantidad(valor, MAX_PRODUCIR);
+
+    aplicarEstadoValidacion(
+        resultado,
+        inputMermaGlobal,
+        btnGuardarMermas,
+        errorMermaGlobal
+    );
+});
+
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('inputMerma')) {
+        validarMermas();
+    }
+});
+
+function resetModalMermas() {
+
+    const inputsTabla = getInputsMermas();
+
+    chkMermaGlobal.checked = false;
+    inputMermaGlobal.value = '';
+    inputMermaGlobal.classList.add('hidden');
+
+    tablaWrapper.classList.remove('opacity-40', 'pointer-events-none');
+
+    inputsTabla.forEach(inp => inp.value = '');
+
+    btnGuardarMermas.disabled = true;
+    btnGuardarMermas.classList.add('opacity-50', 'cursor-not-allowed');
+}
+
+const _abrirModalOriginal = window.abrirModal;
+
+window.abrirModal = function(id) {
+
+    if (id === 'modalMermas') {
+        resetModalMermas();
+    }
+
+    if (_abrirModalOriginal) {
+        _abrirModalOriginal(id);
+    } else {
+        const modal = document.getElementById(id);
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+};
+</script>
 
 {% endblock %}

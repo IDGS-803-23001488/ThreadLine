@@ -1,7 +1,8 @@
 <!-- templates/layout.html -->
 {% from "macros/sidebar.html" import panel_section, panel_item %}
 {% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque,
-    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color, svg_produccion, svg_insumos, svg_producto %}
+    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color, svg_produccion, svg_insumos,svg_merma,svg_producto %}
+
 
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -11,33 +12,46 @@
     <title>{{ titulo if titulo else "Panel de Administración" }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='imagenes/logo.png') }}" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
+    <script src="{{ url_for('static', filename='src/script.js') }}"></script>
+
     <style>
         /* ═══════════════════════════════════════
            PALETA DE COLORES — editar aquí
         ═══════════════════════════════════════ */
         :root {
-            /* Colores principales */
-            --color-primary:        #0c7779;  /* indigo — botón activo, acentos */
-            --color-primary-hover:  #7FB82E;  /* indigo oscuro — hover en primario */
-            --color-primary-light:  #eef2ff;  /* indigo muy suave — fondos activos */
+            /* ─────────────────────────────
+            PRIMARIO (teal)
+            ───────────────────────────── */
+            --color-primary:        #0c7779;
+            --color-primary-hover:  #095c5e;   /* más oscuro */
+            --color-primary-light:  #e6f4f4;   /* más claro */
 
-            /* Secundario */
-            --color-secondary:      #0c7779;  /* rose — logo, alertas, acciones críticas */
-            --color-secondary-hover: #61dbd1 ;  /* rose oscuro */
+            /* ─────────────────────────────
+            SECUNDARIO (gris)
+            ───────────────────────────── */
+            --color-secondary:        #6b7280;
+            --color-secondary-hover:  #4b5563; /* gris más oscuro */
+            --color-secondary-light:  #f3f4f6; /* gris muy claro */
 
-            /* Terciario */
-            --color-tertiary:       #0ea5e9;  /* sky — avatar, badges informativos */
-            --color-tertiary-hover: #9DD54F;  /* sky oscuro */
+            /* ─────────────────────────────
+            TERCIARIO (azul cielo)
+            ───────────────────────────── */
+            --color-tertiary:        #0ea5e9;
+            --color-tertiary-hover:  #0284c7;  /* más oscuro */
+            --color-tertiary-light:  #e0f2fe;  /* más claro */
 
-            /* Neutros UI */
-            --color-bg:             #f9fafb;  /* fondo general */
-            --color-surface:        #ffffff;  /* tarjetas, sidebar, header */
-            --color-border:         #f3f4f6;  /* bordes suaves */
-            --color-text:           #1f2937;  /* texto principal */
-            --color-text-muted:     #9ca3af;  /* íconos y labels inactivos */
-            --color-text-label:     #6b7280;  /* labels secundarios */
+            /* ─────────────────────────────
+            NEUTROS UI
+            ───────────────────────────── */
+            --color-bg:             #f9fafb;
+            --color-surface:        #ffffff;
+            --color-border:         #f3f4f6;
+            --color-text:           #1f2937;
+            --color-text-muted:     #9ca3af;
+            --color-text-label:     #6b7280;
 
-            /* Rail hover */
+            /* Hover general */
             --color-rail-hover:     #f3f4f6;
         }
 
@@ -139,7 +153,10 @@
             <div class="w-7 h-px bg-gray-100 my-1"></div>
 
             {# Producción #}
-            {% set prod_activo = request.endpoint and request.endpoint.startswith('recetas.') %}
+            {% set prod_activo = request.endpoint and (
+                request.endpoint.startswith('recetas.') or
+                request.endpoint.startswith('produccion.')
+            ) %}
             <button onclick="railClick('produccion')" data-key="produccion"
                     class="rail-btn w-11 h-11 flex items-center justify-center
                            {% if prod_activo %}activo{% endif %}">
@@ -221,6 +238,8 @@
                     request.endpoint and request.endpoint.startswith('recetas.')) }}
                 {{ panel_item(url_for('explosion.lista'), svg_produccion(), "Explosión de Producción",
                     request.endpoint and request.endpoint.startswith('explosion.')) }}
+                {{ panel_item(url_for('explosion.lista'), svg_merma(), "Explosión de Producción",
+                    request.endpoint and request.endpoint.startswith('explosion.')) }}
             </div>
 
         </div>
@@ -243,7 +262,7 @@
                         text-white flex items-center justify-center
                         rounded-xl font-semibold text-sm shadow-sm cursor-pointer"
                         style="color:var(--color-primary)">
-                {{ g.usuario_actual.usuario[:2].upper() }}
+                {% if g.usuario_actual %}{{ g.usuario_actual.usuario[:2].upper() }}{% endif %}
             </div>
         </header>
 

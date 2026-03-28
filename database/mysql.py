@@ -89,7 +89,8 @@ class Permiso(BaseModel):
 class Token(BaseModel):
     __tablename__ = "token"
     id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
+    cliente_id = db.Column(db.Integer, db.ForeignKey("cliente.id"))
     token = db.Column(db.String(36), nullable=False)
     tipo = db.Column(db.String(50), nullable=False)
     intentos = db.Column(db.Integer, default=0)
@@ -99,6 +100,7 @@ class Token(BaseModel):
     usado = db.Column(db.Boolean, default=False)
     
     usuario = db.relationship("Usuario", backref="tokens")
+    cliente = db.relationship("Cliente", backref="tokens")
     
     def esta_expirado(self):
         return datetime.datetime.utcnow() > self.fecha_expiracion
@@ -568,3 +570,34 @@ class SolicitudProduccion(BaseModel):
     variante = db.relationship("ProductoVariante", backref="solicitudes")
     solicitante = db.relationship("Usuario", foreign_keys=[solicitado_por])
     encargado = db.relationship("Usuario", foreign_keys=[atendido_por])
+
+
+# =====================================================
+# MODELO MERMA
+# =====================================================
+class MermaEncabezado(BaseModel):
+    __tablename__ = "merma_encabezado"
+    id = db.Column(db.Integer, primary_key=True)
+    solicitud_produccion_id = db.Column(db.Integer, db.ForeignKey("solicitud_produccion.id"), nullable=False)
+    
+    # Auditoría
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_eliminacion = db.Column(db.DateTime, nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+
+class MermaDetalle(BaseModel):
+    __tablename__ = "merma_detalle"
+
+    id = db.Column(db.Integer, primary_key=True)
+    merma_id = db.Column(db.Integer, db.ForeignKey("merma_encabezado.id"), nullable=False)
+    materia_prima_id = db.Column(db.Integer, db.ForeignKey("materia_prima.id"), nullable=False)
+
+    cantidad = db.Column(db.Numeric(10, 4), nullable=False)
+    motivo = db.Column(db.String(255))
+
+    # Relaciones
+    merma = db.relationship("MermaEncabezado", backref=db.backref("detalles", cascade="all, delete-orphan"))
+    materia_prima = db.relationship("MateriaPrima")
