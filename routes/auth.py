@@ -15,6 +15,7 @@ REQUIERE_2FA = False
 
 auth = Blueprint("auth", __name__)
 
+
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -26,13 +27,20 @@ def login():
         if user and user.bloqueado:
             return usuario_bloqueado_response(user)
         cliente = Cliente.query.filter_by(correo=correo, activo=True).first()
-        if user and verify_password(user.contrasenia, contrasenia)or cliente and verify_password(cliente.contrasenia, contrasenia):
-
+        user_valido = user and verify_password(user.contrasenia, contrasenia)
+        cliente_valido = cliente and verify_password(cliente.contrasenia, contrasenia)
+        if user_valido or cliente_valido:
             if not REQUIERE_2FA:
                 nuevo_token = str(uuid.uuid4())
                 login_token = None
                 destino = ""
-                if not user and cliente:
+                if user_valido and cliente_valido:
+                        return redirect( url_for(
+                            "auth.modal_user",
+                            id_cliente=encrypt_id(cliente.id),
+                            id_usuario=encrypt_id(user.id)
+                            ))
+                if cliente_valido:
                     login_token = Token(
                         cliente_id=cliente.id,
                         token=nuevo_token,
@@ -40,21 +48,15 @@ def login():
                         fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(hours=2)
                     )
                     destino = url_for("main.ecommerse")
-                elif user:
+                elif user_valido:
                     destino = url_for("main.index")
-                    if user and cliente:
-                        return redirect( url_for(
-                            "auth.modal_user",
-                            id_cliente=encrypt_id(cliente.id),
-                            id_usuario=encrypt_id(user.id)
-                            ))
-                    else:
-                        login_token = Token(
-                        usuario_id=user.id,
-                        token=nuevo_token,
-                        tipo="login_usuario",
-                        fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(hours=2)
-                        )
+                    
+                    login_token = Token(
+                    usuario_id=user.id,
+                    token=nuevo_token,
+                    tipo="login_usuario",
+                    fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+                    )
                 else:
                     flash("No se encontro el Usuario")
                     return  redirect(url_for("auth.login"))
@@ -107,7 +109,6 @@ def login():
         flash("Credenciales incorrectas", "error")
 
     return render_template("auth/login.html")
-
 @auth.route("/modal_user/<id_cliente>/<id_usuario>", methods=["GET", "POST"])
 def modal_user(id_cliente, id_usuario):
     id_cliente = decrypt_id(id_cliente)
