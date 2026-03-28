@@ -2,13 +2,14 @@
 import uuid
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
-from database.mysql import Usuario, Token, db
+from database.mysql import Usuario, Token, db, Cliente
 import sys
 from pprint import pprint
 from utils.security import verify_password
 import random
 from flask_mail import Message
 from extensions import mail
+from utils.crypto_url import encrypt_id, decrypt_id
 
 REQUIERE_2FA = False
 
@@ -24,23 +25,44 @@ def login():
         user = Usuario.query.filter_by(correo=correo, activo=True).first()
         if user and user.bloqueado:
             return usuario_bloqueado_response(user)
-        
-        if user and verify_password(user.contrasenia, contrasenia):
+        cliente = Cliente.query.filter_by(correo=correo, activo=True).first()
+        if user and verify_password(user.contrasenia, contrasenia)or cliente and verify_password(cliente.contrasenia, contrasenia):
 
             if not REQUIERE_2FA:
                 nuevo_token = str(uuid.uuid4())
-
-                login_token = Token(
-                    usuario_id=user.id,
-                    token=nuevo_token,
-                    tipo="login",
-                    fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(hours=2)
-                )
+                login_token = None
+                destino = ""
+                if not user and cliente:
+                    login_token = Token(
+                        cliente_id=cliente.id,
+                        token=nuevo_token,
+                        tipo="login_cliente",
+                        fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+                    )
+                    destino = url_for("main.ecommerse")
+                elif user:
+                    destino = url_for("main.index")
+                    if user and cliente:
+                        return redirect( url_for(
+                            "auth.modal_user",
+                            id_cliente=encrypt_id(cliente.id),
+                            id_usuario=encrypt_id(user.id)
+                            ))
+                    else:
+                        login_token = Token(
+                        usuario_id=user.id,
+                        token=nuevo_token,
+                        tipo="login_usuario",
+                        fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+                        )
+                else:
+                    flash("No se encontro el Usuario")
+                    return  redirect(url_for("auth.login"))
 
                 db.session.add(login_token)
                 db.session.commit()
 
-                response = make_response(redirect(url_for("main.index")))
+                response = make_response(redirect(destino))
                 response.set_cookie(
                     "auth_token",
                     nuevo_token,
@@ -52,24 +74,118 @@ def login():
                 return response
 
             codigo = str(random.randint(100000, 999999))
+            token_db = None
+            if cliente:
+                token_db = Token(
+                    usuario_id=cliente.id,
+                    token=codigo,
+                    tipo="2fa",
+                    fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+                )
+                db.session.add(token_db)
+                db.session.commit()
 
-            token_db = Token(
-                usuario_id=user.id,
-                token=codigo,
-                tipo="2fa",
-                fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
-            )
+                enviar_codigo(cliente.correo, codigo)
 
-            db.session.add(token_db)
-            db.session.commit()
+            elif user:
+                token_db = Token(
+                    usuario_id=user.id,
+                    token=codigo,
+                    tipo="2fa",
+                    fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+                )
+                db.session.add(token_db)
+                db.session.commit()
 
-            enviar_codigo(user.correo, codigo)
+                enviar_codigo(user.correo, codigo)
+
+            else:
+                flash("Credenciales incorrectas", "error")
 
             return redirect(url_for("auth.verificar_2fa", user_id=user.id))
 
         flash("Credenciales incorrectas", "error")
 
     return render_template("auth/login.html")
+
+@auth.route("/modal_user/<id_cliente>/<id_usuario>", methods=["GET", "POST"])
+def modal_user(id_cliente, id_usuario):
+    id_cliente = decrypt_id(id_cliente)
+    id_usuario = decrypt_id(id_usuario)
+    if not id_usuario or not id_cliente:
+        flash("Acceso inválido", "danger")
+        return redirect(url_for("auth.login"))
+    
+    if request.method == "POST":
+        tipo = request.form.get("tipo")
+        if not REQUIERE_2FA:
+                nuevo_token = str(uuid.uuid4())
+                login_token = None
+
+                if tipo == "cliente":
+                    login_token = Token(
+                        cliente_id=id_cliente,
+                        token=nuevo_token,
+                        tipo="login_cliente",
+                        fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+                    )
+                    destino = url_for("main.ecommerse")
+
+                elif tipo == "empleado":
+                    login_token = Token(
+                        usuario_id=id_usuario,
+                        token=nuevo_token,
+                        tipo="login_usuario",
+                        fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+                    )
+                    destino = url_for("main.index")
+
+                else:
+                    flash("Selecciona una opción válida", "danger")
+                    return redirect(url_for("auth.modal_user"))
+
+                db.session.add(login_token)
+                db.session.commit()
+
+                response = make_response(redirect(destino))
+                response.set_cookie(
+                    "auth_token",
+                    nuevo_token,
+                    httponly=True,
+                    samesite="Lax",
+                    secure=False
+                )
+                return response
+        usuario = Usuario.query.filter_by(correo=id_usuario, activo=True).first()
+        cliente = Cliente.query.filter_by(correo=id_cliente, activo=True).first()
+        
+        codigo = str(random.randint(100000, 999999))
+        if tipo == 'cliente':
+            token_db = Token(
+                usuario_id=cliente.id,
+                token=codigo,
+                tipo="2fa",
+                fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+            )
+            db.session.add(token_db)
+            db.session.commit()
+
+            enviar_codigo(cliente.correo, codigo)
+        if tipo == 'usuario':
+            token_db = Token(
+                usuario_id=usuario.id,
+                token=codigo,
+                tipo="2fa",
+                fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+            )
+            db.session.add(token_db)
+            db.session.commit()
+
+            enviar_codigo(usuario.correo, codigo)
+
+        return redirect(url_for("auth.verificar_2fa", user_id=usuario.id))
+
+    return render_template("auth/modal_user.html")
 
 @auth.route("/logout")
 def logout():

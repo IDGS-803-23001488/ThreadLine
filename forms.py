@@ -63,10 +63,18 @@ class TallaForm(Form):
 class ClienteForm(Form):
     nombre = StringField('Nombre', [validators.DataRequired(message="El nombre es obligatorio"),validators.Length(min=3, max=100)])
     correo = StringField('Correo electrónico', [validators.DataRequired(message="El correo es obligatorio"),validators.Email(message="Ingresa un correo válido"),validators.Length(max=100)])
-    contrasenia = PasswordField('Contraseña', [validators.Optional(),validators.DataRequired(message="La contraseña es obligatoria"),validators.Length(min=6, max=255)])
-    telefono = StringField('Teléfono', [validators.Optional(),validators.Length(max=20)])
+    contrasenia = PasswordField('Contraseña')
+    telefono = StringField('Teléfono', [validators.Optional(),validators.Regexp(r'^[0-9]+$', message="El teléfono solo debe contener números"),validators.Length(min=10, max=10, message="El teléfono debe tener exactamente 10 caracteres")])
     cambiar_contrasenia = BooleanField("Cambiar contraseña")
     direccion = StringField('Dirección', [validators.Optional(), validators.Length(max=255)])
+    def validate_contrasenia(self, field):
+        if self.cambiar_contrasenia.data:
+            if not field.data:
+                raise validators.ValidationError("La nueva contraseña es obligatoria si deseas cambiarla.")
+            if len(field.data) < 6:
+                raise validators.ValidationError("La contraseña debe tener al menos 6 caracteres.")
+        else:
+            field.data = None
 
 class ProveedorForm(Form):
     id = IntegerField('id')

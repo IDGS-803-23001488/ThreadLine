@@ -75,10 +75,15 @@ def forbidden(e):
 
 @app.before_request
 def verificar_token():
+    usuario = None
+    cliente = None
+    rol_actual = None
     rutas_libres = [
         "auth.login",
         "auth.verificar_2fa",
+        "auth.modal_user",
         "static"
+        
     ]
 
     if request.endpoint and any(request.endpoint.startswith(r) for r in rutas_libres):
@@ -91,12 +96,19 @@ def verificar_token():
         if request.path.startswith("/api"):
             return {"error": "No autenticado"}, 401
         return redirect(url_for("auth.login"))
-
+    
     token_db = Token.query.filter_by(
         token=token_cookie,
-        tipo="login",
+        tipo="login_usuario",
         usado=False
     ).first()
+    
+    if not token_db :
+        token_db = Token.query.filter_by(
+            token=token_cookie,
+            tipo="login_cliente",
+            usado=False
+        ).first()
 
     # 🔒 Token inválido
     if not token_db:
@@ -109,30 +121,49 @@ def verificar_token():
         token_db.usado = True
         db.session.commit()
 
-        resp = redirect(url_for("auth.login"))
-        resp.set_cookie("auth_token", "", expires=0)
-
         if request.path.startswith("/api"):
             return {"error": "Sesión expirada"}, 401
+        
+        resp = redirect(url_for("auth.login"))
+        resp.set_cookie("auth_token", "", expires=0)
 
         return resp
 
     # 🔒 Usuario bloqueado
-    if token_db.usuario.bloqueado:
-        token_db.usado = True
-        db.session.commit()
+    if token_db.tipo == "login_usuario":
+        usuario = token_db.usuario
+        if usuario and usuario.bloqueado:
+            token_db.usado = True
+            db.session.commit()
+            
+            if request.path.startswith("/api"):
+                return {"error": "Usuario bloqueado"}, 403
+            resp = redirect(url_for("auth.login"))
+            resp.set_cookie("auth_token", "", expires=0)
+            return resp
+    elif token_db.tipo == "login_cliente":
+        cliente = token_db.cliente
+        rol_actual = "cliente"
+        if not cliente.activo:
+            token_db.usado = True
+            db.session.commit()
 
-        resp = redirect(url_for("auth.login"))
-        resp.set_cookie("auth_token", "", expires=0)
+            resp = redirect(url_for("auth.login"))
+            resp.set_cookie("auth_token", "", expires=0)
 
-        if request.path.startswith("/api"):
-            return {"error": "Usuario bloqueado"}, 403
+            if request.path.startswith("/api"):
+                return {"error": "Cliente inactivo"}, 403
 
-        return resp
+            return resp
+
+    else:
+        return redirect(url_for("auth.login"))
 
     # ✅ Usuario válido
-    g.usuario_actual = token_db.usuario
+    g.usuario_actual = usuario
+    g.cliente_actual = cliente
     g.token_actual = token_db
+    g.rol_actual = rol_actual
 
     # 🔄 Renovación inteligente (solo si faltan <5 min)
     ahora = datetime.datetime.utcnow()
