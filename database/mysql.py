@@ -89,7 +89,8 @@ class Permiso(BaseModel):
 class Token(BaseModel):
     __tablename__ = "token"
     id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
+    cliente_id = db.Column(db.Integer, db.ForeignKey("cliente.id"))
     token = db.Column(db.String(36), nullable=False)
     tipo = db.Column(db.String(50), nullable=False)
     intentos = db.Column(db.Integer, default=0)
@@ -99,6 +100,7 @@ class Token(BaseModel):
     usado = db.Column(db.Boolean, default=False)
     
     usuario = db.relationship("Usuario", backref="tokens")
+    cliente = db.relationship("Cliente", backref="tokens")
     
     def esta_expirado(self):
         return datetime.datetime.utcnow() > self.fecha_expiracion
