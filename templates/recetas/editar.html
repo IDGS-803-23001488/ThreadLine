@@ -1,0 +1,605 @@
+<!-- templates/recetas/editar.html -->
+{% extends "layout.html" %}
+
+{% block container %}
+
+<form id="formReceta" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="producto_variante_id" id="inputVarianteId"
+           value="{{ receta.producto_variante_id }}">
+
+    {# ── SECCIÓN 1: Variante de producto ── #}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+                 style="background:var(--color-primary-light)">
+                <svg class="w-4 h-4" style="color:var(--color-primary)"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-sm font-semibold text-gray-800">Producto a producir</h2>
+                <p class="text-xs text-gray-400">Selecciona la variante (producto + talla) para esta receta</p>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <div id="panelConVariante">
+                <div class="flex items-center gap-4">
+                    <span id="varianteDot"
+                          class="w-5 h-5 rounded-full border-2 border-white shadow flex-shrink-0"
+                          style="background:{{ receta.producto_variante.producto.color.hex if receta.producto_variante.producto.color else '#e5e7eb' }}"></span>
+                    <div class="flex-1 min-w-0">
+                        <p id="varianteNombre" class="text-sm font-semibold text-gray-800">
+                            {{ receta.producto_variante.producto.nombre }}
+                        </p>
+                        <p id="varianteDetalle" class="text-xs text-gray-400 mt-0.5">
+                            Talla {{ receta.producto_variante.talla.nombre }}
+                            {% if receta.producto_variante.producto.color %}
+                                · {{ receta.producto_variante.producto.color.nombre }}
+                            {% endif %}
+                            · ${{ receta.producto_variante.precio_venta }}
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 flex-shrink-0">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                                Cantidad base
+                            </label>
+                            <input type="number" name="cantidad_base" id="inputCantidadBase"
+                                   min="1" value="{{ receta.cantidad_base }}"
+                                   class="w-24 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2
+                                          text-sm text-gray-800 focus:outline-none focus:ring-2
+                                          focus:border-transparent transition"
+                                   style="--tw-ring-color:var(--color-primary)">
+                        </div>
+                        <button type="button" onclick="abrirModal('modalVariantes')"
+                                class="mt-5 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl
+                                       text-xs font-medium border border-gray-200 bg-gray-50
+                                       text-gray-500 hover:bg-white hover:border-gray-300 transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                            </svg>
+                            Cambiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── SECCIÓN 2: Insumos ── #}
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center"
+                     style="background:#f0fdf4">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor"
+                         stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-sm font-semibold text-gray-800">Insumos de la receta</h2>
+                    <p class="text-xs text-gray-400">Materias primas requeridas por unidad base</p>
+                </div>
+            </div>
+            <button type="button" onclick="agregarFila()"
+                    class="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold
+                           text-white shadow-sm transition hover:shadow-md active:scale-95"
+                    style="background:var(--color-primary)">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                Agregar insumo
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100">
+                        <th class="px-5 py-3 text-left   text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Materia prima</th>
+                        <th class="px-5 py-3 text-center text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-20">Unidad</th>
+                        <th class="px-5 py-3 text-right  text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-36">Cantidad neta</th>
+                        <th class="px-5 py-3 text-center text-[11px] font-semibold text-gray-400 uppercase tracking-wide w-16"></th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyInsumos"></tbody>
+            </table>
+
+            <div id="estadoInsumos"
+                 class="flex flex-col items-center justify-center py-12 gap-2 text-gray-300 hidden">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.2"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3"/>
+                </svg>
+                <p class="text-sm font-medium">Agrega al menos un insumo a la receta</p>
+            </div>
+        </div>
+    </div>
+
+    {# ── Acciones ── #}
+    <div class="flex items-center justify-end gap-3 pt-2">
+        <a href="{{ url_for('recetas.lista') }}"
+           class="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600
+                  bg-white border border-gray-200 hover:bg-gray-50 transition">
+            Cancelar
+        </a>
+        <button type="submit" id="btnGuardar"
+                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm
+                       font-semibold text-white transition-all shadow-sm hover:shadow-md
+                       active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                style="background:var(--color-primary)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3"/>
+            </svg>
+            Guardar receta
+        </button>
+    </div>
+</form>
+
+{# ── MODAL buscador de variantes ── #}
+<div id="modalVariantes"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,.45)">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden"
+         style="max-height:82vh">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+            <div>
+                <h3 class="text-base font-semibold text-gray-800">Seleccionar variante de producto</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Busca por nombre de producto o talla</p>
+            </div>
+            <button type="button" onclick="cerrarModal('modalVariantes')"
+                    class="w-8 h-8 flex items-center justify-center rounded-xl
+                           text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+            <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/>
+                </svg>
+                <input type="text" id="varianteSearch"
+                       placeholder="Escribe para buscar…"
+                       oninput="buscarVariantes()"
+                       class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200
+                              bg-gray-50 text-sm text-gray-700 focus:outline-none
+                              focus:ring-2 focus:border-transparent transition"
+                       style="--tw-ring-color:var(--color-primary)">
+            </div>
+        </div>
+
+        <div id="varianteLista"
+             class="flex-1 overflow-y-auto divide-y divide-gray-50 min-h-0"></div>
+
+        <div class="px-6 py-3 border-t border-gray-100 flex items-center justify-between
+                    flex-shrink-0 bg-gray-50">
+            <button id="btnVariantePrev" type="button" onclick="cambiarPaginaVariante(-1)"
+                    class="text-xs font-medium text-gray-500 hover:text-gray-800
+                           disabled:opacity-30 transition" disabled>← Anterior</button>
+            <span id="variantePagLabel" class="text-xs text-gray-400"></span>
+            <button id="btnVarianteNext" type="button" onclick="cambiarPaginaVariante(1)"
+                    class="text-xs font-medium text-gray-500 hover:text-gray-800
+                           disabled:opacity-30 transition" disabled>Siguiente →</button>
+        </div>
+    </div>
+</div>
+
+{# ── MODAL buscador de materia prima ── #}
+<div id="modalMP"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,.45)">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
+         style="max-height:72vh">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+            <div>
+                <h3 class="text-base font-semibold text-gray-800">Seleccionar materia prima</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Búsqueda dinámica por nombre</p>
+            </div>
+            <button type="button" onclick="cerrarModal('modalMP')"
+                    class="w-8 h-8 flex items-center justify-center rounded-xl
+                           text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+            <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/>
+                </svg>
+                <input type="text" id="mpSearch"
+                       placeholder="Buscar materia prima…"
+                       oninput="buscarMPs()"
+                       class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200
+                              bg-gray-50 text-sm text-gray-700 focus:outline-none
+                              focus:ring-2 focus:border-transparent transition"
+                       style="--tw-ring-color:var(--color-primary)">
+            </div>
+        </div>
+
+        <div id="mpLista" class="flex-1 overflow-y-auto divide-y divide-gray-50 min-h-0"></div>
+    </div>
+</div>
+
+<script>
+const API_VARIANTES = "{{ url_for('api_recetas.api_variantes') }}";
+const API_MPs       = "{{ url_for('api_recetas.api_materias_primas') }}";
+const RECETA_ID     = "{{ receta.id|encrypt }}";
+
+// Estado
+let variantePage  = 1;
+let varianteTimer = null;
+let varianteQ     = '';
+
+let mpTimer       = null;
+let mpQ           = '';
+let filaActiva    = null;
+
+let filas         = [];
+let todasLasMPs   = [];
+let mpsFiltradas  = [];
+
+// Init
+document.addEventListener('DOMContentLoaded', async () => {
+    await cargarTodasLasMPs();
+    await cargarDetalleReceta();
+    
+    // Event listeners modales
+    document.getElementById('modalVariantes').addEventListener('click', e => {
+        if (e.target === document.getElementById('modalVariantes')) cerrarModal('modalVariantes');
+    });
+    document.getElementById('modalMP').addEventListener('click', e => {
+        if (e.target === document.getElementById('modalMP')) cerrarModal('modalMP');
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            cerrarModal('modalVariantes');
+            cerrarModal('modalMP');
+        }
+    });
+});
+
+async function cargarDetalleReceta() {
+    const json = await apiFetch(`/api/recetas/${RECETA_ID}`);
+    if (json) {
+        json.detalles.forEach(d => {
+            filas.push({
+                id:       d.materia_prima_id,
+                nombre:   d.nombre,
+                unidad:   d.unidad,
+                cantidad: d.cantidad_neta,
+            });
+        });
+        renderTabla();
+    }
+}
+
+// Materias primas
+async function cargarTodasLasMPs() {
+    const json = await apiFetch(API_MPs);
+    if (json) {
+        todasLasMPs = json.data;
+        mpsFiltradas = todasLasMPs;
+    }
+}
+
+function abrirModalMP(idx) {
+    filaActiva = idx;
+    document.getElementById('mpSearch').value = '';
+    mpQ = '';
+    mpsFiltradas = todasLasMPs;
+    renderMPLista();
+    abrirModal('modalMP');
+    setTimeout(() => document.getElementById('mpSearch').focus(), 60);
+}
+
+function buscarMPs() {
+    clearTimeout(mpTimer);
+    mpTimer = setTimeout(() => {
+        mpQ = document.getElementById('mpSearch').value.toLowerCase();
+        mpsFiltradas = mpQ
+            ? todasLasMPs.filter(mp => mp.nombre.toLowerCase().includes(mpQ))
+            : todasLasMPs;
+        renderMPLista();
+    }, 200);
+}
+
+function renderMPLista() {
+    const lista = document.getElementById('mpLista');
+    const usados = new Set(
+        filas
+            .filter((_, i) => i !== filaActiva && filas[i].id)
+            .map(f => f.id)
+    );
+
+    const items = mpsFiltradas.filter(mp => !usados.has(mp.id));
+
+    if (!items.length) {
+        lista.innerHTML = `<div class="flex items-center justify-center py-10 text-gray-300">
+            <p class="text-sm">Sin resultados</p></div>`;
+        return;
+    }
+
+    lista.innerHTML = items.map(mp => `
+        <button type="button" onclick="seleccionarMP(${mp.id}, '${escHtml(mp.nombre)}', '${escHtml(mp.unidad)}')"
+                class="w-full flex items-center gap-4 px-6 py-3.5
+                       hover:bg-gray-50 transition text-left group">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-800 truncate">${mp.nombre}</p>
+            </div>
+            <span class="text-xs text-gray-400 flex-shrink-0">${mp.unidad}</span>
+            <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-500 flex-shrink-0"
+                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+            </svg>
+        </button>
+    `).join('');
+}
+
+function seleccionarMP(id, nombre, unidad) {
+    if (filaActiva === null) return;
+    filas[filaActiva] = { ...filas[filaActiva], id, nombre, unidad };
+    cerrarModal('modalMP');
+    renderTabla();
+    setTimeout(() => {
+        const inp = document.querySelector(`[data-fila-cant="${filaActiva}"]`);
+        if (inp) inp.focus();
+    }, 60);
+}
+
+// Tabla de insumos
+function agregarFila() {
+    filas.push({ id: null, nombre: '', unidad: '—', cantidad: '' });
+    renderTabla();
+    abrirModalMP(filas.length - 1);
+}
+
+function eliminarFila(idx) {
+    filas.splice(idx, 1);
+    renderTabla();
+}
+
+function renderTabla() {
+    const tbody  = document.getElementById('tbodyInsumos');
+    const estado = document.getElementById('estadoInsumos');
+
+    if (!filas.length) {
+        tbody.innerHTML = '';
+        estado.classList.remove('hidden');
+        return;
+    }
+
+    estado.classList.add('hidden');
+    tbody.innerHTML = filas.map((f, idx) => `
+        <tr class="border-b border-gray-50 group">
+            <td class="px-5 py-3">
+                ${f.id
+                    ? `<div class="flex items-center gap-2">
+                           <span class="text-sm font-medium text-gray-800">${escHtml(f.nombre)}</span>
+                           <button type="button" onclick="abrirModalMP(${idx})"
+                                   class="opacity-0 group-hover:opacity-100 inline-flex items-center gap-1
+                                          text-[11px] text-gray-400 hover:text-gray-600 transition">
+                               <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                   <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                               </svg>
+                               Cambiar
+                           </button>
+                       </div>
+                       <input type="hidden" name="materia_prima_id" value="${f.id}">`
+                    : `<button type="button" onclick="abrirModalMP(${idx})"
+                               class="inline-flex items-center gap-1.5 text-sm text-gray-400
+                                      hover:text-gray-600 transition">
+                           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                               <path stroke-linecap="round" stroke-linejoin="round"
+                                     d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/>
+                           </svg>
+                           Seleccionar materia prima
+                       </button>`
+                }
+            </td>
+            <td class="px-5 py-3 text-center">
+                <span class="text-xs text-gray-400">${escHtml(f.unidad)}</span>
+            </td>
+            <td class="px-5 py-3 text-right">
+                <input type="number" name="cantidad_neta"
+                       data-fila-cant="${idx}"
+                       min="0.0001" step="0.0001"
+                       value="${f.cantidad}"
+                       onchange="filas[${idx}].cantidad = this.value"
+                       placeholder="0.0000"
+                       class="w-28 rounded-xl border border-gray-200 bg-gray-50 px-3 py-1.5
+                              text-sm text-right text-gray-800 focus:outline-none focus:ring-2
+                              focus:border-transparent transition"
+                       style="--tw-ring-color:var(--color-primary)">
+            </td>
+            <td class="px-5 py-3 text-center">
+                <button type="button" onclick="eliminarFila(${idx})"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg
+                               text-gray-300 hover:text-red-500 hover:bg-red-50 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                    </svg>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Modal variantes
+window.abrirModal = function(idModal) {
+    const modal = document.getElementById(idModal);
+    if (modal) modal.classList.remove('hidden');
+    if (idModal === 'modalVariantes') {
+        variantePage = 1;
+        varianteQ    = '';
+        document.getElementById('varianteSearch').value = '';
+        fetchVariantes();
+        setTimeout(() => document.getElementById('varianteSearch').focus(), 60);
+    }
+};
+
+function cerrarModal(idModal) {
+    const modal = document.getElementById(idModal);
+    if (modal) modal.classList.add('hidden');
+}
+
+function buscarVariantes() {
+    clearTimeout(varianteTimer);
+    varianteTimer = setTimeout(() => {
+        variantePage = 1;
+        varianteQ    = document.getElementById('varianteSearch').value;
+        fetchVariantes();
+    }, 280);
+}
+
+function cambiarPaginaVariante(dir) { 
+    variantePage += dir; 
+    fetchVariantes(); 
+}
+
+async function fetchVariantes() {
+    const lista = document.getElementById('varianteLista');
+    lista.innerHTML = `<div class="flex items-center justify-center py-10 text-gray-300 gap-2">
+        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
+        <span class="text-sm">Buscando…</span>
+    </div>`;
+
+    const json = await apiFetch(
+        `${API_VARIANTES}?q=${encodeURIComponent(varianteQ)}&page=${variantePage}`
+    );
+    if (json) renderVarianteLista(json);
+}
+
+function renderVarianteLista(json) {
+    const lista = document.getElementById('varianteLista');
+
+    if (!json.data.length) {
+        lista.innerHTML = `<div class="flex flex-col items-center justify-center py-10 gap-2 text-gray-300">
+            <p class="text-sm">Sin resultados</p></div>`;
+    } else {
+        lista.innerHTML = json.data.map(v => `
+            <button type="button" onclick='seleccionarVariante(${JSON.stringify(v)})'
+                    class="w-full flex items-center gap-4 px-6 py-3.5
+                           hover:bg-gray-50 transition text-left group">
+                <span class="w-4 h-4 rounded-full border-2 border-white shadow flex-shrink-0"
+                      style="background:${v.color_hex || '#e5e7eb'}"></span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">${v.producto}</p>
+                    <p class="text-xs text-gray-400">
+                        ${v.color || 'Sin color'} · Talla ${v.talla}
+                    </p>
+                </div>
+                <span class="text-xs font-medium text-gray-500 flex-shrink-0">
+                    $${parseFloat(v.precio).toFixed(2)}
+                </span>
+                <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-500 flex-shrink-0"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                </svg>
+            </button>
+        `).join('');
+    }
+
+    document.getElementById('btnVariantePrev').disabled = !json.has_prev;
+    document.getElementById('btnVarianteNext').disabled = !json.has_next;
+    document.getElementById('variantePagLabel').textContent =
+        `Pág. ${json.page} / ${json.pages} · ${json.total} resultado(s)`;
+}
+
+function seleccionarVariante(v) {
+    document.getElementById('inputVarianteId').value = v.id;
+    document.getElementById('varianteNombre').textContent = v.producto;
+    document.getElementById('varianteDetalle').textContent =
+        `Talla ${v.talla}${v.color ? ' · ' + v.color : ''} · $${parseFloat(v.precio).toFixed(2)}`;
+    document.getElementById('varianteDot').style.background = v.color_hex || '#e5e7eb';
+    cerrarModal('modalVariantes');
+}
+
+// Validación
+document.getElementById('formReceta').addEventListener('submit', e => {
+    if (!document.getElementById('inputVarianteId').value) {
+        e.preventDefault();
+        alert('Debes seleccionar una variante de producto.');
+        return;
+    }
+    if (!filas.length) {
+        e.preventDefault();
+        alert('La receta debe tener al menos un insumo.');
+        return;
+    }
+    const sinMP = filas.findIndex(f => !f.id);
+    if (sinMP !== -1) {
+        e.preventDefault();
+        alert(`La fila ${sinMP + 1} no tiene materia prima seleccionada.`);
+        return;
+    }
+    const sinCant = filas.findIndex(f => !f.cantidad || parseFloat(f.cantidad) <= 0);
+    if (sinCant !== -1) {
+        e.preventDefault();
+        alert(`Ingresa una cantidad válida en la fila ${sinCant + 1}.`);
+        return;
+    }
+    const ids = filas.map(f => f.id);
+    if (ids.length !== new Set(ids).size) {
+        e.preventDefault();
+        alert('Hay materias primas duplicadas en la receta.');
+        return;
+    }
+});
+
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+async function apiFetch(url) {
+    try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+    } catch (err) {
+        console.error('API Error:', err);
+        return null;
+    }
+}
+</script>
+
+{% endblock %}

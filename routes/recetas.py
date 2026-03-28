@@ -111,7 +111,7 @@ def editar(id):
         return _guardar_receta(receta_id=id)
 
     return render_template(
-        "recetas/crear.html",
+        "recetas/editar.html",
         titulo="Editar Receta",
         descripcion="Modificación de receta de producción",
         receta=receta,
@@ -187,13 +187,23 @@ def api_variantes():
     search   = request.args.get("q", "", type=str)
     page     = request.args.get("page", 1, type=int)
     per_page = 10
+    
+    # Permitir filtrar variantes con recetas o todas
+    solo_con_recetas = request.args.get("solo_con_recetas", "false").lower() == "true"
 
     query = (
         ProductoVariante.query
         .join(Producto)
         .join(Talla)
-        .filter(ProductoVariante.activo == True, Producto.activo == True)
+        .filter(
+            ProductoVariante.activo == True,
+            Producto.activo == True,
+        )
     )
+    
+    # Solo si se solicita explícitamente
+    if solo_con_recetas:
+        query = query.filter(ProductoVariante.recetas.any())
 
     if search:
         query = query.filter(
@@ -276,7 +286,7 @@ def api_detalle(id):
                 "nombre":           d.materia_prima.nombre,
                 "cantidad_neta":    float(d.cantidad_neta),
                 "unidad":           d.materia_prima.unidad.sigla if d.materia_prima.unidad else "—",
-                "merma":            float(d.materia_prima.porcentaje_merma or 0),
+                "merma":            0,
             }
             for d in receta.detalles
         ],
@@ -413,7 +423,7 @@ def generar_pdf(id):
             d.materia_prima.nombre,
             f"{float(d.cantidad_neta):,.2f}",
             d.materia_prima.unidad.sigla if d.materia_prima.unidad else "—",
-            f"{float(d.materia_prima.porcentaje_merma or 0):,.2f}",
+            f"{float(0):,.2f}",  # Merma fija en 0
         ])
 
     table = Table(data, colWidths=[
