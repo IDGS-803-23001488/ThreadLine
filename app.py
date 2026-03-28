@@ -16,6 +16,7 @@ from routes.auth import auth
 from routes.roles import roles
 from routes.unidad import unidad
 from routes.empaque import empaque
+from routes.eccomerce.ecomerce import ecomerce
 from routes.color import color
 from routes.proveedores import proveedor
 from utils.security import hash_password
@@ -49,6 +50,7 @@ app.register_blueprint(auth)
 app.register_blueprint(roles)
 app.register_blueprint(unidad)
 app.register_blueprint(empaque)
+app.register_blueprint(ecomerce)
 app.register_blueprint(color)
 app.register_blueprint(proveedor)
 app.register_blueprint(categoria)
@@ -238,7 +240,9 @@ def seed_data():
             "recetas": ["ver", "crear", "editar", "eliminar", "exportar"],
             "materia_prima": ["ver", "crear", "editar", "eliminar", "exportar"],
             "explosion": ["ver", "crear"],    
-            "productosVariantes": ["buscador","productosVariantes"],
+            "productosVariantes": ["ver","crear", "editar", "eliminar"],
+            "ecomerce": ["ver","crear", "editar", "eliminar"]
+
         }
 
         permisos_db = []
