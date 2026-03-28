@@ -1,5 +1,6 @@
 # Entorno virtual
 .env
+venv/
 
 # static
 node_modules
@@ -19,3 +20,5 @@ uploads
 *.pyd
 config_local
 config_local.py
+static/dist/output.css 
+static/dist/output.css 

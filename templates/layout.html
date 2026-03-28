@@ -1,7 +1,8 @@
 <!-- templates/layout.html -->
 {% from "macros/sidebar.html" import panel_section, panel_item %}
 {% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque,
-    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color, svg_produccion, svg_insumos,svg_merma %}
+    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color, svg_produccion, svg_insumos,svg_merma,svg_producto %}
+
 
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -195,6 +196,8 @@
                 {{ panel_item(url_for('color.lista'),     svg_color(),     "Colores",
                     request.endpoint and request.endpoint.startswith('color.')) }}
                 {{ panel_section("Producto") }}
+                {{ panel_item(url_for('productosVariantes.lista'),  svg_producto(), "Productos",
+                    request.endpoint and request.endpoint.startswith('producto.')) }}
                 {{ panel_item(url_for('categoria.lista'),  svg_categorias(), "Categorías",
                     request.endpoint and request.endpoint.startswith('categoria.')) }}
                 {{ panel_item(url_for('inventario.lista'), svg_inventario(), "Inventario",
