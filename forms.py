@@ -69,12 +69,11 @@ class ClienteForm(Form):
     direccion = StringField('Dirección', [validators.Optional(), validators.Length(max=255)])
     def validate_contrasenia(self, field):
         if self.cambiar_contrasenia.data:
-            if not field.data:
-                raise validators.ValidationError("La nueva contraseña es obligatoria si deseas cambiarla.")
-            if len(field.data) < 6:
-                raise validators.ValidationError("La contraseña debe tener al menos 6 caracteres.")
-        else:
-            field.data = None
+            if self.cambiar_contrasenia.data:
+                if not field.data:
+                    raise validators.ValidationError("La nueva contraseña es obligatoria si deseas cambiarla.")
+                if len(field.data) < 6:
+                    raise validators.ValidationError("La contraseña debe tener al menos 6 caracteres.")
 
 class ProveedorForm(Form):
     id = IntegerField('id')
