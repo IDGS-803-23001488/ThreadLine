@@ -242,6 +242,8 @@ class MateriaPrima(BaseModel):
     stock_maximo = db.Column(db.Numeric(10, 4), default=0.0000)
 
     unidad = db.relationship("Unidad", backref="materiaPrima")
+    articulo = db.relationship("Articulo", backref="materias_primas")
+    proveedor = db.relationship("Proveedor", backref="materias_primas")
 
     # Auditoría
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -331,6 +333,7 @@ class RecetaDetalle(BaseModel):
 
 class OrdenProduccion(BaseModel):
     __tablename__ = "orden_produccion"
+
     id = db.Column(db.Integer, primary_key=True)
     receta_id = db.Column(db.Integer, db.ForeignKey("receta.id"), nullable=False)
     cantidad_solicitada = db.Column(db.Integer, nullable=False)
@@ -338,8 +341,15 @@ class OrdenProduccion(BaseModel):
     estatus = db.Column(db.String(30), default='pendiente')
     fecha_inicio = db.Column(db.DateTime)
     fecha_fin = db.Column(db.DateTime)
-    
-    receta = db.relationship("Receta", backref="recetas")
+
+    receta = db.relationship("Receta", backref="ordenes_produccion")
+
+    insumos = db.relationship(
+        "OrdenProduccionInsumo",
+        back_populates="orden",
+        cascade="all, delete-orphan"
+    )
+
 
 class OrdenProduccionInsumo(BaseModel):
     __tablename__ = "orden_produccion_insumo"
@@ -351,21 +361,18 @@ class OrdenProduccionInsumo(BaseModel):
     cantidad         = db.Column(db.Numeric(10, 4), nullable=False)
     unidad_id        = db.Column(db.Integer, db.ForeignKey("unidad.id"), nullable=True)
 
-    # Auditoría mínima
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     creado_por     = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
 
-    # Relaciones
-    orden         = db.relationship(
+    orden = db.relationship(
         "OrdenProduccion",
-        backref=db.backref("insumos_asignados", cascade="all, delete-orphan")
+        back_populates="insumos"
     )
     materia_prima = db.relationship("MateriaPrima")
     inventario    = db.relationship("Inventario")
     unidad        = db.relationship("Unidad")
 
     __table_args__ = BASE_ARGS
-
 
 # =====================================================
 # E-COMMERCE (CLIENTES, CARRITO, PEDIDOS)
@@ -574,56 +581,37 @@ class Resenia(BaseModel):
     producto = db.relationship("Producto", backref="resenias")
 
 # =====================================================
-# MODELO SOLICITUD PRODUCCIÓN
-# =====================================================
-class SolicitudProduccion(BaseModel):
-    __tablename__ = "solicitud_produccion"
-
-    id = db.Column(db.Integer, primary_key=True)
-    producto_variante_id = db.Column(db.Integer, db.ForeignKey("producto_variante.id"), nullable=False)
-    
-    cantidad = db.Column(db.Integer, nullable=False)
-    estatus = db.Column(db.String(30), nullable=False, default='pendiente')
-    observaciones = db.Column(db.Text)
-    
-    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
-    
-    solicitado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"))
-    atendido_por = db.Column(db.Integer, db.ForeignKey("usuario.id"))
-
-    # Relaciones
-    variante = db.relationship("ProductoVariante", backref="solicitudes")
-    solicitante = db.relationship("Usuario", foreign_keys=[solicitado_por])
-    encargado = db.relationship("Usuario", foreign_keys=[atendido_por])
-
-
-# =====================================================
 # MODELO MERMA
+# =====================================================
+# =====================================================
+# MODELO MERMA  — reemplaza el bloque anterior en mysql.py
 # =====================================================
 class MermaEncabezado(BaseModel):
     __tablename__ = "merma_encabezado"
-    id = db.Column(db.Integer, primary_key=True)
-    solicitud_produccion_id = db.Column(db.Integer, db.ForeignKey("solicitud_produccion.id"), nullable=False)
-    
+
+    id                  = db.Column(db.Integer, primary_key=True)
+    orden_produccion_id = db.Column(db.Integer, db.ForeignKey("orden_produccion.id"), nullable=False)
+
     # Auditoría
-    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    fecha_edicion = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
+    fecha_creacion  = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    fecha_edicion   = db.Column(db.DateTime, onupdate=datetime.datetime.utcnow)
     fecha_eliminacion = db.Column(db.DateTime, nullable=True)
-    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
-    editado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
-    eliminado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    creado_por      = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    editado_por     = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    eliminado_por   = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+
+    # Relaciones
+    orden   = db.relationship("OrdenProduccion", backref=db.backref("mermas", lazy="dynamic"))
+    detalles = db.relationship("MermaDetalle", backref="encabezado", cascade="all, delete-orphan")
+
 
 class MermaDetalle(BaseModel):
     __tablename__ = "merma_detalle"
 
-    id = db.Column(db.Integer, primary_key=True)
-    merma_id = db.Column(db.Integer, db.ForeignKey("merma_encabezado.id"), nullable=False)
+    id               = db.Column(db.Integer, primary_key=True)
+    merma_id         = db.Column(db.Integer, db.ForeignKey("merma_encabezado.id"), nullable=False)
     materia_prima_id = db.Column(db.Integer, db.ForeignKey("materia_prima.id"), nullable=False)
+    cantidad         = db.Column(db.Numeric(10, 4), nullable=False)
+    motivo           = db.Column(db.String(255))
 
-    cantidad = db.Column(db.Numeric(10, 4), nullable=False)
-    motivo = db.Column(db.String(255))
-
-    # Relaciones
-    merma = db.relationship("MermaEncabezado", backref=db.backref("detalles", cascade="all, delete-orphan"))
     materia_prima = db.relationship("MateriaPrima")
