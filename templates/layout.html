@@ -236,7 +236,7 @@
                         text-white flex items-center justify-center
                         rounded-xl font-semibold text-sm shadow-sm cursor-pointer"
                         style="color:var(--color-primary)">
-                {{ g.usuario_actual.usuario[:2].upper() }}
+                {% if g.usuario_actual %}{{ g.usuario_actual.usuario[:2].upper() }}{% endif %}
             </div>
         </header>
 
