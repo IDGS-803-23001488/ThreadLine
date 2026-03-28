@@ -341,6 +341,32 @@ class OrdenProduccion(BaseModel):
     
     receta = db.relationship("Receta", backref="recetas")
 
+class OrdenProduccionInsumo(BaseModel):
+    __tablename__ = "orden_produccion_insumo"
+
+    id               = db.Column(db.Integer, primary_key=True)
+    orden_id         = db.Column(db.Integer, db.ForeignKey("orden_produccion.id"), nullable=False)
+    materia_prima_id = db.Column(db.Integer, db.ForeignKey("materia_prima.id"), nullable=False)
+    inv_id           = db.Column(db.Integer, db.ForeignKey("inventarios.id"), nullable=False)
+    cantidad         = db.Column(db.Numeric(10, 4), nullable=False)
+    unidad_id        = db.Column(db.Integer, db.ForeignKey("unidad.id"), nullable=True)
+
+    # Auditoría mínima
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    creado_por     = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+
+    # Relaciones
+    orden         = db.relationship(
+        "OrdenProduccion",
+        backref=db.backref("insumos_asignados", cascade="all, delete-orphan")
+    )
+    materia_prima = db.relationship("MateriaPrima")
+    inventario    = db.relationship("Inventario")
+    unidad        = db.relationship("Unidad")
+
+    __table_args__ = BASE_ARGS
+
+
 # =====================================================
 # E-COMMERCE (CLIENTES, CARRITO, PEDIDOS)
 # =====================================================

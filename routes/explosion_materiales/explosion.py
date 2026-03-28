@@ -1,18 +1,18 @@
 # routes/explosion_materiales/explosion.py
 import datetime
 from decimal import Decimal
-from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
-from sqlalchemy import or_
+from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from database.mysql import (
-    db, OrdenProduccion, Receta, RecetaDetalle,
+    db, OrdenProduccion, OrdenProduccionInsumo, Receta, RecetaDetalle,
     ProductoVariante, Producto, Talla, MateriaPrima,
     StockArticulo, Inventario, MovimientoInventario, TipoMovimiento,
-    MermaEncabezado, MermaDetalle, Articulo  # ← Asegurar imports
+    MermaEncabezado, MermaDetalle, Articulo
 )
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.crypto_url import encrypt_id
 
 explosion = Blueprint("explosion", __name__, url_prefix="/explosion")
+
 
 # ══════════════════════════════════════════════════════
 # VISTA — Lista de órdenes de producción
@@ -95,24 +95,33 @@ def detalle(id):
 def _procesar_orden():
     receta_id = request.form.get("receta_id", type=int)
     cantidad  = request.form.get("cantidad_solicitada", type=int)
-    inv_mp_id = request.form.get("inv_id", type=int)      # almacén de MP
-    forzar    = request.form.get("forzar", "0") == "1"    # ignorar faltantes
+    # Múltiples almacenes enviados como inv_ids[] desde el formulario
+    inv_ids   = request.form.getlist("inv_ids[]", type=int)
 
     # — Validaciones básicas —
     if not receta_id or not cantidad or cantidad < 1:
         flash("Receta y cantidad son requeridas.", "error")
         return redirect(url_for("explosion.nueva"))
 
-    receta = Receta.query.get_or_404(receta_id)
-
-    # — Calcular insumos necesarios —
-    faltantes, insumos = _calcular_insumos(receta, cantidad, inv_mp_id)
-
-    if faltantes and not forzar:
-        flash("Inventario insuficiente para generar la orden. Revisa los faltantes.", "warning")
+    if not inv_ids:
+        flash("Debes seleccionar al menos un almacén de materia prima.", "error")
         return redirect(url_for("explosion.nueva"))
 
-    # — Crear orden —
+    receta = Receta.query.get_or_404(receta_id)
+
+    # — Calcular distribución de insumos entre almacenes —
+    faltantes, tramos = _calcular_insumos_multi(receta, cantidad, inv_ids)
+
+    # No se permite forzar: stock insuficiente = rechazo total
+    if faltantes:
+        flash(
+            "Inventario insuficiente para generar la orden. "
+            "Verifica el stock en los almacenes seleccionados.",
+            "warning",
+        )
+        return redirect(url_for("explosion.nueva"))
+
+    # — Crear la orden —
     orden = OrdenProduccion(
         receta_id=receta_id,
         cantidad_solicitada=cantidad,
@@ -120,85 +129,111 @@ def _procesar_orden():
         estatus="pendiente",
     )
     db.session.add(orden)
-    db.session.flush()
+    db.session.flush()  # necesitamos orden.id
 
-    # — Descontar materia prima del stock —
-    INV_MP = inv_mp_id or _inv_mp_default()
     tipo_mov = TipoMovimiento.query.filter_by(tipo="Salida producción").first()
 
-    for insumo in insumos:
-        mp    = insumo["materia_prima"]
-        cant  = insumo["cantidad_neta"]  # Ya no se usa merma
+    for tramo in tramos:
+        mp     = tramo["materia_prima"]
+        inv_id = tramo["inv_id"]
+        cant   = Decimal(str(tramo["cantidad"]))
 
-        # Actualizar stock estático
+        # 1. Guardar insumo asignado a la orden (para uso futuro en captura)
+        db.session.add(OrdenProduccionInsumo(
+            orden_id=orden.id,
+            materia_prima_id=mp.id,
+            inv_id=inv_id,
+            cantidad=cant,
+            unidad_id=mp.unidad_id,
+            creado_por=g.usuario_actual.id,
+        ))
+
+        # 2. Descontar del stock
         stock = StockArticulo.query.filter_by(
-            articulo_id=mp.articulo_id, inv_id=INV_MP
+            articulo_id=mp.articulo_id, inv_id=inv_id
         ).first()
 
         if stock:
-            stock.cantidad       = max(Decimal("0"), stock.cantidad - Decimal(str(cant)))
+            stock.cantidad        = max(Decimal("0"), stock.cantidad - cant)
             stock.actualizado_por = g.usuario_actual.id
-        # Si no existe el stock, se omite (forzar=True lo permite)
 
-        # Registrar movimiento
+        # 3. Registrar movimiento de inventario
         if tipo_mov and mp.articulo_id:
-            existencia_actual = stock.cantidad if stock else Decimal("0")
-            mov = MovimientoInventario(
+            existencia_post = stock.cantidad if stock else Decimal("0")
+            db.session.add(MovimientoInventario(
                 articulo_id=mp.articulo_id,
                 tipo_mov_id=tipo_mov.id,
-                inv_id=INV_MP,
-                cantidad=Decimal(str(cant)),
+                inv_id=inv_id,
+                cantidad=cant,
                 unidad_id=mp.unidad_id,
                 signo=-1,
-                existencia=existencia_actual,
-            )
-            db.session.add(mov)
+                existencia=existencia_post,
+            ))
 
     db.session.commit()
     flash(f"Orden #{orden.id} generada correctamente.", "success")
     return redirect(url_for("explosion.detalle", id=encrypt_id(orden.id)))
 
 
-def _calcular_insumos(receta: Receta, cantidad: int, inv_id: int):
+# ══════════════════════════════════════════════════════
+# HELPER — Distribución de insumos entre varios almacenes
+# ══════════════════════════════════════════════════════
+def _calcular_insumos_multi(receta: Receta, cantidad: int, inv_ids: list):
     """
-    Retorna (faltantes: bool, insumos: list[dict])
-    donde cada insumo tiene: materia_prima, cantidad_neta,
-    stock_disponible, suficiente.
-    """
-    INV_MP   = inv_id or _inv_mp_default()
-    faltantes = False
-    insumos   = []
+    Para cada insumo de la receta, toma stock de los almacenes en el orden
+    dado hasta cubrir la cantidad requerida o agotar todos los almacenes.
 
-    factor = Decimal(str(cantidad)) / Decimal(str(receta.cantidad_base))
+    Devuelve:
+        faltantes (bool): True si algún insumo quedó sin cubrir.
+        tramos (list[dict]): cada entrada representa un descuento parcial o
+            total de un insumo en un almacén específico.
+            Claves: materia_prima, inv_id, cantidad, suficiente.
+    """
+    factor    = Decimal(str(cantidad)) / Decimal(str(receta.cantidad_base))
+    faltantes = False
+    tramos    = []
 
     for detalle in receta.detalles:
-        mp      = detalle.materia_prima
-        c_neta  = Decimal(str(detalle.cantidad_neta)) * factor
+        mp        = detalle.materia_prima
+        pendiente = Decimal(str(detalle.cantidad_neta)) * factor
 
-        # Stock disponible
-        stock = StockArticulo.query.filter_by(
-            articulo_id=mp.articulo_id, inv_id=INV_MP
-        ).first()
-        disponible = stock.cantidad if stock else Decimal("0")
-        suficiente = disponible >= c_neta
+        for inv_id in inv_ids:
+            if pendiente <= 0:
+                break
 
-        if not suficiente:
+            stock      = StockArticulo.query.filter_by(
+                articulo_id=mp.articulo_id, inv_id=inv_id
+            ).first()
+            disponible = stock.cantidad if stock else Decimal("0")
+            tomar      = min(disponible, pendiente)
+
+            if tomar > 0:
+                tramos.append({
+                    "materia_prima": mp,
+                    "inv_id":        inv_id,
+                    "cantidad":      round(tomar, 4),
+                    "suficiente":    True,
+                })
+                pendiente -= tomar
+
+        if pendiente > 0:
             faltantes = True
+            # Tramo con faltante — se asocia al primer almacén como referencia
+            tramos.append({
+                "materia_prima": mp,
+                "inv_id":        inv_ids[0],
+                "cantidad":      round(pendiente, 4),
+                "suficiente":    False,
+            })
 
-        insumos.append({
-            "materia_prima":      mp,
-            "cantidad_neta":      round(c_neta,  4),
-            "stock_disponible":   disponible,
-            "suficiente":         suficiente,
-            "faltante":           max(Decimal("0"), c_neta - disponible),
-        })
-
-    return faltantes, insumos
+    return faltantes, tramos
 
 
+# ══════════════════════════════════════════════════════
+# HELPER — Almacén de materia prima por defecto
+# ══════════════════════════════════════════════════════
 def _inv_mp_default():
-    """ID del almacén de Materia Prima (fallback al primero disponible)."""
     inv = Inventario.query.filter(
         Inventario.nombre.ilike("%materia%"), Inventario.activo == True
     ).first()
-    return inv.id if inv else 2   # fallback al id=2 del seed
+    return inv.id if inv else 2

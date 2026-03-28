@@ -243,12 +243,11 @@ def api_materias_primas():
                 "id":     mp.id,
                 "nombre": mp.nombre,
                 "unidad": mp.unidad.sigla if mp.unidad else "—",
-                "merma":  float(mp.porcentaje_merma or 0),
+                "merma":  0,  # ← Cambiado de porcentaje_merma a merma
             }
             for mp in materias
         ]
     })
-
 
 # ===========================================
 # API — Detalle de una receta (para editar)

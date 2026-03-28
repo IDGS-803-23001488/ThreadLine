@@ -18,3 +18,4 @@ uploads
 *.pyo
 *.pyd
 config_local
+config_local.py
