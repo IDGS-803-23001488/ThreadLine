@@ -416,14 +416,13 @@ def generar_pdf(id):
     # =========================================
     # 📊 TABLA DE INSUMOS
     # =========================================
-    data = [["Materia Prima", "Cantidad", "Unidad", "Merma %"]]
+    data = [["Materia Prima", "Cantidad", "Unidad"]]
 
     for d in receta.detalles:
         data.append([
             d.materia_prima.nombre,
             f"{float(d.cantidad_neta):,.2f}",
             d.materia_prima.unidad.sigla if d.materia_prima.unidad else "—",
-            f"{float(0):,.2f}",  # Merma fija en 0
         ])
 
     table = Table(data, colWidths=[

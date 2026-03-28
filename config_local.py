@@ -6,7 +6,7 @@ class Config(object):
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:Potrerodelasierra118@127.0.0.1:3306/threadline'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root@127.0.0.1:3306/threadline'
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
     MAIL_SERVER = "smtp.gmail.com"

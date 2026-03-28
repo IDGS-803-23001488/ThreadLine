@@ -3,10 +3,8 @@ import datetime
 from decimal import Decimal
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from database.mysql import (
-    db, OrdenProduccion, OrdenProduccionInsumo, Receta, RecetaDetalle,
-    ProductoVariante, Producto, Talla, MateriaPrima,
-    StockArticulo, Inventario, MovimientoInventario, TipoMovimiento,
-    MermaEncabezado, MermaDetalle, Articulo
+    db, OrdenProduccion, OrdenProduccionInsumo, Receta,
+    ProductoVariante, Producto, MovimientoInventario, TipoMovimiento
 )
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.crypto_url import encrypt_id
@@ -95,10 +93,8 @@ def detalle(id):
 def _procesar_orden():
     receta_id = request.form.get("receta_id", type=int)
     cantidad  = request.form.get("cantidad_solicitada", type=int)
-    # Múltiples almacenes enviados como inv_ids[] desde el formulario
     inv_ids   = request.form.getlist("inv_ids[]", type=int)
 
-    # — Validaciones básicas —
     if not receta_id or not cantidad or cantidad < 1:
         flash("Receta y cantidad son requeridas.", "error")
         return redirect(url_for("explosion.nueva"))
@@ -109,10 +105,8 @@ def _procesar_orden():
 
     receta = Receta.query.get_or_404(receta_id)
 
-    # — Calcular distribución de insumos entre almacenes —
     faltantes, tramos = _calcular_insumos_multi(receta, cantidad, inv_ids)
 
-    # No se permite forzar: stock insuficiente = rechazo total
     if faltantes:
         flash(
             "Inventario insuficiente para generar la orden. "
@@ -129,7 +123,7 @@ def _procesar_orden():
         estatus="pendiente",
     )
     db.session.add(orden)
-    db.session.flush()  # necesitamos orden.id
+    db.session.flush()
 
     tipo_mov = TipoMovimiento.query.filter_by(tipo="Salida producción").first()
 
@@ -138,7 +132,6 @@ def _procesar_orden():
         inv_id = tramo["inv_id"]
         cant   = Decimal(str(tramo["cantidad"]))
 
-        # 1. Guardar insumo asignado a la orden (para uso futuro en captura)
         db.session.add(OrdenProduccionInsumo(
             orden_id=orden.id,
             materia_prima_id=mp.id,
@@ -148,7 +141,6 @@ def _procesar_orden():
             creado_por=g.usuario_actual.id,
         ))
 
-        # 2. Descontar del stock
         stock = StockArticulo.query.filter_by(
             articulo_id=mp.articulo_id, inv_id=inv_id
         ).first()
@@ -157,7 +149,6 @@ def _procesar_orden():
             stock.cantidad        = max(Decimal("0"), stock.cantidad - cant)
             stock.actualizado_por = g.usuario_actual.id
 
-        # 3. Registrar movimiento de inventario
         if tipo_mov and mp.articulo_id:
             existencia_post = stock.cantidad if stock else Decimal("0")
             db.session.add(MovimientoInventario(
@@ -174,21 +165,7 @@ def _procesar_orden():
     flash(f"Orden #{orden.id} generada correctamente.", "success")
     return redirect(url_for("explosion.detalle", id=encrypt_id(orden.id)))
 
-
-# ══════════════════════════════════════════════════════
-# HELPER — Distribución de insumos entre varios almacenes
-# ══════════════════════════════════════════════════════
 def _calcular_insumos_multi(receta: Receta, cantidad: int, inv_ids: list):
-    """
-    Para cada insumo de la receta, toma stock de los almacenes en el orden
-    dado hasta cubrir la cantidad requerida o agotar todos los almacenes.
-
-    Devuelve:
-        faltantes (bool): True si algún insumo quedó sin cubrir.
-        tramos (list[dict]): cada entrada representa un descuento parcial o
-            total de un insumo en un almacén específico.
-            Claves: materia_prima, inv_id, cantidad, suficiente.
-    """
     factor    = Decimal(str(cantidad)) / Decimal(str(receta.cantidad_base))
     faltantes = False
     tramos    = []
@@ -227,13 +204,3 @@ def _calcular_insumos_multi(receta: Receta, cantidad: int, inv_ids: list):
             })
 
     return faltantes, tramos
-
-
-# ══════════════════════════════════════════════════════
-# HELPER — Almacén de materia prima por defecto
-# ══════════════════════════════════════════════════════
-def _inv_mp_default():
-    inv = Inventario.query.filter(
-        Inventario.nombre.ilike("%materia%"), Inventario.activo == True
-    ).first()
-    return inv.id if inv else 2
