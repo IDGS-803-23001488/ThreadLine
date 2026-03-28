@@ -119,7 +119,7 @@ def lista():
     #TRANSFORMACIÓN PARA MACRO
     rows = [
         [
-            ("id", p.producto.id),
+            ("id", p.id),
             ("producto", p.producto.nombre),
             ("talla", p.talla.nombre),
             ("color", p.producto.color.nombre if p.producto.color else "—"),
@@ -412,21 +412,14 @@ def editar(id):
 @login_requerido
 @permiso_requerido("productosVariantes","eliminar")
 def eliminar(id):
-    producto = Producto.query.filter_by(id=id, activo=True).first_or_404()
+    variante = ProductoVariante.query.filter_by(id=id, activo=True).first_or_404()
 
-    # Soft delete producto
-    producto.activo = False
-    producto.fecha_eliminacion = datetime.datetime.utcnow()
-    producto.eliminado_por = g.usuario_actual.id
-
-    # Soft delete de TODAS sus variantes
-    for variante in producto.variantes:  # relación ORM
-        if variante.activo:
-            variante.activo = False
-            variante.fecha_eliminacion = datetime.datetime.utcnow()
-            variante.eliminado_por = g.usuario_actual.id
+    # Soft delete variante
+    variante.activo = False
+    variante.fecha_eliminacion = datetime.datetime.utcnow()
+    variante.eliminado_por = g.usuario_actual.id
 
     db.session.commit()
 
-    flash("Producto eliminado correctamente")
+    flash("Variante eliminada correctamente")
     return redirect(url_for("productosVariantes.lista"))

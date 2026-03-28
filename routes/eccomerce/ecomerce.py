@@ -1,22 +1,61 @@
 # routes/ecomerce.py
 import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
-from database.mysql import db, Usuario, Rol
+from database.mysql import db, Usuario, Rol, Producto, ProductoVariante
 from forms import UserForm
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.excel_export import exportar_excel
-
+from sqlalchemy import func
 ecomerce = Blueprint("ecomerce", __name__, url_prefix="/ecomerce")
 
 # ==============================
 # LISTA 
 # ==============================
+
 @ecomerce.route("/")
 @login_requerido
 @permiso_requerido("ecomerce", "ver")
 def lista():
-    return render_template("ecomerce/index.html")
 
+    # 🔥 Productos populares (puedes cambiar lógica después)
+    productos_populares = (
+        db.session.query(
+            Producto,
+            func.min(ProductoVariante.precio_venta).label("precio_min")
+        )
+        .join(ProductoVariante, Producto.id == ProductoVariante.producto_id)
+        .filter(
+            Producto.activo.is_(True),
+            ProductoVariante.activo.is_(True)
+        )
+        .group_by(Producto.id)
+        .order_by(func.min(ProductoVariante.precio_venta))  # opcional
+        .limit(4)
+        .all()
+    )
+
+    # 🆕 Productos recientes
+    productos_recientes = (
+        db.session.query(
+            Producto,
+            func.min(ProductoVariante.precio_venta).label("precio_min")
+        )
+        .join(ProductoVariante, Producto.id == ProductoVariante.producto_id)
+        .filter(
+            Producto.activo.is_(True),
+            ProductoVariante.activo.is_(True)
+        )
+        .group_by(Producto.id)
+        .order_by(Producto.fecha_creacion.desc())
+        .limit(4)
+        .all()
+    )
+
+    return render_template(
+        "ecomerce/index.html",
+        productos_populares=productos_populares,
+        productos_recientes=productos_recientes
+    )
 
 @ecomerce.route("/shop")
 @login_requerido

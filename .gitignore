@@ -19,3 +19,4 @@ uploads
 *.pyo
 *.pyd
 config_local
+static/dist/output.css 

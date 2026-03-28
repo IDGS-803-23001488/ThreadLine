@@ -208,7 +208,9 @@ def seed_data():
             "recetas": ["ver", "crear", "editar", "eliminar", "exportar"],
             "materia_prima": ["ver", "crear", "editar", "eliminar", "exportar"],
             "explosion": ["ver", "crear"],    
-            "productosVariantes": ["ver","crear", "editar", "eliminar"]
+            "productosVariantes": ["ver","crear", "editar", "eliminar"],
+            "ecomerce": ["ver","crear", "editar", "eliminar"]
+
         }
 
         permisos_db = []

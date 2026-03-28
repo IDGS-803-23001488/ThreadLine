@@ -11,19 +11,30 @@
                 <div class="swiper-slide">
                     <img src="{{ url_for('static', filename='images/main-slider/5.jpg') }}" alt="Product 1">
                     <div class="swiper-slide-content">
-                      <h2 class="text-3xl md:text-7xl font-bold text-white mb-2 md:mb-4">Women</h2>
+                      <!-- <h2 class="text-3xl md:text-7xl font-bold text-white mb-2 md:mb-4">Mujer</h2>
                       <p class="mb-4 text-white md:text-2xl">Experience the best in sportswear with <br>our latest collection.</p>
                         <a href="/"
                             class="bg-primary hover:bg-transparent text-white hover:text-white border border-transparent hover:border-white font-semibold px-4 py-2 rounded-full inline-block">Shop
-                            now</a>
+                            now</a> -->
+                            <h2 class="text-3xl md:text-7xl font-bold text-white mb-4">
+                                Entrena fuerte. Cuida el planeta 🌎
+                            </h2>
+
+                            <p class="mb-4 text-white md:text-2xl">
+                                Ropa deportiva hecha con botellas recicladas.
+                            </p>
+
+                            <a href="{{ url_for('ecomerce.shop') }}" class="bg-primary px-6 py-3 rounded-full font-semibold">
+                                Comprar ahora
+                            </a>
                     </div>
                 </div>
                 <!-- Slide 2 -->
                 <div class="swiper-slide">
                     <img src="{{ url_for('static', filename='images/main-slider/2.png') }}" alt="Product 2">
                     <div class="swiper-slide-content">
-                      <h2 class="text-3xl md:text-7xl font-bold text-white mb-2 md:mb-4">Men</h2>
-                      <p class="mb-4 text-white md:text-2xl">Discover the latest trends in Men`s <br>sportswear and casual fashion.</p>
+                      <h2 class="text-3xl md:text-7xl font-bold text-white mb-2 md:mb-4">Hombre</h2>
+                      <p class="mb-4 text-white md:text-2xl">Discover the latest trends in Hombres <br>sportswear and casual fashion.</p>
                         <a href="/"
                             class="bg-white hover:bg-transparent text-black hover:text-white font-semibold px-4 py-2 rounded-full inline-block border border-transparent hover:border-white">Shop
                             now</a>
@@ -51,14 +62,14 @@
     <section id="product-banners">
         <div class="container mx-auto py-10">
             <div class="flex flex-wrap -mx-4">
-                <!-- Category 1 -->
+             
                 <div class="w-full sm:w-1/3 px-4 mb-8">
                     <div class="category-banner relative overflow-hidden rounded-lg shadow-lg group">
                         <img src="{{ url_for('static', filename='images/cat-image1.jpg') }}" alt="Category 1" class="w-full h-auto">
                         <div class="absolute inset-0 bg-gray-light bg-opacity-50"></div>
                         <div
                             class="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4">
-                            <h2 class="text-2xl md:text-3xl font-bold mb-4">Men</h2>
+                            <h2 class="text-2xl md:text-3xl font-bold mb-4">Hombre</h2>
                             <a href="{{url_for('ecomerce.shop')}}"
                                 class="bg-primary hover:bg-transparent border border-transparent hover:border-white text-white hover:text-white font-semibold px-4 py-2 rounded-full inline-block">Shop
                                 now</a>
@@ -70,13 +81,13 @@
                     <div class="category-banner relative overflow-hidden rounded-lg shadow-lg group">
                         <img src="{{ url_for('static', filename='images/cat-image4.jpg') }}" alt="Category 2" class="w-full h-auto">
                         <div class="absolute inset-0 bg-gray-light bg-opacity-50"></div>
-                        <div
-                            class="category-text absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4 transition duration-300">
-                            <h2 class="text-2xl md:text-3xl font-bold mb-4">Women</h2>
+                        <div class="category-text absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4 transition duration-300">
+                            <h2 class="text-2xl md:text-3xl font-bold mb-4">Mujer</h2>
                             <a href="/"
                                 class="bg-primary hover:bg-transparent border border-transparent hover:border-white text-white hover:text-white font-semibold px-4 py-2 rounded-full inline-block">Shop
                                 now</a>
-                        </div>
+                           
+                    </div>
                     </div>
                 </div>
                 <!-- Category 3 -->
@@ -102,57 +113,54 @@
         <div class="container mx-auto px-4">
             <h2 class="text-2xl font-bold mb-8">Popular products</h2>
             <div class="flex flex-wrap -mx-4">
-                <!-- Product 1 -->
+                
+                <!-- {% for producto in productos_populares %}
                 <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-                  <div class="bg-white p-3 rounded-lg shadow-lg">
-                    <img src="{{ url_for('static', filename='images/products/1.jpg') }}" alt="Product 1" class="w-full object-cover mb-4 rounded-lg">
-                    <a href="#" class="text-lg font-semibold mb-2">Summer black dress</a>
-                    <p class="my-2">Women</p>
+                <div class="bg-white p-3 rounded-lg shadow-lg">
+
+                        <img src="{{ url_for('static', filename=producto.imagen if producto.imagen else 'images/default.png') }}">
+
+                        class="w-full object-cover mb-4 rounded-lg">
+
+                    <h3 class="text-lg font-semibold">{{ producto.nombre }}</h3>
+
+                    <p class="text-sm text-green-600">♻️ Sustentable</p>
+
                     <div class="flex items-center mb-4">
-                      <span class="text-lg font-bold text-primary">$19.99</span>
-                      <span class="text-sm line-through ml-2">$24.99</span>
+                    <span class="text-lg font-bold text-primary">
+                        ${{ producto.precio }}
+                    </span>
                     </div>
-                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Add to Cart</button>
-                  </div>
+
+                    <a href="{{ url_for('ecomerce.product', id=producto.id) }}"
+                    class="block text-center bg-primary text-white py-2 rounded-full">
+                    Ver producto
+                    </a>
+
                 </div>
-                <!-- Product 2 -->
-                <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-                  <div class="bg-white p-3 rounded-lg shadow-lg">
-                    <img src="{{ url_for('static', filename='images/products/2.jpg') }}" alt="Product 2" class="w-full object-cover mb-4 rounded-lg">
-                    <a href="#" class="text-lg font-semibold mb-2">Black suit</a>
-                    <p class=" my-2">Women</p>
-                    <div class="flex items-center mb-4">
-                      <span class="text-lg font-bold text-gray-900">$29.99</span>
+                </div>
+                {% endfor %} -->
+                {% for producto, precio in productos_populares %}
+                    <div class="product-card">
+
+
+                        <img src="{{ url_for('static', filename=producto.imagen if producto.imagen else 'images/default.png') }}">
+                        <h3>{{ producto.nombre }}</h3>
+
+                        <p class="text-green-600 text-sm">
+                            ♻️ Sustentable
+                        </p>
+
+                        <p class="text-lg font-bold text-primary">
+                            Desde ${{ precio }}
+                        </p>
+
+                        <a href="{{ url_for('ecomerce.product', id=producto.id) }}">
+                            Ver producto
+                        </a>
+
                     </div>
-                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Add to Cart</button>
-                  </div>
-                </div>
-                <!-- Product 3 -->
-                <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-                  <div class="bg-white p-3 rounded-lg shadow-lg">
-                    <img src="{{ url_for('static', filename='images/products/3.jpg') }}" alt="Product 3" class="w-full object-cover mb-4 rounded-lg">
-                    <a href="#" class="text-lg font-semibold mb-2">Black long dress</a>
-                    <p class=" my-2">Women, Accessories</p>
-                    <div class="flex items-center mb-4">
-                      <span class="text-lg font-bold text-gray-900">$15.99</span>
-                      <span class="text-sm line-through  ml-2">$19.99</span>
-                    </div>
-                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Add to Cart</button>
-                  </div>
-                </div>
-                <!-- Product 4 -->
-                <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-                  <div class="bg-white p-3 rounded-lg shadow-lg">
-                    <img src="{{ url_for('static', filename='images/products/4.jpg') }}" alt="Product 4" class="w-full object-cover mb-4 rounded-lg">
-                    <a href="#" class="text-lg font-semibold">Black leather jacket</a>
-                    <p class="my-2">Women</p>
-                    <div class="flex items-center mb-4">
-                        <span class="text-lg font-bold text-primary">$39.99</span>
-                        <span class="text-sm line-through ml-2">$49.99</span>
-                    </div>
-                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Add to Cart</button>
-                  </div>
-                </div>
+                {% endfor %}
               </div>
         </div>
     </section>
@@ -166,13 +174,13 @@
                 <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
                   <div class="bg-white p-3 rounded-lg shadow-lg">
                     <img src="{{ url_for('static', filename='images/products/5.jpg') }}" alt="Product 1" class="w-full object-cover mb-4 rounded-lg">
-                    <a href="#" class="text-lg font-semibold mb-2">Blue women's suit</a>
-                    <p class=" my-2">Women</p>
+                    <a href="#" class="text-lg font-semibold mb-2">Blue Mujer's suit</a>
+                    <p class=" my-2">Mujer</p>
                     <div class="flex items-center mb-4">
                       <span class="text-lg font-bold text-primary">$19.99</span>
                       <span class="text-sm line-through ml-2">$24.99</span>
                     </div>
-                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Add to Cart</button>
+                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Agregar al carrito</button>
                   </div>
                 </div>
                 <!-- Product 2 -->
@@ -180,24 +188,24 @@
                   <div class="bg-white p-3 rounded-lg shadow-lg">
                     <img src="{{ url_for('static', filename='images/products/6.jpg') }}" alt="Product 2" class="w-full object-cover mb-4 rounded-lg">
                     <a href="#" class="text-lg font-semibold mb-2">White shirt with long sleeves</a>
-                    <p class=" my-2">Women</p>
+                    <p class=" my-2">Mujer</p>
                     <div class="flex items-center mb-4">
                       <span class="text-lg font-bold text-gray-900">$29.99</span>
                     </div>
-                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Add to Cart</button>
+                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Agregar al carrito</button>
                   </div>
                 </div>
                 <!-- Product 3 -->
                 <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
                   <div class="bg-white p-3 rounded-lg shadow-lg">
                     <img src="{{ url_for('static', filename='images/products/7.jpg') }}" alt="Product 3" class="w-full object-cover mb-4 rounded-lg">
-                    <a href="#" class="text-lg font-semibold mb-2">Yellow men's suit</a>
-                    <p class="my-2">Men</p>
+                    <a href="#" class="text-lg font-semibold mb-2">Yellow Hombre's suit</a>
+                    <p class="my-2">Hombre</p>
                     <div class="flex items-center mb-4">
                       <span class="text-lg font-bold text-gray-900">$15.99</span>
                       <span class="text-sm line-through  ml-2">$19.99</span>
                     </div>
-                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Add to Cart</button>
+                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Agregar al carrito</button>
                   </div>
                 </div>
                 <!-- Product 4 -->
@@ -205,65 +213,42 @@
                   <div class="bg-white p-3 rounded-lg shadow-lg">
                     <img src="{{ url_for('static', filename='images/products/8.jpg') }}" alt="Product 4" class="w-full object-cover mb-4 rounded-lg">
                     <a href="#" class="text-lg font-semibold mb-2">Red dress</a>
-                    <p class="my-2">Women</p>
+                    <p class="my-2">Mujer</p>
                     <div class="flex items-center mb-4">
                         <span class="text-lg font-bold text-primary">$39.99</span>
                         <span class="text-sm line-through ml-2">$49.99</span>
                     </div>
-                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Add to Cart</button>
+                    <button class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">Agregar al carrito</button>
                   </div>
                 </div>
               </div>
         </div>
     </section>
 
-    <!-- Brand section -->
-    <section id="brands" class="bg-white py-16 px-4">
-        <div class="container mx-auto max-w-screen-xl px-4 testimonials">
-          <div class="text-center mb-12 lg:mb-20">
-            <h2 class="text-5xl font-bold mb-4">Discover <span class="text-primary">Our Brands</span></h2>
-            <p class="my-7">Explore the top brands we feature in our store</p>
-        </div>
-            <div class="swiper brands-swiper-slider">
-                <div class="swiper-wrapper">
-                    <!-- Brand Logo 1 -->
-                    <div class="swiper-slide flex-none bg-gray-200 flex items-center justify-center rounded-md">
-                        <img src="{{ url_for('static', filename='images/brands/html.svg') }}" alt="Client Logo" class="max-h-full max-w-full">
-                    </div>
+    <!-- Sección de impacto -->
+    <section class="py-12 bg-green-50">
+        <div class="container mx-auto text-center">
 
-                    <!-- Brand Logo 2 -->
-                    <div class="swiper-slide flex-none bg-gray-200 flex items-center justify-center rounded-md">
-                        <img src="{{ url_for('static', filename='images/brands/js.svg') }}" alt="Client Logo" class="max-h-full max-w-full">
-                    </div>
+            <h2 class="text-3xl font-bold mb-4">
+                Moda que impacta positivaHombrete 🌱
+            </h2>
 
-                    <!-- Brand Logo 3 -->
-                    <div class="swiper-slide flex-none bg-gray-200 flex items-center justify-center rounded-md">
-                        <img src="{{ url_for('static', filename='images/brands/laravel.svg') }}" alt="Client Logo" class="max-h-full max-w-full">
-                    </div>
+            <p class="mb-6">
+                Cada prenda está hecha con materiales reciclados.
+            </p>
 
-                    <!-- Brand Logo 4 -->
-                    <div class="swiper-slide flex-none bg-gray-200 flex items-center justify-center rounded-md">
-                        <img src="{{ url_for('static', filename='images/brands/php.svg') }}" alt="Client Logo" class="max-h-full max-w-full">
-                    </div>
-
-                    <!-- Brand Logo 5 -->
-                    <div class="swiper-slide flex-none bg-gray-200 flex items-center justify-center rounded-md">
-                        <img src="{{ url_for('static', filename='images/brands/react.svg') }}" alt="Client Logo" class="max-h-full max-w-full">
-                    </div>
-
-                    <!-- Brand Logo 6 -->
-                    <div class="swiper-slide flex-none bg-gray-200 flex items-center justify-center rounded-md">
-                        <img src="{{ url_for('static', filename='images/brands/tailwind.svg') }}" alt="Client Logo" class="max-h-full max-w-full">
-                    </div>
-
-                    <!-- Brand Logo 7 -->
-                    <div class="swiper-slide flex-none bg-gray-200 flex items-center justify-center rounded-md">
-                      <img src="{{ url_for('static', filename='images/brands/typescript.svg') }}" alt="Client Logo" class="max-h-full max-w-full">
-                    </div>
+            <div class="flex justify-center gap-10">
+                <div>
+                    <h3 class="text-2xl font-bold text-primary">+500</h3>
+                    <p>Botellas recicladas</p>
                 </div>
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
+                <div>
+                    <h3 class="text-2xl font-bold text-primary">100%</h3>
+                    <p>Sustentable</p>
+                </div>
             </div>
+
+        </div>
     </section>
 
     <!-- Banner section -->
