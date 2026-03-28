@@ -4,7 +4,7 @@ from decimal import Decimal
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from database.mysql import (
     db, OrdenProduccion, OrdenProduccionInsumo, Receta,
-    ProductoVariante, Producto, MovimientoInventario, TipoMovimiento
+    ProductoVariante, Producto, MovimientoInventario, TipoMovimiento, StockArticulo
 )
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.crypto_url import encrypt_id

@@ -1,8 +1,21 @@
 <!-- templates/layout.html -->
 {% from "macros/sidebar.html" import panel_section, panel_item %}
-{% from "macros/utiles.html" import svg_home, svg_user, svg_roles, svg_unidad, svg_empaque,
-    svg_proveedor, svg_clientes, svg_talla, svg_categorias, svg_inventario, svg_color, svg_produccion, svg_insumos,svg_merma,svg_producto %}
-
+{% from "macros/utiles.html" import 
+    svg_home,
+    svg_user,
+    svg_roles,
+    svg_unidad,
+    svg_empaque,
+    svg_proveedor,
+    svg_clientes,
+    svg_talla,
+    svg_categorias,
+    svg_inventario,
+    svg_color,
+    svg_produccion,
+    svg_merma,
+    svg_producto
+%}
 
 <!DOCTYPE html>
 <html lang="es" class="h-full">
@@ -12,38 +25,44 @@
     <title>{{ titulo if titulo else "Panel de Administración" }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='imagenes/logo.png') }}" type="image/x-icon">
-    <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
     <script src="{{ url_for('static', filename='src/script.js') }}"></script>
-
     <style>
+        /* ═══════════════════════════════════════
+           PALETA DE COLORES — editar aquí
+        ═══════════════════════════════════════ */
         :root {
-            --color-primary:        #447604;
-            --color-primary-hover:  #2B6C1F;   /* más oscuro */
-            --color-primary-light:  #e6f4f4;   /* más claro */
+            /* Colores principales */
+            --color-primary:        #0c7779;  /* indigo — botón activo, acentos */
+            --color-primary-hover:  #7FB82E;  /* indigo oscuro — hover en primario */
+            --color-primary-light:  #eef2ff;  /* indigo muy suave — fondos activos */
 
-            --color-secondary:        #6b7280;
-            --color-secondary-hover:  #4b5563; /* gris más oscuro */
-            --color-secondary-light:  #f3f4f6; /* gris muy claro */
+            /* Secundario */
+            --color-secondary:      #0c7779;  /* rose — logo, alertas, acciones críticas */
+            --color-secondary-hover: #61dbd1 ;  /* rose oscuro */
 
-            --color-tertiary:        #0ea5e9;
-            --color-tertiary-hover:  #0284c7;  /* más oscuro */
-            --color-tertiary-light:  #e0f2fe;  /* más claro */
+            /* Terciario */
+            --color-tertiary:       #0ea5e9;  /* sky — avatar, badges informativos */
+            --color-tertiary-hover: #9DD54F;  /* sky oscuro */
 
-            --color-bg:             #f9fafb;
-            --color-surface:        #ffffff;
-            --color-border:         #f3f4f6;
-            --color-text:           #1f2937;
-            --color-text-muted:     #9ca3af;
-            --color-text-label:     #6b7280;
+            /* Neutros UI */
+            --color-bg:             #f9fafb;  /* fondo general */
+            --color-surface:        #ffffff;  /* tarjetas, sidebar, header */
+            --color-border:         #f3f4f6;  /* bordes suaves */
+            --color-text:           #1f2937;  /* texto principal */
+            --color-text-muted:     #9ca3af;  /* íconos y labels inactivos */
+            --color-text-label:     #6b7280;  /* labels secundarios */
 
-            --color-rail-hover:     var(--color-primary-hover);
+            /* Rail hover */
+            --color-rail-hover:     #f3f4f6;
         }
 
+        /* ── Rail ── */
         .rail-btn { transition: background .15s; border-radius: 12px; }
         .rail-btn:hover { background: var(--color-rail-hover); }
-        .rail-btn.activo { background: #fff; }
-        .rail-btn.activo svg { color: var(--color-primary) !important; }
+        .rail-btn.activo { background: var(--color-primary); }
+        .rail-btn.activo svg { color: #fff !important; }
 
+        /* ── Panel expandible ── */
         #sidePanel {
             width: 0;
             min-width: 0;
@@ -54,9 +73,11 @@
         }
         #sidePanel.open { width: 18vw; min-width: 200px; }
 
+        /* ── Secciones ── */
         .seccion { display: none; }
         .seccion.visible { display: flex; flex-direction: column; gap: 2px; }
 
+        /* ── Aplicar variables a elementos base ── */
         body { background: var(--color-bg); }
         nav, #sidePanel, header { background: var(--color-surface); }
         nav, #sidePanel { border-color: var(--color-border); }
@@ -71,21 +92,24 @@
     ════════════════════════════════ #}
     <nav class="flex flex-col items-center justify-between flex-shrink-0
                 w-[4.5vw] min-w-[56px] bg-white border-r border-gray-100 shadow-sm
-                py-5 px-1 z-20"
-        style="background-color:var(--color-primary)">
+                py-5 px-1 z-20">
 
+        {# TOP: hamburger + botones de sección #}
         <div class="flex flex-col items-center gap-1">
+
+            {# Hamburger #}
             <button onclick="toggleHamburger()"
                     class="w-10 h-10 flex flex-col justify-center items-center gap-1.5
-                        rounded-xl hover:bg-white transition-colors mb-1">
-                <span class="w-5 h-0.5 bg-white rounded block"></span>
-                <span class="w-5 h-0.5 bg-white rounded block"></span>
-                <span class="w-5 h-0.5 bg-white rounded block"></span>
+                           rounded-xl hover:bg-gray-100 transition-colors mb-1">
+                <span class="w-5 h-0.5 bg-gray-500 rounded block"></span>
+                <span class="w-5 h-0.5 bg-gray-500 rounded block"></span>
+                <span class="w-5 h-0.5 bg-gray-500 rounded block"></span>
             </button>
 
-            <button onclick="window.location.href = '{{url_for('main.index')}}'"
-                    class="w-10 h-10 flex flex-col justify-center items-center gap-1.5
-                           rounded-xl hover:bg-gray-100 transition-colors mb-1">
+            {# General #}
+            <button onclick="railClick('general')" data-key="general"
+                    class="rail-btn w-11 h-11 flex items-center justify-center
+                           {% if request.endpoint == 'main.index' %}activo{% endif %}">
                 <svg class="w-5 h-5 {% if request.endpoint == 'main.index' %}text-white{% else %}text-gray-400{% endif %}"
                      fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
@@ -130,10 +154,7 @@
             <div class="w-7 h-px bg-gray-100 my-1"></div>
 
             {# Producción #}
-            {% set prod_activo = request.endpoint and (
-                request.endpoint.startswith('recetas.') or
-                request.endpoint.startswith('produccion.')
-            ) %}
+            {% set prod_activo = request.endpoint and request.endpoint.startswith('recetas.') %}
             <button onclick="railClick('produccion')" data-key="produccion"
                     class="rail-btn w-11 h-11 flex items-center justify-center
                            {% if prod_activo %}activo{% endif %}">
@@ -158,7 +179,7 @@
     {# ════════════════════════════════
        PANEL EXPANDIBLE
     ════════════════════════════════ #}
-    <div id="sidePanel" class="flex flex-col bg-gray-800 text-white border-r border-gray-700 z-10 open">
+    <div id="sidePanel" class="flex flex-col bg-white border-r border-gray-100 z-10">
 
         {# Logo #}
         <div class="px-5 pt-5 pb-3 flex-shrink-0">
@@ -206,7 +227,7 @@
                     request.endpoint and request.endpoint.startswith('talla.')) }}
                 {{ panel_item(url_for('cliente.lista'),    svg_clientes(),   "Clientes",
                     request.endpoint and request.endpoint.startswith('cliente.')) }}
-                {{ panel_item(url_for('materia_prima.lista'),    svg_insumos(),   "Materia Prima",
+                {{ panel_item(url_for('materia_prima.lista'),    svg_clientes(),   "Materia Prima",
                     request.endpoint and request.endpoint.startswith('materia_prima.')) }}
             </div>
 
@@ -215,8 +236,8 @@
                     request.endpoint and request.endpoint.startswith('recetas.')) }}
                 {{ panel_item(url_for('explosion.lista'), svg_produccion(), "Explosión de Producción",
                     request.endpoint and request.endpoint.startswith('explosion.')) }}
-                {{ panel_item(url_for('explosion.lista'), svg_merma(), "Explosión de Producción",
-                    request.endpoint and request.endpoint.startswith('explosion.')) }}
+                {{ panel_item(url_for('mermas.lista'), svg_merma(), "Administrar Mermas",
+                    request.endpoint and request.endpoint.startswith('mermas.')) }}
             </div>
 
         </div>
@@ -239,7 +260,7 @@
                         text-white flex items-center justify-center
                         rounded-xl font-semibold text-sm shadow-sm cursor-pointer"
                         style="color:var(--color-primary)">
-                {% if g.usuario_actual %}{{ g.usuario_actual.usuario[:2].upper() }}{% endif %}
+                {{ g.usuario_actual.usuario[:2].upper() }}
             </div>
         </header>
 

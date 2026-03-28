@@ -157,7 +157,7 @@
 </form>
 
 
-{# ── MODAL buscador de recetas ── #}
+{# ── MODAL buscador de recetas (con búsqueda dinámica y paginación) ── #}
 <div id="modalRecetas"
      class="fixed inset-0 z-50 hidden items-center justify-center p-4"
      style="background:rgba(0,0,0,.45)">
@@ -215,6 +215,19 @@ let almacenesSeleccionados  = [];  // [id, ...] en orden de prioridad
 // ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     await cargarInventarios();
+    
+    // Configurar modal de recetas
+    const modalRecetas = document.getElementById('modalRecetas');
+    modalRecetas.addEventListener('click', e => {
+        if (e.target === modalRecetas) cerrarModal('modalRecetas');
+    });
+    
+    // Cerrar con tecla ESC
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            cerrarModal('modalRecetas');
+        }
+    });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -250,7 +263,7 @@ function renderAlmacenes() {
             ${sel ? `<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
             </svg>` : ''}
-            ${inv.nombre}
+            ${escapeHtml(inv.nombre)}
         </button>`;
     }).join('');
 
@@ -281,14 +294,20 @@ function sincronizarInputsAlmacen() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MODAL de recetas
+// MODAL de recetas - Búsqueda dinámica con debounce y paginación
 // ─────────────────────────────────────────────────────────────────────────────
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') cerrarModal('modalRecetas');
-});
-document.getElementById('modalRecetas').addEventListener('click', e => {
-    if (e.target === document.getElementById('modalRecetas')) cerrarModal('modalRecetas');
-});
+// Sobrescribir abrirModal para recetas: cargar resultados al abrir
+const _abrirModalOrig = window.abrirModal;
+window.abrirModal = function(idModal) {
+    if (_abrirModalOrig) _abrirModalOrig(idModal);
+    if (idModal === 'modalRecetas') {
+        modalPage = 1;
+        modalQ = '';
+        document.getElementById('modalSearch').value = '';
+        fetchRecetas();
+        setTimeout(() => document.getElementById('modalSearch').focus(), 60);
+    }
+};
 
 function buscarRecetas() {
     clearTimeout(searchTimer);
@@ -298,7 +317,11 @@ function buscarRecetas() {
         fetchRecetas();
     }, 280);
 }
-function cambiarPagina(dir) { modalPage += dir; fetchRecetas(); }
+
+function cambiarPagina(dir) {
+    modalPage += dir;
+    fetchRecetas();
+}
 
 async function fetchRecetas() {
     const lista = document.getElementById('modalLista');
@@ -316,19 +339,21 @@ async function fetchRecetas() {
 
 function renderModal(json) {
     const lista = document.getElementById('modalLista');
+    
     if (!json.data.length) {
         lista.innerHTML = `<div class="flex flex-col items-center justify-center py-10 gap-2 text-gray-300">
-            <p class="text-sm">Sin resultados</p></div>`;
+            <p class="text-sm">Sin resultados</p>
+        </div>`;
     } else {
         lista.innerHTML = json.data.map(r => `
-            <button type="button" onclick='seleccionarReceta(${JSON.stringify(r)})'
+            <button type="button" onclick='seleccionarReceta(${JSON.stringify(r).replace(/'/g, "&#39;")})'
                     class="w-full flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50 transition text-left group">
                 <span class="w-4 h-4 rounded-full border-2 border-white shadow flex-shrink-0"
                       style="background:${r.color_hex || '#e5e7eb'}"></span>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-gray-800 truncate">${r.producto}</p>
+                    <p class="text-sm font-medium text-gray-800 truncate">${escapeHtml(r.producto)}</p>
                     <p class="text-xs text-gray-400">
-                        ${r.color || 'Sin color'} · Talla ${r.talla}
+                        ${escapeHtml(r.color || 'Sin color')} · Talla ${escapeHtml(r.talla)}
                         · <strong>${r.insumos}</strong> insumo(s)
                     </p>
                 </div>
@@ -340,9 +365,10 @@ function renderModal(json) {
             </button>
         `).join('');
     }
+    
     document.getElementById('btnPrev').disabled = !json.has_prev;
     document.getElementById('btnNext').disabled = !json.has_next;
-    document.getElementById('modalPagLabel').textContent =
+    document.getElementById('modalPagLabel').textContent = 
         `Pág. ${json.page} / ${json.pages} · ${json.total} resultado(s)`;
 }
 
@@ -406,18 +432,18 @@ function renderExplosion(json) {
         tr.className = `border-b border-gray-50 ${ok ? '' : 'bg-red-50/40'}`;
 
         const detalleAlm = (ins.almacenes || [])
-            .map(a => `${a.nombre_inv}: ${a.disponible.toFixed(4)}`)
+            .map(a => `${escapeHtml(a.nombre_inv)}: ${a.disponible.toFixed(4)}`)
             .join(' &nbsp;|&nbsp; ');
 
         tr.innerHTML = `
             <td class="px-5 py-3">
-                <p class="text-sm font-medium text-gray-800">${ins.nombre}</p>
+                <p class="text-sm font-medium text-gray-800">${escapeHtml(ins.nombre)}</p>
                 ${detalleAlm ? `<p class="text-[11px] text-gray-400 mt-0.5">${detalleAlm}</p>` : ''}
             </td>
             <td class="px-5 py-3 text-right">
                 <span class="text-sm font-medium text-gray-600">
                     ${ins.cantidad_neta.toFixed(4)}
-                    <span class="text-xs text-gray-400 ml-1">${ins.unidad}</span>
+                    <span class="text-xs text-gray-400 ml-1">${escapeHtml(ins.unidad)}</span>
                 </span>
             </td>
             <td class="px-5 py-3 text-right">
@@ -438,10 +464,10 @@ function renderExplosion(json) {
                            </svg>Falta
                        </span>`
                 }
-            </td>
+             </td>
             <td class="px-5 py-3 text-right text-sm ${ok ? 'text-gray-300' : 'text-red-600 font-semibold'}">
-                ${ok ? '—' : ins.faltante.toFixed(4) + ' ' + ins.unidad}
-            </td>
+                ${ok ? '—' : ins.faltante.toFixed(4) + ' ' + escapeHtml(ins.unidad)}
+             </td>
         `;
         tbody.appendChild(tr);
     });
@@ -489,6 +515,35 @@ document.getElementById('formOrden').addEventListener('submit', e => {
     }
     sincronizarInputsAlmacen();
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILIDADES
+// ─────────────────────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// Función auxiliar para fetch con manejo de errores
+async function apiFetch(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Error en la petición');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        alert(error.message || 'Error al cargar los datos');
+        return null;
+    }
+}
 </script>
 
 {% endblock %}

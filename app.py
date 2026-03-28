@@ -29,6 +29,7 @@ from routes.productosVariantes import productosVariantes , apiProductosVariantes
 from routes.materiaPrima import materia_prima
 from routes.explosion_materiales.explosion import explosion
 from routes.explosion_materiales.api_explosion import apiExplosion
+from routes.mermas import mermas
 
 import os
 
@@ -64,6 +65,7 @@ app.register_blueprint(apiProductosVariantes)
 app.register_blueprint(materia_prima)
 app.register_blueprint(explosion)
 app.register_blueprint(apiExplosion)
+app.register_blueprint(mermas)
 
 @app.errorhandler(404)
 def page_not_found(e):
