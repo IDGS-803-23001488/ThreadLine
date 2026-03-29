@@ -166,78 +166,98 @@ def api_insumos(orden_id):
 
 
 # ── Producir (actualiza cantidad producida y resta insumos) ─────────────────
+
 @apiExplosion.route("/producir/<int:orden_id>", methods=["POST"])
 @login_requerido
 @permiso_requerido("explosion", "editar")
 def api_producir(orden_id):
-    """
-    Endpoint para registrar producción:
-    - Recibe la cantidad producida
-    - Resta los insumos asignados proporcionalmente
-    - Actualiza el stock en los almacenes correspondientes
-    - Registra movimientos de inventario
-    """
+    """Endpoint mejorado para registrar producción"""
     try:
         data = request.get_json()
         cantidad_producida = data.get('cantidad', type=int)
         
-        if not cantidad_producida or cantidad_producida <= 0:
-            return jsonify({"error": "Cantidad inválida"}), 400
+        # Validaciones mejoradas
+        if not cantidad_producida:
+            return jsonify({"error": "La cantidad es requerida"}), 400
+        
+        if cantidad_producida <= 0:
+            return jsonify({"error": "La cantidad debe ser mayor a 0"}), 400
         
         orden = OrdenProduccion.query.get_or_404(orden_id)
         
-        # Validar que la cantidad no exceda lo solicitado
+        # Validar estado de la orden
+        if orden.estatus == 'completada':
+            return jsonify({"error": "Esta orden ya está completada"}), 400
+        
+        if orden.estatus == 'cancelada':
+            return jsonify({"error": "Esta orden está cancelada"}), 400
+        
+        # Validar cantidad máxima
         max_producir = orden.cantidad_solicitada - orden.cantidad_producida
         if cantidad_producida > max_producir:
             return jsonify({
-                "error": f"No se puede producir más de {max_producir} unidades"
+                "error": f"No se puede producir más de {max_producir} unidades. "
+                        f"Restan {max_producir} unidades para completar la orden."
             }), 400
         
-        # Validar que la orden esté en estado pendiente o en_proceso
-        if orden.estatus not in ['pendiente', 'en_proceso']:
-            return jsonify({
-                "error": "Solo se puede producir en órdenes pendientes o en proceso"
-            }), 400
+        # Verificar si hay insumos asignados
+        if orden.insumos_asignados.count() == 0:
+            return jsonify({"error": "La orden no tiene insumos asignados"}), 400
         
-        # Obtener el tipo de movimiento para salida de producción
+        # Obtener tipo de movimiento
         tipo_mov_salida = TipoMovimiento.query.filter_by(tipo="Salida producción").first()
         if not tipo_mov_salida:
-            return jsonify({"error": "Tipo de movimiento 'Salida producción' no encontrado"}), 500
+            return jsonify({
+                "error": "Configuración incompleta: Tipo de movimiento 'Salida producción' no encontrado"
+            }), 500
         
-        # Calcular el factor de producción
+        # Calcular factor de producción
         factor_produccion = Decimal(str(cantidad_producida)) / Decimal(str(orden.cantidad_solicitada))
         
-        # Procesar cada insumo asignado
+        # Validar stock suficiente antes de procesar
+        insumos_con_error = []
         for insumo in orden.insumos_asignados:
-            # Calcular la cantidad a consumir de este insumo
             cantidad_consumir = insumo.cantidad * factor_produccion
-            
             if cantidad_consumir <= 0:
                 continue
-            
-            # Buscar el stock actual
+                
             stock = StockArticulo.query.filter_by(
                 articulo_id=insumo.materia_prima.articulo_id,
                 inv_id=insumo.inv_id
             ).first()
             
-            if not stock:
-                return jsonify({
-                    "error": f"No hay stock registrado para {insumo.materia_prima.nombre} en {insumo.inventario.nombre}"
-                }), 400
+            if not stock or stock.cantidad < cantidad_consumir:
+                disponible = stock.cantidad if stock else 0
+                insumos_con_error.append({
+                    "nombre": insumo.materia_prima.nombre,
+                    "inventario": insumo.inventario.nombre,
+                    "disponible": float(disponible),
+                    "requerido": float(cantidad_consumir)
+                })
+        
+        if insumos_con_error:
+            return jsonify({
+                "error": "Stock insuficiente para producir",
+                "detalles": insumos_con_error
+            }), 400
+        
+        # Procesar consumos
+        for insumo in orden.insumos_asignados:
+            cantidad_consumir = insumo.cantidad * factor_produccion
             
-            # Validar stock suficiente
-            if stock.cantidad < cantidad_consumir:
-                return jsonify({
-                    "error": f"Stock insuficiente para {insumo.materia_prima.nombre}. "
-                            f"Disponible: {stock.cantidad}, Requerido: {cantidad_consumir}"
-                }), 400
+            if cantidad_consumir <= 0:
+                continue
+            
+            stock = StockArticulo.query.filter_by(
+                articulo_id=insumo.materia_prima.articulo_id,
+                inv_id=insumo.inv_id
+            ).first()
             
             # Restar del stock
             stock.cantidad -= cantidad_consumir
             stock.actualizado_por = g.usuario_actual.id
             
-            # Registrar movimiento de inventario
+            # Registrar movimiento
             movimiento = MovimientoInventario(
                 articulo_id=insumo.materia_prima.articulo_id,
                 tipo_mov_id=tipo_mov_salida.id,
@@ -246,14 +266,13 @@ def api_producir(orden_id):
                 unidad_id=insumo.unidad_id,
                 signo=-1,
                 existencia=stock.cantidad,
-                descripcion=f"Consumo para orden #{orden.id} - Producción de {cantidad_producida} unidades"
+                descripcion=f"Consumo orden #{orden.id} - Producción {cantidad_producida}/{orden.cantidad_solicitada} uds"
             )
             db.session.add(movimiento)
         
-        # Actualizar la orden
+        # Actualizar orden
         orden.cantidad_producida += cantidad_producida
         
-        # Actualizar estatus si es necesario
         if orden.cantidad_producida >= orden.cantidad_solicitada:
             orden.estatus = 'completada'
             orden.fecha_fin = datetime.datetime.utcnow()
@@ -265,11 +284,11 @@ def api_producir(orden_id):
         
         return jsonify({
             "success": True,
-            "message": f"Producción de {cantidad_producida} unidades registrada correctamente",
+            "message": f"✅ Producción de {cantidad_producida} unidades registrada",
             "orden": {
                 "id": orden.id,
                 "cantidad_producida": orden.cantidad_producida,
-                "cantidad_solicitada": orden.cantidad_solicitada,
+                "restante": orden.cantidad_solicitada - orden.cantidad_producida,
                 "estatus": orden.estatus,
                 "porcentaje": round((orden.cantidad_producida / orden.cantidad_solicitada) * 100, 2)
             }
@@ -277,7 +296,8 @@ def api_producir(orden_id):
         
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        app.logger.error(f"Error en producción: {str(e)}")
+        return jsonify({"error": "Error interno del servidor", "detalle": str(e)}), 500
 
 
 # ── Obtener detalle de una orden ──────────────────────────────────────────────
@@ -308,3 +328,4 @@ def api_orden(orden_id):
             "inventario": ins.inventario.nombre
         } for ins in orden.insumos_asignados]
     })
+

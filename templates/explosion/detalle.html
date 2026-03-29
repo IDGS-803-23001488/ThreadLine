@@ -13,10 +13,17 @@
 {% block container %}
 
 {# ══════════════════════════════════════════════════════════
-   BLOQUE DE LÓGICA CENTRAL — se calcula una sola vez arriba
-   para que todos los elementos del template lo usen.
+   BLOQUE DE LÓGICA CENTRAL CORREGIDO
    ══════════════════════════════════════════════════════════ #}
-{% set factor = orden.cantidad_solicitada / orden.receta.cantidad_base %}
+
+{# 1. Calcular la cantidad que FALTA producir (no la total) #}
+{% set cantidad_pendiente = (orden.cantidad_solicitada - orden.cantidad_producida) | float %}
+
+{# 2. El factor de multiplicación ahora es basado en lo que falta producir #}
+{% set factor = 0 %}
+{% if orden.receta.cantidad_base > 0 %}
+    {% set factor = cantidad_pendiente / orden.receta.cantidad_base %}
+{% endif %}
 
 {# Mapa insumo_id → cantidad disponible #}
 {% set insumos_map = {} %}
@@ -24,19 +31,23 @@
     {% set _ = insumos_map.update({ins.materia_prima_id: ins.cantidad}) %}
 {% endfor %}
 
-{# ¿Hay algún insumo con stock insuficiente? #}
+{# ¿Hay algún insumo con stock insuficiente PARA LO QUE FALTA? #}
 {% set hay_faltantes = namespace(value=false) %}
 {% for det in orden.receta.detalles %}
     {% set c_neta    = det.cantidad_neta | float * factor %}
     {% set stock_qty = insumos_map.get(det.materia_prima_id, 0) | float %}
-    {% if stock_qty < c_neta %}
+    
+    {# Solo marcamos como faltante si necesitamos más de lo que hay (y si falta producir algo) #}
+    {% if cantidad_pendiente > 0 and stock_qty < c_neta %}
         {% set hay_faltantes.value = true %}
     {% endif %}
 {% endfor %}
 
 {# ¿La orden está "activa" (puede pausarse)? #}
 {% set orden_activa = orden.estatus not in ['completada', 'cancelada'] %}
-{% set pausada      = hay_faltantes.value and orden_activa %}
+
+{# La orden solo se pausa si está activa Y faltan materiales #}
+{% set pausada = hay_faltantes.value and orden_activa %}
 
 {# ── Estatus config ── #}
 {% if pausada %}
@@ -70,9 +81,9 @@
     {{ btn_enlace(url_for('explosion.lista'), svg_regreso, '', 'primary') }}
 
     <div class="flex gap-2">
-        <button type="button" onclick="abrirModal('modalProduccion')" {{style_primary()}}>
-            {{svg_add()}}
-        </button>
+        {# Solo mostrar botón de producción si hay pendiente y no está pausada #}
+            {{ btn_enlace(url_for('explosion.capturar_produccion', id=orden.id|encrypt), svg_add, '', 'primary') }}
+
         {{ btn_enlace(url_for('mermas.crear', orden_id=orden.id|encrypt), svg_warning, '', 'gray') }}
     </div>
 </div>
@@ -227,7 +238,7 @@
             Producción pausada — stock insuficiente
         </p>
         <p class="text-xs text-orange-600 mt-0.5 leading-relaxed">
-            Uno o más insumos no cuentan con el stock necesario.
+            Uno o más insumos no cuentan con el stock necesario para completar la cantidad pendiente.
             Los materiales faltantes se marcan en rojo en la tabla.
         </p>
     </div>
@@ -259,9 +270,13 @@
             <tbody>
                 {% for det in orden.receta.detalles %}
                 {% set mp        = det.materia_prima %}
+                
+                {# CORRECCIÓN: Usar el factor calculado basado en lo pendiente #}
                 {% set c_neta    = det.cantidad_neta | float * factor %}
                 {% set stock_qty = insumos_map.get(mp.id, 0) | float %}
-                {% set ok        = stock_qty >= c_neta %}
+                
+                {# Si no hay nada pendiente, todo está "ok" (o no se muestra error) #}
+                {% set ok = (cantidad_pendiente <= 0) or (stock_qty >= c_neta) %}
 
                 <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors
                            {{ 'bg-red-50/30' if not ok else '' }}">
@@ -278,7 +293,12 @@
                     </td>
 
                     <td class="px-5 py-3.5 text-right text-sm text-gray-600 tabular-nums">
-                        {{ "%.4f" | format(c_neta) }}
+                        {# Solo mostrar requerido si hay pendiente, sino mostrar 0 o guión #}
+                        {% if cantidad_pendiente > 0 %}
+                            {{ "%.4f" | format(c_neta) }}
+                        {% else %}
+                            <span class="text-gray-300">—</span>
+                        {% endif %}
                     </td>
 
                     <td class="px-5 py-3.5 text-right">
@@ -294,7 +314,7 @@
                             {{ "%.4f" | format(stock_qty) }}
                         </span>
 
-                        {% if not ok %}
+                        {% if not ok and cantidad_pendiente > 0 %}
                             {% set pct_disp = ((stock_qty / c_neta) * 100) | int if c_neta > 0 else 0 %}
                             <!-- mini barra de disponibilidad -->
                             <div class="mt-1.5 w-full bg-red-100 rounded-full h-1.5 overflow-hidden">
@@ -334,44 +354,6 @@
     </div>
 </div>
 
-{# ════════════════════════ MODAL PRODUCCIÓN ════════════════════════ #}
-<div id="modalProduccion"
-     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
-     style="background:rgba(0,0,0,.45)">
-
-    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
-
-        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-800">Capturar producción</h3>
-            <button type="button" onclick="cerrarModal('modalProduccion')"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl
-                           text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-
-        <div class="px-6 py-8 space-y-6">
-            <div>
-                <input id="inputCantidad" type="number"
-                       placeholder="Max: {{ orden.cantidad_solicitada - orden.cantidad_producida }}"
-                       class="w-full mt-2 px-4 py-4 text-lg rounded-2xl border border-gray-200
-                              bg-gray-50 text-gray-800 focus:outline-none focus:ring-2
-                              focus:border-transparent transition"
-                       style="--tw-ring-color:var(--color-primary)">
-                <p id="errorCantidad" class="text-xs text-red-500 mt-2 hidden"></p>
-            </div>
-            <button id="btnGuardarProduccion"
-                    class="w-full py-4 text-base font-semibold rounded-2xl text-white shadow-md
-                           hover:shadow-lg active:scale-[.98] transition opacity-50 cursor-not-allowed"
-                    style="background:var(--color-primary)" disabled>
-                Guardar producción
-            </button>
-        </div>
-    </div>
-</div>
-
 <script>
 const MAX_PRODUCIR   = {{ orden.cantidad_solicitada - orden.cantidad_producida }};
 const inputCantidad  = document.getElementById('inputCantidad');
@@ -402,60 +384,44 @@ function aplicarEstado(res, inp, btn, err) {
     }
 }
 
-inputCantidad.addEventListener('keypress', e => {
-    if (e.key === 'Enter' && !btnGuardar.disabled) btnGuardar.click();
-});
-inputCantidad.addEventListener('input', function () {
-    aplicarEstado(validarCantidad(parseFloat(this.value), MAX_PRODUCIR),
-                  inputCantidad, btnGuardar, errorCantidad);
-});
+if(inputCantidad) {
+    inputCantidad.addEventListener('keypress', e => {
+        if (e.key === 'Enter' && !btnGuardar.disabled) btnGuardar.click();
+    });
+    inputCantidad.addEventListener('input', function () {
+        aplicarEstado(validarCantidad(parseFloat(this.value), MAX_PRODUCIR),
+                      inputCantidad, btnGuardar, errorCantidad);
+    });
+}
 
-btnGuardar.addEventListener('click', async function () {
-    const cantidad = parseFloat(inputCantidad.value);
-    if (!validarCantidad(cantidad, MAX_PRODUCIR).valido) return;
+if(btnGuardar) {
+    btnGuardar.addEventListener('click', async function () {
+        const cantidad = parseFloat(inputCantidad.value);
+        if (!validarCantidad(cantidad, MAX_PRODUCIR).valido) return;
 
-    btnGuardar.disabled = true;
-    btnGuardar.textContent = 'Procesando…';
+        btnGuardar.disabled = true;
+        btnGuardar.textContent = 'Procesando…';
 
-    try {
-        const res    = await fetch(`/api/explosion/producir/{{ orden.id }}`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ cantidad })
-        });
-        const result = await res.json();
-        if (result.success) { alert(result.message); location.reload(); }
-        else {
-            alert(result.error || 'Error al guardar la producción');
+        try {
+            const res    = await fetch(`/api/explosion/producir/{{ orden.id }}`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ cantidad })
+            });
+            const result = await res.json();
+            if (result.success) { alert(result.message); location.reload(); }
+            else {
+                alert(result.error || 'Error al guardar la producción');
+                btnGuardar.disabled = false;
+                btnGuardar.textContent = 'Guardar producción';
+            }
+        } catch {
+            alert('Error de conexión al guardar la producción');
             btnGuardar.disabled = false;
             btnGuardar.textContent = 'Guardar producción';
         }
-    } catch {
-        alert('Error de conexión al guardar la producción');
-        btnGuardar.disabled = false;
-        btnGuardar.textContent = 'Guardar producción';
-    }
-});
-
-window.abrirModal = id => {
-    const m = document.getElementById(id);
-    if (!m) return;
-    m.classList.replace('hidden', 'flex') || m.classList.add('flex');
-    m.classList.remove('hidden');
-    if (id === 'modalProduccion') {
-        inputCantidad.value = '';
-        inputCantidad.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
-        inputCantidad.classList.add('border-gray-200');
-        errorCantidad.classList.add('hidden');
-        btnGuardar.disabled = true;
-        btnGuardar.classList.add('opacity-50', 'cursor-not-allowed');
-        btnGuardar.textContent = 'Guardar producción';
-    }
-};
-window.cerrarModal = id => {
-    const m = document.getElementById(id);
-    if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
-};
+    });
+}
 
 document.addEventListener('click', e => {
     document.querySelectorAll('.fixed.inset-0:not(.hidden)').forEach(modal => {

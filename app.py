@@ -241,7 +241,7 @@ def seed_data():
             "cliente": ["ver", "crear", "editar", "eliminar", "exportar"],
             "recetas": ["ver", "crear", "editar", "eliminar", "exportar"],
             "materia_prima": ["ver", "crear", "editar", "eliminar", "exportar"],
-            "explosion": ["ver", "crear"],    
+            "explosion": ["ver", "crear","editar"],    
             "productosVariantes": ["ver","crear", "editar", "eliminar"],
             "ecomerce": ["ver","crear", "editar", "eliminar"],
             "mermas": ["ver","crear", "editar", "eliminar"]

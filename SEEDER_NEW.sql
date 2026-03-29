@@ -469,17 +469,6 @@ VALUES
 (7, 7, 16, 5, 'La blusa es preciosa, perfecta para la oficina. El popelín es de buena calidad.',      0, DATE_SUB(NOW(), INTERVAL  1 DAY)),
 (8, 1,  9, 4, 'El short es muy cómodo para hacer ejercicio, el elástico no aprieta.',                 1, DATE_SUB(NOW(), INTERVAL 25 DAY));
 
--- =============================================================
--- ÓRDENES DE PRODUCCIÓN
--- =============================================================
-INSERT IGNORE INTO orden_produccion
-    (id, receta_id, cantidad_solicitada, cantidad_producida, estatus, fecha_inicio, fecha_fin)
-VALUES
-(1, 1, 50, 50, 'completada', DATE_SUB(NOW(), INTERVAL 35 DAY), DATE_SUB(NOW(), INTERVAL 32 DAY)),
-(2, 2, 30, 30, 'completada', DATE_SUB(NOW(), INTERVAL 28 DAY), DATE_SUB(NOW(), INTERVAL 26 DAY)),
-(3, 3, 20, 20, 'completada', DATE_SUB(NOW(), INTERVAL 20 DAY), DATE_SUB(NOW(), INTERVAL 17 DAY)),
-(4, 1, 40, 25, 'en_proceso', DATE_SUB(NOW(), INTERVAL  5 DAY), NULL),
-(5, 4, 60,  0, 'pendiente',  NULL, NULL);
 
 -- =============================================================
 -- MOVIMIENTOS DE INVENTARIO

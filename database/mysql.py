@@ -330,7 +330,7 @@ class RecetaDetalle(BaseModel):
     # cantidad_con_merma = db.Column(db.Numeric(10, 4), nullable=False)
     
     materia_prima = db.relationship("MateriaPrima", backref="materias_primas")
-
+# models/orden_produccion.py
 class OrdenProduccion(BaseModel):
     __tablename__ = "orden_produccion"
 
@@ -343,36 +343,64 @@ class OrdenProduccion(BaseModel):
     fecha_fin = db.Column(db.DateTime)
 
     receta = db.relationship("Receta", backref="ordenes_produccion")
-
-    insumos = db.relationship(
+    insumos_asignados = db.relationship(
         "OrdenProduccionInsumo",
         back_populates="orden",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy='dynamic'
     )
+    movimientos_produccion = db.relationship(
+        'MovimientoProduccion',
+        back_populates='orden',
+        lazy='dynamic',
+        order_by='MovimientoProduccion.fecha_creacion.desc()'
+    )
+
+    @property
+    def insumos(self):
+        return self.insumos_asignados
 
 
 class OrdenProduccionInsumo(BaseModel):
     __tablename__ = "orden_produccion_insumo"
 
-    id               = db.Column(db.Integer, primary_key=True)
-    orden_id         = db.Column(db.Integer, db.ForeignKey("orden_produccion.id"), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    orden_id = db.Column(db.Integer, db.ForeignKey("orden_produccion.id"), nullable=False)
     materia_prima_id = db.Column(db.Integer, db.ForeignKey("materia_prima.id"), nullable=False)
-    inv_id           = db.Column(db.Integer, db.ForeignKey("inventarios.id"), nullable=False)
-    cantidad         = db.Column(db.Numeric(10, 4), nullable=False)
-    unidad_id        = db.Column(db.Integer, db.ForeignKey("unidad.id"), nullable=True)
-
+    inv_id = db.Column(db.Integer, db.ForeignKey("inventarios.id"), nullable=False)
+    cantidad = db.Column(db.Numeric(10, 4), nullable=False)
+    unidad_id = db.Column(db.Integer, db.ForeignKey("unidad.id"), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    creado_por     = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
+    creado_por = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=True)
 
-    orden = db.relationship(
-        "OrdenProduccion",
-        back_populates="insumos"
-    )
+    orden = db.relationship("OrdenProduccion", back_populates="insumos_asignados")
     materia_prima = db.relationship("MateriaPrima")
-    inventario    = db.relationship("Inventario")
-    unidad        = db.relationship("Unidad")
+    inventario = db.relationship("Inventario")
+    unidad = db.relationship("Unidad")
 
     __table_args__ = BASE_ARGS
+
+class MovimientoProduccion(BaseModel):
+    __tablename__ = 'movimientos_produccion'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    orden_id = db.Column(db.Integer, db.ForeignKey('orden_produccion.id'), nullable=False)
+    cantidad = db.Column(db.Numeric(10, 2), nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    creado_por = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    
+    # Relaciones
+    creador = db.relationship('Usuario', foreign_keys=[creado_por])
+    orden = db.relationship(
+        'OrdenProduccion',
+        back_populates='movimientos_produccion'
+    )
+    
+    @property
+    def creado_por_nombre(self):
+        return self.creador.nombre if self.creador else None
+
+
 
 # =====================================================
 # E-COMMERCE (CLIENTES, CARRITO, PEDIDOS)

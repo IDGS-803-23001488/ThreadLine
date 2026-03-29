@@ -1,20 +1,17 @@
 # routes/explosion_materiales/explosion.py
-import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g
 from database.mysql import (
     db, OrdenProduccion, OrdenProduccionInsumo, Receta,
-    ProductoVariante, Producto, MovimientoInventario, TipoMovimiento, StockArticulo
+    ProductoVariante, Producto, MovimientoInventario, TipoMovimiento, StockArticulo,
+    MovimientoProduccion
 )
 from middlerware import login_requerido, permiso_requerido, decrypt_url_id
 from utils.crypto_url import encrypt_id
 
 explosion = Blueprint("explosion", __name__, url_prefix="/explosion")
 
-
-# ══════════════════════════════════════════════════════
-# VISTA — Lista de órdenes de producción
-# ══════════════════════════════════════════════════════
 @explosion.route("/")
 @login_requerido
 @permiso_requerido("explosion", "ver")
@@ -52,10 +49,6 @@ def lista():
         per_page=per_page,
     )
 
-
-# ══════════════════════════════════════════════════════
-# VISTA — Crear nueva orden
-# ══════════════════════════════════════════════════════
 @explosion.route("/nueva", methods=["GET", "POST"])
 @login_requerido
 @permiso_requerido("explosion", "crear")
@@ -69,10 +62,6 @@ def nueva():
         descripcion="Selecciona una receta y define la cantidad a producir",
     )
 
-
-# ══════════════════════════════════════════════════════
-# VISTA — Detalle de una orden
-# ══════════════════════════════════════════════════════
 @explosion.route("/detalle/<id>")
 @decrypt_url_id()
 @login_requerido
@@ -86,10 +75,79 @@ def detalle(id):
         orden=orden,
     )
 
+@explosion.route("/capturar-produccion/<id>", methods=["GET", "POST"])
+@decrypt_url_id()
+@login_requerido
+@permiso_requerido("explosion", "editar")
+def capturar_produccion(id):
+    orden = OrdenProduccion.query.get_or_404(id)
 
-# ══════════════════════════════════════════════════════
-# LÓGICA — Procesar creación de orden
-# ══════════════════════════════════════════════════════
+    if request.method == "POST":
+        cantidad_p = request.form.get("cantidad", type=int)
+        
+        # 1. Validaciones básicas
+        if not cantidad_p or cantidad_p <= 0:
+            flash("La cantidad debe ser mayor a 0", "error")
+            return redirect(request.url)
+        
+        max_producir = orden.cantidad_solicitada - orden.cantidad_producida
+        if cantidad_p > max_producir:
+            flash(f"No se puede producir más de {max_producir} unidades", "warning")
+            return redirect(request.url)
+
+        try:
+            # 2. Obtener tipo de movimiento
+            tipo_mov_salida = TipoMovimiento.query.filter_by(tipo="Salida producción").first()
+            if not tipo_mov_salida:
+                raise Exception("Tipo de movimiento 'Salida producción' no configurado.")
+            
+            # 4. Procesar Insumos (Restar Stock y Crear Movimientos)
+            for insumo in orden.insumos_asignados:
+                cantidad_consumir = insumo.cantidad
+
+                if insumo.cantidad < cantidad_consumir:
+                    raise Exception(f"Insumo insuficiente asignado para {insumo.materia_prima.nombre}")
+
+                insumo.cantidad -= cantidad_consumir
+
+                db.session.add(MovimientoInventario(
+                    articulo_id=insumo.materia_prima.articulo_id,
+                    tipo_mov_id=tipo_mov_salida.id,
+                    inv_id=insumo.inv_id,
+                    cantidad=cantidad_consumir,
+                    unidad_id=insumo.unidad_id,
+                    signo=-1,
+                    existencia=insumo.cantidad,  # 👈 ahora representa lo restante asignado
+                ))
+
+            # 5. Registrar historial de producción
+            db.session.add(MovimientoProduccion(
+                orden_id=orden.id,
+                cantidad=cantidad_p,
+                creado_por=g.usuario_actual.id
+            ))
+
+            # 6. Actualizar Estatus de la Orden
+            orden.cantidad_producida += cantidad_p
+            if orden.cantidad_producida >= orden.cantidad_solicitada:
+                orden.estatus = 'completada'
+                orden.fecha_fin = datetime.utcnow()
+            elif orden.estatus == 'pendiente':
+                orden.estatus = 'en_proceso'
+                orden.fecha_inicio = datetime.utcnow()
+
+            db.session.commit()
+            flash(f"Producción de {cantidad_p} unidades registrada.", "success")
+            return redirect(url_for("explosion.detalle", id=encrypt_id(orden.id)))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error al procesar: {str(e)}", "error")
+            return redirect(request.url)
+
+    return render_template("explosion/capturar_produccion.html", orden=orden)
+
+
 def _procesar_orden():
     receta_id = request.form.get("receta_id", type=int)
     cantidad  = request.form.get("cantidad_solicitada", type=int)

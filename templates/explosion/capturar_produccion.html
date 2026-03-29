@@ -1,0 +1,253 @@
+<!-- templates/explosion/capturar_produccion.html -->
+{% extends "layout.html" %}
+{% from "macros/utiles.html" import svg_regreso %}
+
+{% block container %}
+<div class="max-w-2xl mx-auto pb-10">
+
+    <!-- ENCABEZADO -->
+    <div class="mb-6 flex items-center gap-4">
+        <a href="{{ url_for('explosion.detalle', id=orden.id|encrypt) }}"
+           class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:text-gray-800 shadow-sm transition-all">
+            {{ svg_regreso() }}
+        </a>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Registrar Producción</h2>
+            <p class="text-xs text-gray-500">
+                Orden #{{ orden.id }} ·
+                {{ orden.receta.producto_variante.producto.nombre }} —
+                Talla {{ orden.receta.producto_variante.talla.nombre }}
+            </p>
+        </div>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════
+       LÓGICA: Calcular máximo producible basado en OrdenProduccionInsumo
+       ══════════════════════════════════════════════════════════ #}
+    
+    {# 1. Calcular pendiente #}
+    {% set cantidad_pendiente = (orden.cantidad_solicitada - orden.cantidad_producida) | float %}
+    
+    {# 2. Factor base: cuánto insumo se necesita por 1 unidad de producto #}
+    {% set factor_base = {} %}
+    {% for det in orden.receta.detalles %}
+        {% set _ = factor_base.update({
+            det.materia_prima_id: det.cantidad_neta / orden.receta.cantidad_base
+        }) %}
+    {% endfor %}
+
+    {# 3. Mapa: materia_prima_id → cantidad ASIGNADA a la orden #}
+    {% set asignados_map = {} %}
+    {% for ins in orden.insumos %}
+        {% set _ = asignados_map.update({ins.materia_prima_id: ins.cantidad}) %}
+    {% endfor %}
+
+    {# 4. Calcular MÁXIMO PRODUCIBLE basado en materiales ASIGNADOS #}
+    {% set max_por_asignados = 9999999 %}
+    {% for det in orden.receta.detalles %}
+        {% set mp_id = det.materia_prima_id %}
+        {% set necesario_por_unidad = factor_base.get(mp_id, 0) %}
+        {% set asignado = asignados_map.get(mp_id, 0) %}
+        
+        {% if necesario_por_unidad > 0 and asignado > 0 %}
+            {# Cuántas piezas puedo hacer con este insumo asignado #}
+            {% set piezas_posibles = (asignado / necesario_por_unidad) | int %}
+            {% if piezas_posibles < max_por_asignados %}
+                {% set max_por_asignados = piezas_posibles %}
+            {% endif %}
+        {% elif necesario_por_unidad > 0 and asignado == 0 %}
+            {# Si se necesita pero no hay nada asignado, no se puede producir nada #}
+            {% set max_por_asignados = 0 %}
+        {% endif %}
+    {% endfor %}
+
+    {# 5. El límite final es el menor entre: pendiente de orden VS lo que permiten los asignados #}
+    {% set limite_maximo = [cantidad_pendiente | int, max_por_asignados] | min %}
+    {% set hay_asignados_suficientes = limite_maximo > 0 %}
+
+    <!-- CARD -->
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <!-- HEADER -->
+        <div class="px-8 py-5 bg-emerald-50/60 border-b border-emerald-100 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl border-2 border-white"
+                 style="background:{{ orden.receta.producto_variante.producto.color.hex if orden.receta.producto_variante.producto.color else '#ccc' }}">
+            </div>
+
+            <div class="flex-1">
+                <p class="font-bold text-emerald-900">
+                    {{ orden.receta.producto_variante.producto.nombre }}
+                </p>
+                <p class="text-xs text-emerald-700">
+                    Solicitadas: <strong>{{ orden.cantidad_solicitada }}</strong> ·
+                    Producidas: <strong>{{ orden.cantidad_producida }}</strong> ·
+                    Pendientes:
+                    <strong id="lblPendientes">{{ cantidad_pendiente | int }}</strong>
+                </p>
+            </div>
+
+            {% set pct = ((orden.cantidad_producida / orden.cantidad_solicitada) * 100)|int %}
+            <div class="w-24">
+                <div class="text-right text-xs font-bold text-emerald-700 mb-1" id="lblPct">{{ pct }}%</div>
+                <div class="h-2 bg-emerald-100 rounded-full overflow-hidden">
+                    <div id="barraProgreso"
+                         class="h-full bg-emerald-500"
+                         style="width:{{ pct }}%">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORM -->
+        <form method="POST" class="p-8 space-y-6" id="frmProduccion">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- INPUT -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Cantidad a producir ahora
+                    <span class="font-normal text-gray-400" id="lblMax"></span>
+                </label>
+
+                <input type="number"
+                       name="cantidad"
+                       id="inputCantidad"
+                       min="1"
+                       step="1"
+                       {% if not hay_asignados_suficientes %}disabled{% endif %}
+                       required
+                       class="w-full px-5 py-4 text-2xl font-bold rounded-2xl border bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
+
+                <p id="msgValidacion" class="mt-2 text-xs font-medium hidden"></p>
+            </div>
+
+            <!-- PREVIEW DE INSUMOS -->
+            <div id="containerPreview" class="hidden">
+                <div class="p-5 bg-gray-50 rounded-2xl border border-gray-100">
+                    <h4 class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-wide">
+                        Insumos que se consumirán (de lo asignado)
+                    </h4>
+                    <div id="listaInsumos" class="space-y-2 text-sm"></div>
+                </div>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="flex gap-3 pt-4">
+                <a href="{{ url_for('explosion.detalle', id=orden.id|encrypt) }}"
+                   class="flex-1 text-center py-3.5 bg-gray-100 text-gray-600 font-semibold rounded-xl hover:bg-gray-200 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        id="btnGuardar"
+                        disabled
+                        class="flex-1 py-3.5 bg-emerald-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-200 disabled:opacity-40 disabled:shadow-none disabled:cursor-not-allowed transition-all">
+                    Confirmar Producción
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    // Datos inyectados desde Jinja
+    const INSUMOS_DETALLE = [
+        {% for det in orden.receta.detalles %}
+        {
+            nombre: "{{ det.materia_prima.nombre }}",
+            cantidadNeta: {{ det.cantidad_neta }}, // Cantidad por lote de receta
+            unidad: "{{ det.materia_prima.unidad.sigla if det.materia_prima.unidad else '' }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const CANTIDAD_BASE_RECETA = {{ orden.receta.cantidad_base }};
+    const LIMITE_MAXIMO_CALCULADO = {{ limite_maximo }}; // Basado en OrdenProduccionInsumo
+    const PENDIENTE_ORDEN = {{ cantidad_pendiente }};
+    const HAY_ASIGNADOS = {{ hay_asignados_suficientes|lower }};
+
+    const input = document.getElementById('inputCantidad');
+    const btn   = document.getElementById('btnGuardar');
+    const msg   = document.getElementById('msgValidacion');
+    const lista = document.getElementById('listaInsumos');
+    const cont  = document.getElementById('containerPreview');
+    const lblMax = document.getElementById('lblMax');
+
+    // Configurar label de máximo
+    lblMax.textContent = `(máx. ${LIMITE_MAXIMO_CALCULADO})`;
+
+    // Si no hay materiales asignados suficientes, deshabilitar inmediatamente
+    if (!HAY_ASIGNADOS || LIMITE_MAXIMO_CALCULADO <= 0) {
+        input.disabled = true;
+        input.value = '';
+        msg.textContent = "⚠️ No hay suficientes materiales asignados a esta orden para producir ni una unidad más.";
+        msg.classList.remove('hidden', 'text-emerald-600');
+        msg.classList.add('text-red-500');
+        btn.disabled = true;
+        return; 
+    }
+
+    /* ===== VALIDACIÓN EN TIEMPO REAL ===== */
+    input.addEventListener('input', () => {
+        const val = parseFloat(input.value);
+
+        // 1. Resetear estados
+        msg.classList.add('hidden');
+        cont.classList.add('hidden');
+        btn.disabled = true;
+
+        if (!val || val <= 0) {
+            return;
+        }
+
+        // 2. Validar contra el límite calculado por el servidor (basado en asignados)
+        if (val > LIMITE_MAXIMO_CALCULADO) {
+            msg.textContent = `⚠️ Máximo permitido: ${LIMITE_MAXIMO_CALCULADO} (insuficientes materiales asignados)`;
+            msg.classList.remove('hidden');
+            msg.classList.add('text-red-500');
+            input.classList.add('border-red-300', 'bg-red-50');
+            input.classList.remove('border-gray-200', 'bg-gray-50');
+            return;
+        } else {
+            // Estado válido
+            input.classList.remove('border-red-300', 'bg-red-50');
+            input.classList.add('border-gray-200', 'bg-gray-50');
+        }
+
+        // 3. Habilitar botón y mostrar preview
+        btn.disabled = false;
+        cont.classList.remove('hidden');
+
+        // 4. Calcular consumo proporcional de materiales asignados
+        // Factor = (Cantidad a producir) / (Cantidad Base de Receta)
+        const factor = val / CANTIDAD_BASE_RECETA;
+
+        let html = '';
+        INSUMOS_DETALLE.forEach(ins => {
+            // Consumo = Cantidad Neta * Factor
+            const consumo = ins.cantidadNeta * factor;
+            
+            // Formato bonito para mostrar
+            const consumoFmt = Number(consumo.toFixed(4)).toString(); 
+
+            html += `<div class="flex justify-between items-center py-1 border-b border-gray-100 last:border-0">
+                        <span class="text-gray-600 truncate pr-2" title="${ins.nombre}">${ins.nombre}</span>
+                        <span class="font-mono text-gray-800 font-medium whitespace-nowrap">
+                            -${consumoFmt} <small class="text-gray-400">${ins.unidad}</small>
+                        </span>
+                     </div>`;
+        });
+
+        lista.innerHTML = html;
+    });
+
+    // Prevenir envío si el botón está deshabilitado (seguridad extra)
+    document.getElementById('frmProduccion').addEventListener('submit', (e) => {
+        if (btn.disabled) {
+            e.preventDefault();
+        }
+    });
+
+})();
+</script>
+{% endblock %}
