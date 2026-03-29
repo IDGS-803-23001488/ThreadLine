@@ -1,0 +1,53 @@
+{% extends "auth/modal_base.html" %}
+
+{% block container %}
+    <div class="flex justify-center items-start px-4">
+        <div class="max-w-md w-full bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden p-6">
+
+            <div class="text-center mb-6">
+                <p class="text-gray-700 text-base">
+                    Esta cuenta se encuentra <span class="font-semibold text-red-600">bloqueada</span>.
+                    Para recuperarla, contacte al administrador.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                
+                {% if tipo_bloqueo == 'empleado' %}
+                    {# Se corrigió el < a href y las variables del usuario #}
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=soporte@threadline.com&su=Ayuda con la cuenta: {{ usuario.correo }}&body=Hola equipo de soporte,%0D%0A%0D%0AMi cuenta de {{ tipo_cuenta }} está bloqueada. Mi ID es: {{ usuario.id }} y mi correo registrado es: {{ usuario.correo }}  Atte. {{ usuario.usuario }}"
+                        target="_blank"
+                        class="w-full text-white font-medium flex items-center justify-center py-2.5 px-4 rounded-lg transition-colors hover:opacity-90"
+                        style="background-color:#0d7879;">
+                        <svg class="w-6 h-6 mr-2" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="12" y="10" width="40" height="48" rx="3" />
+                            <path d="M24 10V4C24 4 32 2 40 4V10" />
+                            <circle cx="32" cy="28" r="7" />
+                            <line x1="22" y1="42" x2="42" y2="42" />
+                            <line x1="22" y1="50" x2="35" y2="50" />
+                        </svg>
+                        Contactar como empleado
+                    </a>
+
+                {% else %}
+                    {# Se corrigió cliente.nombre #}
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=soporte@threadline.com&su=Ayuda con la cuenta: {{ cliente.correo }}&body=Hola equipo de soporte,%0D%0A%0D%0AMi cuenta de {{ tipo_cuenta }} está bloqueada. Mi ID es: {{ cliente.id }} y mi correo registrado es: {{ cliente.correo }} Atte. {{ cliente.nombre }}"
+                        target="_blank"
+                        class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium flex items-center justify-center py-2.5 px-4 rounded-lg transition-colors">
+                        <svg class="w-6 h-6 mr-2" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 20H50L54 56H10L14 20Z" />
+                            <path d="M24 26V14C24 9.58 27.58 6 32 6C36.42 6 40 9.58 40 14V26" />
+                            <line x1="14" y1="32" x2="50" y2="32" />
+                        </svg>
+                        Contactar como cliente
+                    </a>
+
+                {% endif %}
+
+                <a href="{{ url_for('auth.login') }}" class="block text-center text-sm text-gray-500 hover:underline mt-4">
+                    Volver al login
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -29,7 +29,8 @@ from routes.materiaPrima import materia_prima
 from routes.explosion_materiales.explosion import explosion
 from routes.explosion_materiales.api_explosion import apiExplosion
 from routes.mermas import mermas
-
+from routes.desbloquear_usuario import desbloquear_usuario
+from routes.desbloquear_cliente import desbloquear_cliente
 import os
 
 UPLOAD_FOLDER = 'static/uploads'
@@ -66,6 +67,8 @@ app.register_blueprint(materia_prima)
 app.register_blueprint(explosion)
 app.register_blueprint(apiExplosion)
 app.register_blueprint(mermas)
+app.register_blueprint(desbloquear_usuario)
+app.register_blueprint(desbloquear_cliente)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -86,8 +89,8 @@ def verificar_token():
         "auth.login",
         "auth.verificar_2fa",
         "auth.modal_user",
-        "static"
-        
+        "static",
+        "main.index"
     ]
 
     if request.endpoint and any(request.endpoint.startswith(r) for r in rutas_libres):
@@ -145,24 +148,26 @@ def verificar_token():
             resp = redirect(url_for("auth.login"))
             resp.set_cookie("auth_token", "", expires=0)
             return resp
+        rol_actual = "usuario"
     elif token_db.tipo == "login_cliente":
         cliente = token_db.cliente
+        
+        if not cliente or not cliente.activo:
+                token_db.usado = True
+                db.session.commit()
+
+                resp = redirect(url_for("auth.login"))
+                resp.set_cookie("auth_token", "", expires=0)
+
+                if request.path.startswith("/api"):
+                    return {"error": "Cliente inactivo"}, 403
+
+                return resp
         rol_actual = "cliente"
-        if not cliente.activo:
-            token_db.usado = True
-            db.session.commit()
-
-            resp = redirect(url_for("auth.login"))
-            resp.set_cookie("auth_token", "", expires=0)
-
-            if request.path.startswith("/api"):
-                return {"error": "Cliente inactivo"}, 403
-
-            return resp
-
     else:
-        return redirect(url_for("auth.login"))
-
+        resp = redirect(url_for("auth.login"))
+        resp.set_cookie("auth_token", "", expires=0)
+        return resp
     # ✅ Usuario válido
     g.usuario_actual = usuario
     g.cliente_actual = cliente
@@ -244,8 +249,9 @@ def seed_data():
             "explosion": ["ver", "crear","editar"],    
             "productosVariantes": ["ver","crear", "editar", "eliminar"],
             "ecomerce": ["ver","crear", "editar", "eliminar"],
-            "mermas": ["ver","crear", "editar", "eliminar"]
-
+            "mermas": ["ver","crear", "editar", "eliminar"],
+            "desbloquear_usuario": ["ver", "desbloquear"],
+            "desbloquear_cliente": ["ver", "desbloquear"],
         }
 
         permisos_db = []

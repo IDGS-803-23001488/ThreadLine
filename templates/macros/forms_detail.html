@@ -1,0 +1,60 @@
+{% from "macros/utiles.html" import btn_enlace, svg_equis, svg_save  %}
+
+{% macro render_detail(field, type="text") %}
+<div class="mb-2" style="color: aliceblue;">
+
+    {# Verificamos si hay datos para evitar el error NoneType #}
+    {% if field.data %}
+        {# Si el dato es una lista o similar, iteramos #}
+        {% if field.data is iterable and field.data is not string %}
+            {% for value in field.data %}
+                <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg mb-1">
+                    {{ value }}
+                </div>
+            {% endfor %}
+        {% else %}
+            {# Si es un valor simple (texto, id, etc) #}
+            <div class="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg">
+                {{ field.data }}
+            </div>
+        {% endif %}
+    {% else %}
+        {# Opcional: Mostrar algo si no hay datos #}
+        <div class="text-gray-400 italic text-sm p-2">Sin información</div>
+    {% endif %}
+
+    {% if field.errors %}
+        <div class="mt-1 text-sm text-red-600">
+            {% for error in field.errors %}
+                <div>⚠ {{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro form_buttons(cancel_url, submit_text="Guardar") %}
+<div class="flex justify-end gap-3 mt-6">
+
+    <!-- Botón Cancelar -->
+    {{ btn_enlace(
+        cancel_url,
+        svg_equis,
+        "Cancelar",
+        "gray"
+    ) }}
+
+    <!-- Botón Guardar -->
+    <button type="submit"
+        class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700
+               focus:ring-4 focus:ring-blue-300 border border-transparent shadow-sm
+               font-medium rounded-xl text-sm px-4 py-2 transition
+               dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-800">
+
+        {{ svg_save() }}
+        <span>{{ submit_text }}</span>
+
+    </button>
+
+</div>
+{% endmacro %}

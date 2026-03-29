@@ -1,0 +1,21 @@
+<!-- templates/usuarios/editar.html -->
+{% extends "layout.html" %}
+{% from "macros/forms_detail.html" import render_detail, form_buttons %}
+{% block container %}
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg max-w-lg mx-auto">
+
+    <form method="POST">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-200">Desbloquear Usuario</h2>
+
+        {{ render_detail(form.usuario) }}
+        {{ render_detail(form.correo) }}
+        {{ render_detail(form.rol) }}
+
+        {{ form_buttons(url_for('desbloquear_usuario.lista'), "Desbloquear") }}
+    </form>
+
+    </div>
+
+{% endblock %}

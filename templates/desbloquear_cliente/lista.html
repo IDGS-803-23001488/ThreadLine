@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% from "macros/table-btn.html" import render_table %}
+{% from "macros/utiles.html" import btn_secondary, confirm_delete, svg_modificar, svg_ver %}
+
+{% block container %}
+
+    {% call(fila_actual) render_table(
+        headers=headers,
+        rows=rows,
+        pagination=pagination,
+        endpoint=endpoint,
+        search=search,
+        per_page=per_page
+    ) %}
+        
+        {# Ahora usamos 'fila_actual' que es el nombre que definimos arriba #}
+        {% set id_encriptado = fila_actual[0][1]|encrypt %}
+
+        {{ btn_secondary(
+            url_for(endpoint ~ '.desbloquear', id=id_encriptado),
+            svg_modificar,
+            ''
+        ) }}
+
+    {% endcall %}
+
+{% endblock %}

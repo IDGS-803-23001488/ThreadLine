@@ -204,6 +204,11 @@
                     request.endpoint and request.endpoint.startswith('usuarios.')) }}
                 {{ panel_item(url_for('roles.lista'),    svg_roles(), "Roles",
                     request.endpoint and request.endpoint.startswith('roles.')) }}
+                {{ panel_item(url_for('desbloquear_usuario.lista'), svg_user(),  "Desbloquear Usuario",
+                    request.endpoint and request.endpoint.startswith('desbloquear_usuario.')) }}
+                {{ panel_item(url_for('desbloquear_cliente.lista'), svg_clientes(),  "Desbloquear Cliente",
+                    request.endpoint and request.endpoint.startswith('desbloquear_cliente.')) }}
+
             </div>
 
             <div id="sec-catalogos" class="seccion">
@@ -229,6 +234,7 @@
                     request.endpoint and request.endpoint.startswith('cliente.')) }}
                 {{ panel_item(url_for('materia_prima.lista'),    svg_clientes(),   "Materia Prima",
                     request.endpoint and request.endpoint.startswith('materia_prima.')) }}
+                
             </div>
 
             <div id="sec-produccion" class="seccion">
@@ -260,7 +266,10 @@
                         text-white flex items-center justify-center
                         rounded-xl font-semibold text-sm shadow-sm cursor-pointer"
                         style="color:var(--color-primary)">
-                {{ g.usuario_actual.usuario[:2].upper() }}
+                {% if g.usuario_actual %}
+                    {{ g.usuario_actual.usuario[:2].upper() }}
+                {% else %}
+                    U {% endif %}
             </div>
         </header>
 
