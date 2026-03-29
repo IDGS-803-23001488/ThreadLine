@@ -12,6 +12,10 @@ import random
 from flask_mail import Message
 from extensions import mail
 from utils.crypto_url import encrypt_id, decrypt_id
+from middlerware import login_requerido, permiso_requerido, decrypt_url_id
+from forms import ClienteForm
+from utils.security import hash_password
+
 
 REQUIERE_2FA = False
 
@@ -141,7 +145,7 @@ def login():
                 return usuario_bloqueado_response(user if user else cliente)
                            
             flash(f"Credenciales incorrectas  intento {intento.intentos} de 3", "error")
-            return redirect(url_for('auth.login'))
+            return render_template("auth/login.html")
     return render_template("auth/login.html")
 
 @auth.route("/modal_user/<id_cliente>/<id_usuario>", methods=["GET", "POST"])
@@ -354,3 +358,36 @@ def verificar_2fa(user_id,tipo):
 
     return render_template("auth/verificar_2fa.html")
 
+@auth.route("/registrar", methods=["GET", "POST"])
+def registrar():
+    form = ClienteForm(request.form)
+    
+    if request.method == "POST" and form.validate():
+        
+        existente = Cliente.query.filter_by(correo = form.correo.data).first()
+        
+        if existente :
+            flash("El correo ya existe","correo")
+            return render_template("auth/registrar.html",form=form)
+        
+        nuevo = Cliente(
+            nombre=form.nombre.data,
+            correo = form.correo.data,
+            contrasenia = hash_password(form.contrasenia.data),
+            telefono=form.telefono.data,
+            direccion= form.direccion.data,
+            fecha_registro = datetime.datetime.now()
+        )
+        
+        db.session.add(nuevo)
+        db.session.commit()
+        
+        flash("Ahora eres parte")
+        return redirect(url_for("auth.login"))
+    
+    return render_template(
+        "auth/registrar.html",
+        form=form,
+        titulo="Registro",
+        telefono="Registro de nuevo cliente"
+    )

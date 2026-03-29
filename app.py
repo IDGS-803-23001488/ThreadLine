@@ -90,7 +90,8 @@ def verificar_token():
         "auth.verificar_2fa",
         "auth.modal_user",
         "static",
-        "main.index"
+        "main.index",
+        "auth.registrar"
     ]
 
     if request.endpoint and any(request.endpoint.startswith(r) for r in rutas_libres):
