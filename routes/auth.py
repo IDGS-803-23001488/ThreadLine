@@ -116,7 +116,7 @@ def login():
             if not intento:
                 intento = Token(
                     usuario_id=user.id if user else None, 
-                    cliente_id=user.id if user else None, 
+                    cliente_id=cliente.id if cliente else None, 
                     tipo='error_login',
                     intentos=1, 
                     fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(minutes=15),
@@ -132,7 +132,6 @@ def login():
                     user.bloqueado = True
                     user.activo = False
                 if cliente:
-                    cliente.bloqueado = True
                     cliente.activo = False
                 
                 intento.fecha_expiracion=datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
