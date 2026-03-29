@@ -91,7 +91,7 @@ class Token(BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
     cliente_id = db.Column(db.Integer, db.ForeignKey("cliente.id"))
-    token = db.Column(db.String(36), nullable=False)
+    token = db.Column(db.String(36))
     tipo = db.Column(db.String(50), nullable=False)
     intentos = db.Column(db.Integer, default=0)
     tipo = db.Column(db.String(50), nullable=False) # login, recovery, etc
