@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 from decimal import Decimal
+from markupsafe import Markup
 
 productosVariantes = Blueprint(
     "productosVariantes",
@@ -121,6 +122,12 @@ def lista():
         [
             ("id", p.id),
             ("producto", p.producto.nombre),
+            ("imagen", Markup(f'''
+                <button onclick="verImagen('/static/{p.producto.imagen}')">
+                    <img src="/static/{p.producto.imagen}" 
+                        class="w-16 h-16 object-cover rounded-lg">
+                </button>
+            ''') if p.producto.imagen else "—"),
             ("talla", p.talla.nombre),
             ("color", p.producto.color.nombre if p.producto.color else "—"),
             ("precio", f"${p.precio_venta:,.2f}")
@@ -128,7 +135,7 @@ def lista():
         for p in pagination.items
     ]
 
-    headers = ["ID", "Producto", "Talla", "Color", "Precio"]
+    headers = ["ID", "Producto", "Imagen","Talla", "Color", "Precio"]
 
     return render_template(
         "productosVariantes/lista.html", 
